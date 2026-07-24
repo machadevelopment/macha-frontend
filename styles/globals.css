@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Design tokens are the source of truth (design guide.md §11). Two layers:
+ *   Layer 1 — primitives (raw hex, never consumed directly by components)
+ *   Layer 2 — semantics (--background, --foreground, ... consumed by Tailwind/shadcn)
+ * Never hardcode hex in components. darkMode: 'class'.
+ */
+:root {
+  /* Layer 1 — primitives (light, source of truth) */
+  --canvas:#EFEFEF; --surface:#FFFFFF; --surface-2:#FFFFFF;
+  --ink:#0F0F0F; --muted:#737373; --faint:#A0A0A0;
+  --border:#E9E9E9; --soft:#F1F1F1; --fill:#F7F7F7;
+  --inverse-surface:#141414;
+  --green:#16A34A; --green-bg:#F0FDF4; --green-bd:#BBF7D0;
+  --red:#DC2626;  --red-bg:#FEF2F2;  --red-bd:#FECACA;
+  --amber:#B45309;--amber-bg:#FFFBEB;--amber-bd:#FDE68A; --amber-accent:#D97706;
+
+  /* Layer 2 — semantics */
+  --background:var(--canvas); --foreground:var(--ink);
+  --card:var(--surface); --card-foreground:var(--ink);
+  --popover:var(--surface); --popover-foreground:var(--ink);
+  --primary:var(--ink); --primary-foreground:#FFFFFF;
+  --muted-foreground:var(--muted); --accent:var(--fill); --accent-foreground:var(--ink);
+  --ring:#0F0F0F; --input:var(--border);
+  --success:var(--green); --success-bg:var(--green-bg); --success-bd:var(--green-bd);
+  --danger:var(--red);   --danger-bg:var(--red-bg);   --danger-bd:var(--red-bd);
+  --warning:var(--amber);--warning-bg:var(--amber-bg);--warning-bd:var(--amber-bd);
+}
+
+.dark {
+  --canvas:#000000; --surface:#141414; --surface-2:#1C1C1C;
+  --ink:#F5F5F5; --muted:#A0A0A0; --faint:#6B6B6B;
+  --border:#2A2A2A; --soft:#1F1F1F; --fill:#232323;
+  --inverse-surface:#F5F5F5;
+  --green:#4ADE80; --green-bg:#0E1F16; --green-bd:#194B31;
+  --red:#F87171;  --red-bg:#241111;  --red-bd:#5B1E1E;
+  --amber:#FBBF24;--amber-bg:#221A08;--amber-bd:#4A3714; --amber-accent:#F59E0B;
+
+  --background:var(--canvas); --foreground:var(--ink);
+  --card:var(--surface); --card-foreground:var(--ink);
+  --popover:var(--surface-2); --popover-foreground:var(--ink);
+  --primary:var(--ink); --primary-foreground:#0F0F0F;
+  --muted-foreground:var(--muted); --accent:var(--fill); --accent-foreground:var(--ink);
+  --ring:#F5F5F5; --input:var(--border);
+  --success:var(--green); --success-bg:var(--green-bg); --success-bd:var(--green-bd);
+  --danger:var(--red);   --danger-bg:var(--red-bg);   --danger-bd:var(--red-bd);
+  --warning:var(--amber);--warning-bg:var(--amber-bg);--warning-bd:var(--amber-bd);
+}
+
+/* Inverse surface (orgbar admin) forced dark even in light theme */
+.inverse { --surface:#141414; --ink:#FFFFFF; --border:#141414; --muted:#9CA3AF; }
+
+@layer base {
+  * { border-color: var(--border); }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-ui), system-ui, sans-serif;
+  }
+  /* Mono rule: all numbers/amounts/%/deltas/IDs/timestamps/uppercase eyebrows */
+  .font-mono, .tabular { font-family: var(--font-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  /* Accessible focus ring on every interactive element */
+  :where(a,button,[role="button"],input,select,textarea,[tabindex]):focus-visible {
+    outline: 2px solid var(--ring); outline-offset: 2px;
+  }
+}
