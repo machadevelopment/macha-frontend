@@ -3,23 +3,29 @@ import type { Config } from 'tailwindcss';
 // Exact token set from design guide.md §11.3. darkMode: 'class'.
 export default {
   darkMode: 'class',
-  content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './lib/**/*.{ts,tsx}',
-  ],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        background: 'var(--background)', foreground: 'var(--foreground)',
-        card: 'var(--card)', border: 'var(--border)', input: 'var(--input)', ring: 'var(--ring)',
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        card: 'var(--card)',
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
         primary: { DEFAULT: 'var(--primary)', foreground: 'var(--primary-foreground)' },
         muted: { DEFAULT: 'var(--fill)', foreground: 'var(--muted-foreground)' },
         accent: { DEFAULT: 'var(--accent)' },
-        faint: 'var(--faint)', soft: 'var(--soft)',
+        faint: 'var(--faint)',
+        soft: 'var(--soft)',
         success: { DEFAULT: 'var(--green)', bg: 'var(--green-bg)', bd: 'var(--green-bd)' },
         danger: { DEFAULT: 'var(--red)', bg: 'var(--red-bg)', bd: 'var(--red-bd)' },
-        warning: { DEFAULT: 'var(--amber)', bg: 'var(--amber-bg)', bd: 'var(--amber-bd)', accent: 'var(--amber-accent)' },
+        warning: {
+          DEFAULT: 'var(--amber)',
+          bg: 'var(--amber-bg)',
+          bd: 'var(--amber-bd)',
+          accent: 'var(--amber-accent)',
+        },
       },
       fontFamily: {
         ui: ['var(--font-ui)', 'system-ui', 'sans-serif'],
