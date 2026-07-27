@@ -38,4 +38,21 @@ export interface Dictionary {
       failed: string;
     };
   };
+  dashboard: {
+    eyebrow: string;
+    title: string;
+    kpi: {
+      revenue: string;
+      cogs: string;
+      margin: string;
+    };
+    trendTitle: string;
+    arApTitle: string;
+    ar: string;
+    ap: string;
+    insightCta: string;
+    insightLoading: string;
+    insightInsufficientCredits: string;
+    creditsLabel: string;
+  };
 }

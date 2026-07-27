@@ -16,12 +16,22 @@ export interface KpiCardProps {
   value: string;
   /** Fraction, not a percentage — e.g. 0.123 renders as "+12.3%" (formatPct). */
   delta?: number;
+  /** For cost-type metrics where an increase is bad (e.g. cogs) — flips green/red. */
+  invertDelta?: boolean;
   locale?: Locale;
   loading?: boolean;
   className?: string;
 }
 
-export function KpiCard({ label, value, delta, locale = 'es', loading, className }: KpiCardProps) {
+export function KpiCard({
+  label,
+  value,
+  delta,
+  invertDelta = false,
+  locale = 'es',
+  loading,
+  className,
+}: KpiCardProps) {
   if (loading) {
     return (
       <Card className={cn('animate-pulse', className)}>
@@ -31,15 +41,15 @@ export function KpiCard({ label, value, delta, locale = 'es', loading, className
     );
   }
 
-  const isPositive = (delta ?? 0) >= 0;
+  const isGood = invertDelta ? (delta ?? 0) <= 0 : (delta ?? 0) >= 0;
 
   return (
     <Card className={className}>
       <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
       <p className="mt-1 font-mono text-kpi tabular-nums">{value}</p>
       {delta !== undefined && (
-        <Badge variant={isPositive ? 'success' : 'danger'} className="mt-2 gap-1 normal-case">
-          {isPositive ? (
+        <Badge variant={isGood ? 'success' : 'danger'} className="mt-2 gap-1 normal-case">
+          {delta >= 0 ? (
             <TrendingUp className="h-3 w-3" strokeWidth={2} />
           ) : (
             <TrendingDown className="h-3 w-3" strokeWidth={2} />

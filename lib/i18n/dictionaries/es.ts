@@ -41,4 +41,21 @@ export const es: Dictionary = {
       failed: 'Error',
     },
   },
+  dashboard: {
+    eyebrow: 'DASHBOARD',
+    title: 'Panorama financiero',
+    kpi: {
+      revenue: 'Ingresos',
+      cogs: 'Costo de ventas',
+      margin: 'Margen',
+    },
+    trendTitle: 'Tendencia mensual',
+    arApTitle: 'Cuentas por cobrar / pagar',
+    ar: 'Por cobrar',
+    ap: 'Por pagar',
+    insightCta: 'Generar insight',
+    insightLoading: 'Generando…',
+    insightInsufficientCredits: 'Saldo de créditos insuficiente para generar un insight.',
+    creditsLabel: 'créditos',
+  },
 };

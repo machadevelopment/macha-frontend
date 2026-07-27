@@ -41,4 +41,21 @@ export const en: Dictionary = {
       failed: 'Error',
     },
   },
+  dashboard: {
+    eyebrow: 'DASHBOARD',
+    title: 'Financial overview',
+    kpi: {
+      revenue: 'Revenue',
+      cogs: 'Cost of sales',
+      margin: 'Margin',
+    },
+    trendTitle: 'Monthly trend',
+    arApTitle: 'Accounts receivable / payable',
+    ar: 'Receivable',
+    ap: 'Payable',
+    insightCta: 'Generate insight',
+    insightLoading: 'Generating…',
+    insightInsufficientCredits: 'Insufficient credit balance to generate an insight.',
+    creditsLabel: 'credits',
+  },
 };

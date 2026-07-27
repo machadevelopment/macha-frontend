@@ -36,6 +36,11 @@ export default async function Home() {
           {t.upload.title}
         </a>
       )}
+      {user && (
+        <a href="/dashboard" className="text-body underline">
+          {t.dashboard.title}
+        </a>
+      )}
 
       {user ? (
         <form
