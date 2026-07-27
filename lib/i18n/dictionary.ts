@@ -15,4 +15,27 @@ export interface Dictionary {
     title: string;
     subtitle: string;
   };
+  upload: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    dropzoneCta: string;
+    dropzoneHint: string;
+    downloadTemplate: string;
+    empty: string;
+    step: {
+      queued: string;
+      processing: string;
+      review: string;
+      promoted: string;
+    };
+    status: {
+      queued: string;
+      processing: string;
+      review: string;
+      promoted: string;
+      reverted: string;
+      failed: string;
+    };
+  };
 }

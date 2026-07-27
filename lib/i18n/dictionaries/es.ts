@@ -18,4 +18,27 @@ export const es: Dictionary = {
     subtitle:
       'Scaffolding listo: tokens de diseño, tipografía Inter/JetBrains Mono y temas claro/oscuro.',
   },
+  upload: {
+    eyebrow: 'INGESTA',
+    title: 'Cargar datos',
+    subtitle: 'Sube tu Excel/CSV contable y sigue su procesamiento.',
+    dropzoneCta: 'Arrastra tu archivo aquí o haz clic para buscarlo',
+    dropzoneHint: '.xlsx, .xls o .csv',
+    downloadTemplate: 'Descargar plantilla',
+    empty: 'Todavía no has subido ningún archivo.',
+    step: {
+      queued: 'En cola',
+      processing: 'Procesando',
+      review: 'Revisión',
+      promoted: 'Listo',
+    },
+    status: {
+      queued: 'En cola',
+      processing: 'Procesando',
+      review: 'En revisión',
+      promoted: 'Listo',
+      reverted: 'Revertido',
+      failed: 'Error',
+    },
+  },
 };
