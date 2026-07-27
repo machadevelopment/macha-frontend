@@ -110,6 +110,34 @@
   --muted: #9ca3af;
 }
 
+/*
+ * Density tokens (design guide.md §4.1). `compact` (dashboards/tables) is the
+ * app-wide default; `comfortable` (forms/onboarding) is opt-in via
+ * data-density="comfortable" on a container. Components read these vars
+ * instead of hardcoding padding, so switching the attribute re-themes them.
+ */
+:root {
+  --density-card-p: 16px;
+  --density-main-p: 26px;
+  --density-btn-py: 8px;
+  --density-btn-px: 14px;
+  --density-btn-sm-py: 5px;
+  --density-btn-sm-px: 10px;
+  --density-td-p: 12px;
+  --density-input-py: 10px;
+  --density-input-px: 12px;
+  --density-pipe-p: 13px 15px;
+}
+[data-density='comfortable'] {
+  --density-card-p: 20px;
+  --density-main-p: 30px;
+  --density-btn-py: 10px;
+  --density-btn-px: 16px;
+  --density-td-p: 14px;
+  --density-input-py: 11px;
+  --density-input-px: 14px;
+}
+
 @layer base {
   * {
     border-color: var(--border);
