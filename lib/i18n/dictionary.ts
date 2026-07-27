@@ -55,4 +55,13 @@ export interface Dictionary {
     insightInsufficientCredits: string;
     creditsLabel: string;
   };
+  chat: {
+    eyebrow: string;
+    title: string;
+    newChat: string;
+    empty: string;
+    placeholder: string;
+    send: string;
+    sending: string;
+  };
 }
