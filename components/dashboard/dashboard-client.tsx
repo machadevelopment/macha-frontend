@@ -7,7 +7,13 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
 
 // Owns the credits balance so InsightPanel's post-debit result updates
 // CreditsBadge instantly, without a refetch.
-export function DashboardClient({ labels }: { labels: Dictionary['dashboard'] }) {
+export function DashboardClient({
+  labels,
+  topUpLabel,
+}: {
+  labels: Dictionary['dashboard'];
+  topUpLabel: string;
+}) {
   const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
@@ -21,7 +27,7 @@ export function DashboardClient({ labels }: { labels: Dictionary['dashboard'] })
       <div className="flex justify-end">
         <CreditsBadge balance={balance} label={labels.creditsLabel} />
       </div>
-      <InsightPanel labels={labels} onCreditsUpdated={setBalance} />
+      <InsightPanel labels={labels} topUpLabel={topUpLabel} onCreditsUpdated={setBalance} />
     </div>
   );
 }

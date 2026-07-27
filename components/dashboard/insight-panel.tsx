@@ -12,9 +12,11 @@ import type { InsightResponse, InsufficientCreditsResponse } from '@/lib/api/das
 // never estimates or bypasses the check itself.
 export function InsightPanel({
   labels,
+  topUpLabel,
   onCreditsUpdated,
 }: {
   labels: Dictionary['dashboard'];
+  topUpLabel: string;
   onCreditsUpdated: (balance: number) => void;
 }) {
   const [state, setState] = useState<
@@ -53,7 +55,12 @@ export function InsightPanel({
         <p className="mt-3 whitespace-pre-wrap text-body">{state.narrative}</p>
       )}
       {state.status === 'error' && (
-        <p className="mt-3 text-body text-danger">{labels.insightInsufficientCredits}</p>
+        <div className="mt-3">
+          <p className="text-body text-danger">{labels.insightInsufficientCredits}</p>
+          <a href="/credits" className="text-body underline">
+            {topUpLabel}
+          </a>
+        </div>
       )}
     </Card>
   );

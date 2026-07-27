@@ -1,0 +1,30 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { requireSession } from '@/lib/auth/session';
+import { apiFetch, ApiError } from '@/lib/api/client';
+import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import type { CreditsTopupRequest, CreditsTopupResponse } from '@/lib/api/billing';
+
+// BFF proxy (CU-868kfvaet): forwards to macha-backend's POST /credits/topup
+// (tenantDerive + 'billing' capability, owner-only — enforced server-side, this
+// route just relays whatever status the backend returns).
+export async function POST(request: NextRequest) {
+  const { accessToken } = await requireSession();
+  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const body = (await request.json()) as CreditsTopupRequest;
+  try {
+    const data = await apiFetch<CreditsTopupResponse>('/credits/topup', {
+      method: 'POST',
+      accessToken,
+      companyId,
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return NextResponse.json(data);
+  } catch (err) {
+    if (err instanceof ApiError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
+  }
+}

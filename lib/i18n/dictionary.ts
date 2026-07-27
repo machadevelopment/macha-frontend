@@ -75,4 +75,33 @@ export interface Dictionary {
     saved: string;
     askInChat: string;
   };
+  register: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    name: string;
+    industry: string;
+    baseCurrency: string;
+    locale: string;
+    submit: string;
+    submitting: string;
+    error: string;
+    noMembershipsTitle: string;
+    noMembershipsSubtitle: string;
+    noMembershipsCta: string;
+  };
+  credits: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    currentBalance: string;
+    creditsLabel: string;
+    quantity: string;
+    pricePerCredit: string;
+    submit: string;
+    submitting: string;
+    error: string;
+    notOwner: string;
+    topUpCta: string;
+  };
 }
