@@ -58,4 +58,13 @@ export const en: Dictionary = {
     insightInsufficientCredits: 'Insufficient credit balance to generate an insight.',
     creditsLabel: 'credits',
   },
+  chat: {
+    eyebrow: 'CFO ASSISTANT',
+    title: 'Chat',
+    newChat: 'New chat',
+    empty: 'Type a message to get started.',
+    placeholder: 'Ask about your finances…',
+    send: 'Send',
+    sending: 'Sending…',
+  },
 };

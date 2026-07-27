@@ -41,6 +41,11 @@ export default async function Home() {
           {t.dashboard.title}
         </a>
       )}
+      {user && (
+        <a href="/chat" className="text-body underline">
+          {t.chat.title}
+        </a>
+      )}
 
       {user ? (
         <form
