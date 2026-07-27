@@ -31,6 +31,11 @@ export default async function Home() {
       <p className="text-body text-muted-foreground">{t.home.subtitle}</p>
 
       {user && <OrgSwitcher initialCompanyId={activeCompanyId} labels={t.common} />}
+      {user && (
+        <a href="/upload" className="text-body underline">
+          {t.upload.title}
+        </a>
+      )}
 
       {user ? (
         <form
