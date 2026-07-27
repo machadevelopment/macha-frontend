@@ -67,4 +67,15 @@ export const es: Dictionary = {
     send: 'Enviar',
     sending: 'Enviando…',
   },
+  reports: {
+    eyebrow: 'REPORTES',
+    title: 'Reportes',
+    empty: 'Todavía no hay reportes generados.',
+    viewRendered: 'Ver versión final',
+    edit: 'Editar narrativa',
+    save: 'Guardar como nueva versión',
+    saving: 'Guardando…',
+    saved: 'Guardado',
+    askInChat: 'Preguntar en el chat',
+  },
 };

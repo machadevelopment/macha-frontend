@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,8 +23,10 @@ interface ChatMessage {
 }
 
 export function ChatClient({ locale, labels }: { locale: Locale; labels: Dictionary['chat'] }) {
+  const searchParams = useSearchParams();
+  const requestedThread = searchParams.get('thread');
   const [threads, setThreads] = useState<ChatThread[] | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(requestedThread);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -33,8 +36,11 @@ export function ChatClient({ locale, labels }: { locale: Locale; labels: Diction
       .then((r) => r.json())
       .then((data: ChatThread[]) => {
         setThreads(data);
-        if (data[0]) setActiveId(data[0].id);
+        // Deep-link from a report (?thread=<id>, CU-868kfvacr) wins over the default
+        // "select the most recent thread" behavior.
+        if (!requestedThread && data[0]) setActiveId(data[0].id);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

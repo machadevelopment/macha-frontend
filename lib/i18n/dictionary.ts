@@ -64,4 +64,15 @@ export interface Dictionary {
     send: string;
     sending: string;
   };
+  reports: {
+    eyebrow: string;
+    title: string;
+    empty: string;
+    viewRendered: string;
+    edit: string;
+    save: string;
+    saving: string;
+    saved: string;
+    askInChat: string;
+  };
 }
