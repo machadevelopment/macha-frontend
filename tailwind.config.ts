@@ -3,7 +3,15 @@ import type { Config } from 'tailwindcss';
 // Exact token set from design guide.md §11.3. darkMode: 'class'.
 export default {
   darkMode: 'class',
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './lib/**/*.{ts,tsx}',
+    // @tremor/react generates Tailwind class names at runtime (e.g. bg-blue-500 for
+    // chart series colors) — without scanning its dist, Tailwind's JIT purge strips
+    // them and Tremor renders unstyled.
+    './node_modules/@tremor/react/dist/**/*.js',
+  ],
   theme: {
     extend: {
       colors: {

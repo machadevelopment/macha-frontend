@@ -25,7 +25,23 @@ import type { Membership } from '@/app/api/memberships/route';
  * `macha-company-id` cookie so the trigger label doesn't flash "Selecciona..."
  * before the client fetch resolves.
  */
-export function OrgSwitcher({ initialCompanyId }: { initialCompanyId?: string }) {
+export interface OrgSwitcherLabels {
+  selectCompany: string;
+  machaInternal: string;
+}
+
+const defaultLabels: OrgSwitcherLabels = {
+  selectCompany: 'Selecciona una empresa',
+  machaInternal: 'Macha Internal',
+};
+
+export function OrgSwitcher({
+  initialCompanyId,
+  labels = defaultLabels,
+}: {
+  initialCompanyId?: string;
+  labels?: OrgSwitcherLabels;
+}) {
   const router = useRouter();
   const [memberships, setMemberships] = useState<Membership[] | null>(null);
   const [staffTier, setStaffTier] = useState<string | null>(null);
@@ -77,7 +93,7 @@ export function OrgSwitcher({ initialCompanyId }: { initialCompanyId?: string })
               {(current?.companyName ?? 'M').slice(0, 1).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-body">{current?.companyName ?? 'Selecciona una empresa'}</span>
+          <span className="text-body">{current?.companyName ?? labels.selectCompany}</span>
           <ChevronsUpDown className="h-4 w-4 text-faint" />
         </Button>
       </DropdownMenuTrigger>
@@ -91,7 +107,7 @@ export function OrgSwitcher({ initialCompanyId }: { initialCompanyId?: string })
         {staffTier && (
           <DropdownMenuItem onSelect={() => router.push('/admin')} className="text-faint">
             <Building2 className="h-4 w-4" />
-            Macha Internal
+            {labels.machaInternal}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

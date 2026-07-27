@@ -2,7 +2,10 @@ import { cookies } from 'next/headers';
 import { getSignInUrl, signOut } from '@workos-inc/authkit-nextjs';
 import { getOptionalSession } from '@/lib/auth/session';
 import { OrgSwitcher } from '@/components/org-switcher';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { getLocale } from '@/lib/i18n/server';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
 
 // Customer app entry (placeholder). Real dashboard lands in F2+.
 // `/` is the one unauthenticated path (middleware.ts) — it's both the landing
@@ -15,16 +18,19 @@ import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
 export default async function Home() {
   const { user } = await getOptionalSession();
   const activeCompanyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const locale = getLocale();
+  const t = getDictionary(locale);
 
   return (
-    <main data-density="compact" className="mx-auto max-w-app p-[26px]">
-      <p className="font-mono text-eyebrow uppercase text-faint">MACHA FINANCE</p>
-      <h1 className="text-h1">Fundaciones F1</h1>
-      <p className="text-body text-muted-foreground">
-        Scaffolding listo: tokens de diseño, tipografía Inter/JetBrains Mono y temas claro/oscuro.
-      </p>
+    <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-eyebrow uppercase text-faint">{t.home.eyebrow}</p>
+        <LocaleSwitcher locale={locale} />
+      </div>
+      <h1 className="text-h1">{t.home.title}</h1>
+      <p className="text-body text-muted-foreground">{t.home.subtitle}</p>
 
-      {user && <OrgSwitcher initialCompanyId={activeCompanyId} />}
+      {user && <OrgSwitcher initialCompanyId={activeCompanyId} labels={t.common} />}
 
       {user ? (
         <form
@@ -35,12 +41,12 @@ export default async function Home() {
         >
           <p className="font-mono text-body">{user.email}</p>
           <button type="submit" className="text-body underline">
-            Cerrar sesión
+            {t.common.signOut}
           </button>
         </form>
       ) : (
         <a href={await getSignInUrl()} className="text-body underline">
-          Iniciar sesión
+          {t.common.signIn}
         </a>
       )}
     </main>

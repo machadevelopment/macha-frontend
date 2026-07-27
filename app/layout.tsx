@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
 import { inter, mono } from '@/lib/fonts';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning className={`${inter.variable} ${mono.variable}`}>
       <body>
         <AuthKitProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </AuthKitProvider>
       </body>
     </html>
