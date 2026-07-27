@@ -1,14 +1,20 @@
+import { cookies } from 'next/headers';
 import { getSignInUrl, signOut } from '@workos-inc/authkit-nextjs';
 import { getOptionalSession } from '@/lib/auth/session';
+import { OrgSwitcher } from '@/components/org-switcher';
+import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
 
 // Customer app entry (placeholder). Real dashboard lands in F2+.
 // `/` is the one unauthenticated path (middleware.ts) — it's both the landing
 // page and the hosted-login entry point (CU-868kfva59). No custom form: 100%
 // hosted UI, per CLAUDE.md ("app verifies session, it does not implement
 // login/password/email-verification").
+// The org-switcher is mounted here as a placeholder host — the real sidebar
+// shell (design guide.md "orgbar") is Design System epic scope, deferred.
 // Density: dashboards/tables use data-density="compact".
 export default async function Home() {
   const { user } = await getOptionalSession();
+  const activeCompanyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[26px]">
@@ -17,6 +23,8 @@ export default async function Home() {
       <p className="text-body text-muted-foreground">
         Scaffolding listo: tokens de diseño, tipografía Inter/JetBrains Mono y temas claro/oscuro.
       </p>
+
+      {user && <OrgSwitcher initialCompanyId={activeCompanyId} />}
 
       {user ? (
         <form
