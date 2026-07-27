@@ -15,7 +15,7 @@ export default function DashboardPage() {
       <p className="font-mono text-eyebrow uppercase text-faint">{t.dashboard.eyebrow}</p>
       <h1 className="mb-4 text-h1">{t.dashboard.title}</h1>
 
-      <DashboardClient labels={t.dashboard} />
+      <DashboardClient labels={t.dashboard} topUpLabel={t.credits.topUpCta} />
 
       <div className="mt-4">
         <KpiRow locale={locale} labels={t.dashboard.kpi} />
