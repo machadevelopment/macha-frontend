@@ -23,6 +23,9 @@ export interface Dictionary {
     dropzoneHint: string;
     downloadTemplate: string;
     empty: string;
+    revert: string;
+    reverting: string;
+    revertConfirm: string;
     step: {
       queued: string;
       processing: string;
