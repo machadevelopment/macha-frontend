@@ -47,7 +47,7 @@ export function ReportList({ locale, labels }: { locale: Locale; labels: Diction
         {reports.map((r) => (
           <TableRow key={r.id}>
             <TableCell>
-              <a href={`/reports/${r.id}`} className="text-body underline">
+              <a href={`/reports/${r.id}`} className="font-mono tabular-nums underline">
                 {formatDate(r.periodStart, locale)} — {formatDate(r.periodEnd, locale)}
               </a>
             </TableCell>
