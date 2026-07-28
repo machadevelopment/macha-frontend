@@ -26,6 +26,10 @@ export const es: Dictionary = {
     dropzoneHint: '.xlsx, .xls o .csv',
     downloadTemplate: 'Descargar plantilla',
     empty: 'Todavía no has subido ningún archivo.',
+    revert: 'Revertir',
+    reverting: 'Revirtiendo…',
+    revertConfirm:
+      '¿Revertir esta carga? Se eliminarán todos los movimientos, facturas y cuentas por pagar que generó. La acción queda registrada y no se puede deshacer desde la aplicación.',
     step: {
       queued: 'En cola',
       processing: 'Procesando',

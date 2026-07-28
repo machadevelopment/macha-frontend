@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DocumentPipeline, type DocumentStatus } from '@/components/upload/pipeline';
 import { formatDate } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -32,18 +33,35 @@ export function DocumentList({
   locale,
   labels,
   refreshToken,
+  canRevert,
 }: {
   locale: Locale;
   labels: Dictionary['upload'];
   refreshToken: number;
+  canRevert: boolean;
 }) {
   const [documents, setDocuments] = useState<DocumentRow[] | null>(null);
+  const [reverting, setReverting] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetch('/api/documents')
       .then((r) => r.json())
       .then((data: { documents: DocumentRow[] }) => setDocuments(data.documents));
   }, []);
+
+  // CU-868kh8nhy: revertir hace soft-delete de todas las filas de negocio que este
+  // documento promovió. Se confirma antes porque es destructivo y no hay "deshacer
+  // el deshacer" en la UI.
+  async function revert(id: string) {
+    if (!window.confirm(labels.revertConfirm)) return;
+    setReverting(id);
+    try {
+      await fetch(`/api/documents/${id}/revert`, { method: 'POST' });
+      load();
+    } finally {
+      setReverting(null);
+    }
+  }
 
   useEffect(() => {
     load();
@@ -70,6 +88,7 @@ export function DocumentList({
           <TableHead>Archivo</TableHead>
           <TableHead>Estado</TableHead>
           <TableHead>Fecha</TableHead>
+          {canRevert && <TableHead />}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -99,6 +118,22 @@ export function DocumentList({
             <TableCell className="font-mono tabular-nums text-muted-foreground">
               {formatDate(doc.createdAt, locale)}
             </TableCell>
+            {canRevert && (
+              <TableCell>
+                {/* Solo un documento promovido tiene filas que deshacer — el backend
+                    responde 409 en cualquier otro estado. */}
+                {doc.status === 'promoted' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => revert(doc.id)}
+                    disabled={reverting === doc.id}
+                  >
+                    {reverting === doc.id ? labels.reverting : labels.revert}
+                  </Button>
+                )}
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>

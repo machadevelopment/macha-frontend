@@ -26,6 +26,10 @@ export const en: Dictionary = {
     dropzoneHint: '.xlsx, .xls or .csv',
     downloadTemplate: 'Download template',
     empty: "You haven't uploaded any files yet.",
+    revert: 'Revert',
+    reverting: 'Reverting…',
+    revertConfirm:
+      'Revert this upload? Every transaction, invoice and bill it created will be removed. The action is recorded and cannot be undone from the app.',
     step: {
       queued: 'Queued',
       processing: 'Processing',

@@ -9,7 +9,15 @@ import { DocumentList } from '@/components/upload/document-list';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
-export function UploadScreen({ locale, labels }: { locale: Locale; labels: Dictionary['upload'] }) {
+export function UploadScreen({
+  locale,
+  labels,
+  canRevert,
+}: {
+  locale: Locale;
+  labels: Dictionary['upload'];
+  canRevert: boolean;
+}) {
   const [refreshToken, setRefreshToken] = useState(0);
 
   return (
@@ -22,7 +30,12 @@ export function UploadScreen({ locale, labels }: { locale: Locale; labels: Dicti
         </Button>
       </a>
       <Card>
-        <DocumentList locale={locale} labels={labels} refreshToken={refreshToken} />
+        <DocumentList
+          locale={locale}
+          labels={labels}
+          refreshToken={refreshToken}
+          canRevert={canRevert}
+        />
       </Card>
     </div>
   );
