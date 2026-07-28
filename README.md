@@ -11,6 +11,24 @@ cp .env.example .env
 bun run dev
 ```
 
+## Environment variables
+
+Secrets live only in platform-native envs (Vercel) or a local untracked `.env` —
+never committed (`.gitignore` blocks `.env*` except `.env.example`). **Non-prod
+credentials are fully separate values from prod** for every external service below;
+staging/preview never point at prod WorkOS or Sentry, so an incident in staging
+can't touch prod auth or pollute prod error tracking. See `.env.example` for the
+full list; summary:
+
+| Variable | Required | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_APP_NAME` | No (has default) | Display name. |
+| `NEXT_PUBLIC_API_URL` | Yes | Base URL of `macha-backend` (Railway). |
+| `NEXT_PUBLIC_WORKOS_REDIRECT_URI` | Yes | AuthKit hosted UI callback. |
+| `WORKOS_API_KEY`, `WORKOS_CLIENT_ID`, `WORKOS_COOKIE_PASSWORD` | Yes | AuthKit session verification — no login/password UI of our own. |
+| `NEXT_PUBLIC_SENTRY_DSN` | Prod/staging | Client-side error capture. No-op without it. |
+| `SENTRY_DSN` | Prod/staging | Server/edge error capture (`instrumentation.ts`). No-op without it. |
+
 ## Layout
 ```
 app/
