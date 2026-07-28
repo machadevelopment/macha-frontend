@@ -24,7 +24,10 @@ export const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-3 top-3 text-faint hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+      <DialogPrimitive.Close
+        className="absolute right-3 top-3 text-faint hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label="Cerrar"
+      >
         <X className="h-4 w-4" strokeWidth={1.7} />
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
