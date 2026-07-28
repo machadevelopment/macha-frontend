@@ -59,8 +59,11 @@ export function CreditRulesPanel() {
         <p className="mb-2 text-cardh2">Nueva versión (desactiva la anterior de la misma acción)</p>
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-body font-medium">Acción</label>
+            <label htmlFor="creditRuleActionKind" className="text-body font-medium">
+              Acción
+            </label>
             <select
+              id="creditRuleActionKind"
               value={form.actionKind}
               onChange={(e) => setForm({ ...form, actionKind: e.target.value })}
               className="rounded-md border border-border bg-card px-3 py-2 text-body"
@@ -72,8 +75,11 @@ export function CreditRulesPanel() {
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-body font-medium">Tipo</label>
+            <label htmlFor="creditRuleType" className="text-body font-medium">
+              Tipo
+            </label>
             <select
+              id="creditRuleType"
               value={form.ruleType}
               onChange={(e) => setForm({ ...form, ruleType: e.target.value })}
               className="rounded-md border border-border bg-card px-3 py-2 text-body"

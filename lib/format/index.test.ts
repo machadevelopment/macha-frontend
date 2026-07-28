@@ -11,6 +11,14 @@ describe('formatMoney', () => {
     expect(() => formatMoney(0, 'GTQ', 'es')).not.toThrow();
     expect(() => formatMoney(-500.25, 'USD', 'en')).not.toThrow();
   });
+
+  test('accepts a numeric string (contract with backend numeric columns, CU-868kfvb02)', () => {
+    expect(formatMoney('1234.50', 'GTQ', 'es')).toBe(formatMoney(1234.5, 'GTQ', 'es'));
+  });
+
+  test('numeric string and number produce identical output for a negative amount', () => {
+    expect(formatMoney('-500.25', 'USD', 'en')).toBe(formatMoney(-500.25, 'USD', 'en'));
+  });
 });
 
 describe('formatDate', () => {

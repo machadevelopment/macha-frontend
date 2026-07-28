@@ -52,6 +52,27 @@ export function ArApChart({
         className="h-64 font-mono text-eyebrow"
         showLegend
       />
+      {/* Alternativa accesible: el SVG del chart no expone los valores a lectores de
+          pantalla — CU-868kfvaz9. */}
+      <table className="sr-only">
+        <caption>{title}</caption>
+        <thead>
+          <tr>
+            <th>Antigüedad</th>
+            <th>{arLabel}</th>
+            <th>{apLabel}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {chartData.map((row) => (
+            <tr key={row.bucket}>
+              <td>{row.bucket}</td>
+              <td>{formatMoney(row[arLabel] as number, currency, locale)}</td>
+              <td>{formatMoney(row[apLabel] as number, currency, locale)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }
