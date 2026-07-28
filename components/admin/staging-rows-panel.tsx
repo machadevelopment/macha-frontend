@@ -16,19 +16,26 @@ interface StagingRow {
   reviewStatus: string;
 }
 
+const PAGE_SIZE = 50;
+
 export function StagingRowsPanel() {
   const [rows, setRows] = useState<StagingRow[] | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
-  function load() {
-    fetch('/api/admin/staging-rows')
+  function load(offset = 0) {
+    fetch(`/api/admin/staging-rows?limit=${PAGE_SIZE}&offset=${offset}`)
       .then((r) => r.json())
-      .then((data: StagingRow[]) => {
-        setRows(data);
-        setDrafts(Object.fromEntries(data.map((r) => [r.id, JSON.stringify(r.payload, null, 2)])));
+      .then((data: { rows: StagingRow[]; hasMore: boolean }) => {
+        setRows((prev) => (offset === 0 ? data.rows : [...(prev ?? []), ...data.rows]));
+        setHasMore(data.hasMore);
+        setDrafts((prev) => ({
+          ...(offset === 0 ? {} : prev),
+          ...Object.fromEntries(data.rows.map((r) => [r.id, JSON.stringify(r.payload, null, 2)])),
+        }));
       });
   }
-  useEffect(load, []);
+  useEffect(() => load(0), []);
 
   async function approve(id: string, reject = false) {
     const payload = JSON.parse(drafts[id] ?? '{}');
@@ -75,6 +82,11 @@ export function StagingRowsPanel() {
           </div>
         </Card>
       ))}
+      {hasMore && (
+        <Button size="sm" variant="outline" onClick={() => load(rows.length)}>
+          Cargar más
+        </Button>
+      )}
     </div>
   );
 }

@@ -84,6 +84,7 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
                 <TableCell>{u.email}</TableCell>
                 <TableCell>
                   <select
+                    aria-label={`Rol de ${u.email}`}
                     value={u.role}
                     onChange={(e) => updateRole(u.userId, e.target.value)}
                     className="rounded-md border border-border bg-card px-2 py-1 text-body"
@@ -121,6 +122,7 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
                 <TableCell>
                   <Input
                     type="number"
+                    aria-label={`Umbral de ${rule.ruleKey}`}
                     defaultValue={rule.threshold}
                     className="w-24"
                     onBlur={(e) => updateThreshold(rule.ruleKey, Number(e.target.value))}

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 interface DocumentRow {
   id: string;
@@ -24,15 +25,22 @@ interface DocumentRow {
   createdAt: string;
 }
 
+const PAGE_SIZE = 50;
+
 // CU-868kfvag7 criterio 2: monitoreo de uploads/procesos, cross-company (staff ve todas).
 export function DocumentsPanel() {
   const [docs, setDocs] = useState<DocumentRow[] | null>(null);
+  const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/admin/documents')
+  function load(offset = 0) {
+    fetch(`/api/admin/documents?limit=${PAGE_SIZE}&offset=${offset}`)
       .then((r) => r.json())
-      .then(setDocs);
-  }, []);
+      .then((data: { rows: DocumentRow[]; hasMore: boolean }) => {
+        setDocs((prev) => (offset === 0 ? data.rows : [...(prev ?? []), ...data.rows]));
+        setHasMore(data.hasMore);
+      });
+  }
+  useEffect(() => load(0), []);
 
   if (!docs) return null;
 
@@ -73,6 +81,11 @@ export function DocumentsPanel() {
           ))}
         </TableBody>
       </Table>
+      {hasMore && (
+        <Button size="sm" variant="outline" className="mt-3" onClick={() => load(docs.length)}>
+          Cargar más
+        </Button>
+      )}
     </Card>
   );
 }

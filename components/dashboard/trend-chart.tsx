@@ -35,6 +35,29 @@ export function TrendChart({ locale, title }: { locale: Locale; title: string })
         showLegend
         showGridLines
       />
+      {/* Alternativa accesible: el SVG del chart (Tremor/Recharts) no expone los
+          valores a lectores de pantalla — CU-868kfvaz9. */}
+      <table className="sr-only">
+        <caption>{title}</caption>
+        <thead>
+          <tr>
+            <th>Periodo</th>
+            <th>Ingresos</th>
+            <th>Costo de ventas</th>
+            <th>Margen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.months.map((m) => (
+            <tr key={m.period}>
+              <td>{m.period}</td>
+              <td>{formatMoney(m.revenue, currency, locale)}</td>
+              <td>{formatMoney(m.cogs, currency, locale)}</td>
+              <td>{formatMoney(m.margin, currency, locale)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 }
