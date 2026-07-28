@@ -86,7 +86,9 @@ export function RegisterWizard({ labels }: { labels: Dictionary['register'] }) {
             id="locale"
             className="h-9 rounded-md border border-border bg-background px-3 text-body"
             value={form.locale}
-            onChange={(e) => setForm({ ...form, locale: e.target.value as RegisterRequest['locale'] })}
+            onChange={(e) =>
+              setForm({ ...form, locale: e.target.value as RegisterRequest['locale'] })
+            }
           >
             <option value="es">Español</option>
             <option value="en">English</option>
