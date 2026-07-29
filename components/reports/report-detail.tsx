@@ -16,6 +16,11 @@ interface ReportData {
   periodEnd: string;
   version: number;
   narrative: string;
+  /** CU-868kh8rz8: moneda base REAL de la empresa. `metrics` no la trae (son
+   * amount_base ya convertidos), así que viaja aparte en la respuesta. */
+  baseCurrency: string;
+  /** CU-868kh8uau: id de la versión actual (`report_versions.id`), no el del reporte. */
+  versionId: string;
   metrics: {
     revenue: number;
     cogs: number;
@@ -69,17 +74,25 @@ export function ReportDetail({
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
+  // CU-868kh8uau: se manda `versionId` (el `report_versions.id` real), no `reportId`.
+  // Antes iba el id del REPORTE en el campo que dice contener el de la VERSIÓN y, al no
+  // haber FK, la referencia falsa se persistía en silencio. El backend ahora valida y
+  // la FK compuesta de la migración 0011 lo hace imposible a nivel de base.
   async function askInChat() {
+    if (!report) return;
     const res = await fetch('/api/chats', {
       method: 'POST',
-      body: JSON.stringify({ title: `Reporte ${report?.periodStart}`, reportVersionId: reportId }),
+      body: JSON.stringify({
+        title: `${labels.chatThreadTitle} ${report.periodStart}`,
+        reportVersionId: report.versionId,
+      }),
     });
     const chat: { id: string } = await res.json();
     router.push(`/chat?thread=${chat.id}`);
   }
 
   if (!report) return null;
-  const currency: 'GTQ' | 'USD' = 'GTQ'; // metrics no traen moneda propia; el reporte hereda la de la empresa
+  const currency = report.baseCurrency as 'GTQ' | 'USD';
 
   return (
     <div className="flex flex-col gap-4">
@@ -96,19 +109,19 @@ export function ReportDetail({
 
       <div className="grid grid-cols-3 gap-3">
         <Card>
-          <p className="font-mono text-eyebrow uppercase text-faint">Ingresos</p>
+          <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.revenue}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
             {formatMoney(report.metrics.revenue, currency, locale)}
           </p>
         </Card>
         <Card>
-          <p className="font-mono text-eyebrow uppercase text-faint">Costo de ventas</p>
+          <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.cogs}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
             {formatMoney(report.metrics.cogs, currency, locale)}
           </p>
         </Card>
         <Card>
-          <p className="font-mono text-eyebrow uppercase text-faint">Margen</p>
+          <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.margin}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
             {formatMoney(report.metrics.margin, currency, locale)}
           </p>
