@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 
 // Raw fetch, not apiFetch: a 402 (insufficient_credits) carries {required, balance}
 // that the insight button needs to show verbatim — same reasoning as

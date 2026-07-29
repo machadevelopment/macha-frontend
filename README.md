@@ -48,7 +48,31 @@ styles/globals.css  # two-layer tokens, full light + dark
 tailwind.config.ts  # exact token set (design guide §11.3)
 ```
 
-## F1 status
-Foundations only: tokens, tailwind config, fonts, theming, format/i18n helpers and
-route skeletons. Components (shadcn/Tremor) and real screens land in F2+.
-Not yet compiled against the npm registry in this environment.
+## Estado (auditoría 2026-07-28)
+
+F1–F7 + M8 implementados y mergeados a `main` (staging). `typecheck`/`lint`/`test`
+verdes. Dashboard, upload, chat, reportes, registro autoservicio, compra de créditos
+y panel admin son pantallas reales, no esqueletos.
+
+**Deuda conocida y verificada** (cada una con ticket en ClickUp, lista MACHA FINANCE
+2.0):
+
+- **i18n incompleto en UI de cliente**: varios textos están hardcodeados en español
+  aunque el diccionario ES/EN tiene paridad completa (93 claves) — cabeceras de tabla
+  en `report-list`/`document-list`, los KPI de `report-detail` ("Ingresos", "Costo de
+  ventas", "Margen"), las tablas `sr-only` de los charts y los `aria-label="Cerrar"`
+  de `dialog`/`sheet`. Un cliente con `locale='en'` ve español en esos puntos.
+- **Moneda hardcodeada**: `report-detail.tsx` fija `'GTQ'` en vez de leer la moneda
+  base de la empresa (el dashboard sí la lee bien de `/metrics`). Rompe la regla
+  "moneda base por empresa" para empresas en USD.
+- **Deep-link de chat con id equivocado**: `report-detail.tsx` manda el `reportId`
+  como `reportVersionId` al crear el hilo; no hay FK, así que se guarda silenciosamente
+  una referencia incorrecta.
+- **`/admin/*` no tiene gate a nivel de ruta**: cualquier usuario autenticado renderiza
+  el shell del panel; solo las llamadas a la API devuelven 403. El dato está protegido,
+  la superficie no.
+- **Panel admin sin i18n**: todos sus textos están hardcodeados en español (decisión no
+  documentada — puede ser aceptable para staff interno, pero hay que decidirlo
+  explícitamente).
+- **Listados sin paginar**: `companies-panel`, `report-list` y `document-list` traen
+  todo de una vez (`staging-rows` y `documents` del admin sí pagina desde CU-868kfvaz9).

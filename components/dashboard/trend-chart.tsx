@@ -5,10 +5,22 @@ import { AreaChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatMoney } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { MetricsResponse } from '@/lib/api/dashboard';
 import { chartColors } from '@/components/charts/chart-theme';
 
-export function TrendChart({ locale, title }: { locale: Locale; title: string }) {
+export function TrendChart({
+  locale,
+  title,
+  labels,
+}: {
+  locale: Locale;
+  title: string;
+  /** CU-868kh8rz8: las cabeceras de la tabla `sr-only` se hardcodearon en español en el
+   * PR #19 (a11y). Un lector de pantalla SÍ las lee, así que son texto de cara al
+   * cliente y tienen que pasar por el diccionario como cualquier otro. */
+  labels: Dictionary['dashboard'];
+}) {
   const [data, setData] = useState<MetricsResponse | null>(null);
 
   useEffect(() => {
@@ -41,10 +53,10 @@ export function TrendChart({ locale, title }: { locale: Locale; title: string })
         <caption>{title}</caption>
         <thead>
           <tr>
-            <th>Periodo</th>
-            <th>Ingresos</th>
-            <th>Costo de ventas</th>
-            <th>Margen</th>
+            <th>{labels.chart.period}</th>
+            <th>{labels.kpi.revenue}</th>
+            <th>{labels.kpi.cogs}</th>
+            <th>{labels.kpi.margin}</th>
           </tr>
         </thead>
         <tbody>

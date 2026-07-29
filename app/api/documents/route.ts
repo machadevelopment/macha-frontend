@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { paginationSuffix } from '@/lib/api/pagination';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 
 // BFF proxy (CU-868kfva7z) — same reasoning as /api/memberships: the upload UI
 // never holds an access token, and company_id resolution stays server-side
 // (CLAUDE.md). `X-Company-Id` here is only the UI's remembered preference;
 // tenant.derive.ts on the backend is what actually authorizes it per request.
-export async function GET() {
+// CU-868kh913c: reenvía limit/offset. Antes el backend truncaba a 50 en silencio y
+// no había forma de pedir el resto.
+export async function GET(request: NextRequest) {
   const { accessToken } = await requireSession();
   const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
-  const data = await apiFetch('/documents', { accessToken, companyId });
+  const data = await apiFetch(`/documents${paginationSuffix(request)}`, { accessToken, companyId });
   return NextResponse.json(data);
 }
 

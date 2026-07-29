@@ -23,8 +23,11 @@ interface CompanyRow {
   createdAt: string;
 }
 
+const PAGE_SIZE = 50;
+
 export function CompaniesPanel() {
   const [companies, setCompanies] = useState<CompanyRow[] | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [form, setForm] = useState({
     workosOrgId: '',
     name: '',
@@ -35,14 +38,20 @@ export function CompaniesPanel() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function load() {
-    fetch('/api/admin/companies')
+  // CU-868kh913c: mismo patrón "load more" que los otros paneles de admin.
+  function load(offset = 0) {
+    fetch(`/api/admin/companies?limit=${PAGE_SIZE}&offset=${offset}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r)))
-      .then(setCompanies)
+      .then((data: { companies: CompanyRow[]; hasMore: boolean }) => {
+        setCompanies((prev) =>
+          offset === 0 ? data.companies : [...(prev ?? []), ...data.companies],
+        );
+        setHasMore(data.hasMore);
+      })
       .catch(() => setError('No autorizado — se necesita rol staff/super_admin.'));
   }
 
-  useEffect(load, []);
+  useEffect(() => load(0), []);
 
   async function createCompany() {
     setCreating(true);
@@ -144,6 +153,16 @@ export function CompaniesPanel() {
             ))}
           </TableBody>
         </Table>
+        {hasMore && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-3"
+            onClick={() => load(companies?.length ?? 0)}
+          >
+            Cargar más
+          </Button>
+        )}
       </Card>
     </div>
   );

@@ -22,12 +22,13 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-4">
-        <TrendChart locale={locale} title={t.dashboard.trendTitle} />
+        <TrendChart locale={locale} title={t.dashboard.trendTitle} labels={t.dashboard} />
         <ArApChart
           locale={locale}
           title={t.dashboard.arApTitle}
           arLabel={t.dashboard.ar}
           apLabel={t.dashboard.ap}
+          agingLabel={t.dashboard.chart.aging}
         />
       </div>
     </main>

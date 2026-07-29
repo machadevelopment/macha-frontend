@@ -15,12 +15,14 @@ const sideClasses = {
   right: 'right-0 top-0 h-full w-[212px] border-l',
 } as const;
 
+/** `closeLabel` obligatorio por el mismo motivo que en `dialog.tsx` — ver la nota ahí. */
 export const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     side?: keyof typeof sideClasses;
+    closeLabel: string;
   }
->(({ className, children, side = 'left', ...props }, ref) => (
+>(({ className, children, side = 'left', closeLabel, ...props }, ref) => (
   <DialogPrimitive.Portal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40" />
     <DialogPrimitive.Content
@@ -35,7 +37,7 @@ export const SheetContent = React.forwardRef<
       {children}
       <DialogPrimitive.Close
         className="absolute right-3 top-3 text-faint hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Cerrar"
+        aria-label={closeLabel}
       >
         <X className="h-4 w-4" strokeWidth={1.7} />
       </DialogPrimitive.Close>

@@ -19,3 +19,12 @@ jobs:
       - run: bun run lint
       - run: bun run format:check
       - run: bun test
+      # CU-868khttg2: `build` va en el gate porque typecheck/lint/test pasaron los tres
+      # en verde durante días con `next build` completamente roto (una constante
+      # exportada desde un archivo "use server"). `main` despliega automáticamente a
+      # STAGING, así que un build roto llegaba hasta el deploy sin que nada lo frenara.
+      # NEXT_PUBLIC_API_URL es de build-time: sin un valor, la recolección de datos de
+      # las rutas puede fallar por un motivo ajeno al código que se está validando.
+      - run: bun run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001

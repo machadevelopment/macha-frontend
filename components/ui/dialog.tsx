@@ -8,10 +8,17 @@ import { cn } from '@/lib/cn';
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 
+/**
+ * `closeLabel` es OBLIGATORIO a propósito (CU-868kh8rz8). Era `aria-label="Cerrar"`
+ * hardcodeado: invisible en la pantalla, pero un lector de pantalla lo lee, así que en
+ * inglés anunciaba el botón en español. Un default en cualquiera de los dos idiomas
+ * dejaría el mismo agujero abierto en silencio; siendo requerido, TS strict obliga a
+ * todo call-site a traerlo del diccionario (`t.common.close`).
+ */
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { closeLabel: string }
+>(({ className, children, closeLabel, ...props }, ref) => (
   <DialogPrimitive.Portal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40" />
     <DialogPrimitive.Content
@@ -26,7 +33,7 @@ export const DialogContent = React.forwardRef<
       {children}
       <DialogPrimitive.Close
         className="absolute right-3 top-3 text-faint hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Cerrar"
+        aria-label={closeLabel}
       >
         <X className="h-4 w-4" strokeWidth={1.7} />
       </DialogPrimitive.Close>

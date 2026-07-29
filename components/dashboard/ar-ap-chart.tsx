@@ -15,11 +15,14 @@ export function ArApChart({
   title,
   arLabel,
   apLabel,
+  agingLabel,
 }: {
   locale: Locale;
   title: string;
   arLabel: string;
   apLabel: string;
+  /** CU-868kh8rz8: cabecera de la tabla `sr-only`, hardcodeada en español por el PR #19. */
+  agingLabel: string;
 }) {
   const [data, setData] = useState<ArApResponse | null>(null);
 
@@ -58,7 +61,7 @@ export function ArApChart({
         <caption>{title}</caption>
         <thead>
           <tr>
-            <th>Antigüedad</th>
+            <th>{agingLabel}</th>
             <th>{arLabel}</th>
             <th>{apLabel}</th>
           </tr>
