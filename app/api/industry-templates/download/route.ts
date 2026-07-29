@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetchRaw } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 
 // Binary passthrough — apiFetchRaw (not apiFetch) so the .xlsx bytes and the
 // backend's Content-Disposition/Content-Type headers reach the browser untouched.

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { ApiError, apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 
 // CU-868kh8jxf. Proxy BFF con el mismo cableado que /api/reports/[id]: la UI nunca
 // sostiene el access token y `company_id` se resuelve server-side. El `X-Company-Id`

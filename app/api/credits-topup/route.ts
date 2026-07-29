@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch, ApiError } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 import type { CreditsTopupRequest, CreditsTopupResponse } from '@/lib/api/billing';
 
 // BFF proxy (CU-868kfvaet): forwards to macha-backend's POST /credits/topup
