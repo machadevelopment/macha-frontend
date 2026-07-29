@@ -7,6 +7,7 @@ export const es: Dictionary = {
     selectCompany: 'Selecciona una empresa',
     machaInternal: 'Macha Internal',
     loading: 'Cargando…',
+    close: 'Cerrar',
   },
   admin: {
     eyebrow: 'ADMIN',
@@ -30,6 +31,12 @@ export const es: Dictionary = {
     reverting: 'Revirtiendo…',
     revertConfirm:
       '¿Revertir esta carga? Se eliminarán todos los movimientos, facturas y cuentas por pagar que generó. La acción queda registrada y no se puede deshacer desde la aplicación.',
+    loadMore: 'Cargar más',
+    table: {
+      file: 'Archivo',
+      status: 'Estado',
+      date: 'Fecha',
+    },
     step: {
       queued: 'En cola',
       processing: 'Procesando',
@@ -57,6 +64,10 @@ export const es: Dictionary = {
     arApTitle: 'Cuentas por cobrar / pagar',
     ar: 'Por cobrar',
     ap: 'Por pagar',
+    chart: {
+      period: 'Periodo',
+      aging: 'Antigüedad',
+    },
     insightCta: 'Generar insight',
     insightLoading: 'Generando…',
     insightInsufficientCredits: 'Saldo de créditos insuficiente para generar un insight.',
@@ -81,6 +92,43 @@ export const es: Dictionary = {
     saving: 'Guardando…',
     saved: 'Guardado',
     askInChat: 'Preguntar en el chat',
+    chatThreadTitle: 'Reporte',
+    loadMore: 'Cargar más',
+    kpi: {
+      revenue: 'Ingresos',
+      cogs: 'Costo de ventas',
+      margin: 'Margen',
+    },
+    table: {
+      period: 'Periodo',
+      frequency: 'Frecuencia',
+      updated: 'Actualizado',
+    },
+  },
+  alerts: {
+    eyebrow: 'ALERTA',
+    title: 'Detalle de alerta',
+    empty: 'Todavía no se ha disparado ninguna alerta.',
+    notFound: 'No encontramos esta alerta.',
+    triggeredValue: 'Valor que la disparó',
+    threshold: 'Umbral configurado',
+    triggeredAt: 'Fecha',
+    sourceDocument: 'Carga que la originó',
+    noSourceDocument: 'Sin carga asociada',
+    backToDashboard: 'Volver al panorama',
+    loadMore: 'Cargar más',
+    rule: {
+      ar_overdue: 'Cobro vencido',
+      portfolio_concentration: 'Concentración de cartera',
+      revenue_drop: 'Caída de ingresos',
+      margin_drop: 'Margen bajo',
+      spend_out_of_range: 'Gasto fuera de rango',
+      low_credit_balance: 'Saldo de créditos bajo',
+    },
+    unit: {
+      days: 'días',
+      percent: '%',
+    },
   },
   register: {
     eyebrow: 'REGISTRO',

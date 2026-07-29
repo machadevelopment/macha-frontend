@@ -38,9 +38,9 @@ export function ReportList({ locale, labels }: { locale: Locale; labels: Diction
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Periodo</TableHead>
-          <TableHead>Frecuencia</TableHead>
-          <TableHead>Actualizado</TableHead>
+          <TableHead>{labels.table.period}</TableHead>
+          <TableHead>{labels.table.frequency}</TableHead>
+          <TableHead>{labels.table.updated}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

@@ -5,6 +5,8 @@ export interface Dictionary {
     selectCompany: string;
     machaInternal: string;
     loading: string;
+    /** aria-label del botón de cierre de Dialog/Sheet — lo lee un lector de pantalla. */
+    close: string;
   };
   admin: {
     eyebrow: string;
@@ -26,6 +28,12 @@ export interface Dictionary {
     revert: string;
     reverting: string;
     revertConfirm: string;
+    loadMore: string;
+    table: {
+      file: string;
+      status: string;
+      date: string;
+    };
     step: {
       queued: string;
       processing: string;
@@ -53,6 +61,11 @@ export interface Dictionary {
     arApTitle: string;
     ar: string;
     ap: string;
+    /** Cabeceras de las tablas `sr-only` equivalentes a los charts (CU-868kfvaz9). */
+    chart: {
+      period: string;
+      aging: string;
+    };
     insightCta: string;
     insightLoading: string;
     insightInsufficientCredits: string;
@@ -77,6 +90,46 @@ export interface Dictionary {
     saving: string;
     saved: string;
     askInChat: string;
+    chatThreadTitle: string;
+    loadMore: string;
+    kpi: {
+      revenue: string;
+      cogs: string;
+      margin: string;
+    };
+    table: {
+      period: string;
+      frequency: string;
+      updated: string;
+    };
+  };
+  alerts: {
+    eyebrow: string;
+    title: string;
+    empty: string;
+    notFound: string;
+    triggeredValue: string;
+    threshold: string;
+    triggeredAt: string;
+    sourceDocument: string;
+    noSourceDocument: string;
+    backToDashboard: string;
+    loadMore: string;
+    /** Etiquetas del catálogo fijo de reglas (config/alert-catalog.ts en el backend).
+     * El backend manda `ruleKey`, no el label, justamente para poder traducirlo aquí. */
+    rule: {
+      ar_overdue: string;
+      portfolio_concentration: string;
+      revenue_drop: string;
+      margin_drop: string;
+      spend_out_of_range: string;
+      low_credit_balance: string;
+    };
+    /** Unidad en la que se expresa el valor de cada regla (días vs. porcentaje). */
+    unit: {
+      days: string;
+      percent: string;
+    };
   };
   register: {
     eyebrow: string;
