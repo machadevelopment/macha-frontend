@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 
 // BFF proxy (CU-868kfva7z) — same reasoning as /api/memberships: the upload UI
 // never holds an access token, and company_id resolution stays server-side

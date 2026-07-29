@@ -4,7 +4,7 @@ import { getOptionalSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
 import { OrgSwitcher } from '@/components/org-switcher';
 import { LocaleSwitcher } from '@/components/locale-switcher';
-import { ACTIVE_COMPANY_COOKIE } from '@/app/actions/set-active-company';
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import type { Membership } from '@/app/api/memberships/route';

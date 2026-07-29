@@ -1,8 +1,9 @@
 'use server';
 
 import { cookies } from 'next/headers';
-
-export const ACTIVE_COMPANY_COOKIE = 'macha-company-id';
+// La constante vive en lib/auth/active-company.ts: un archivo "use server" solo puede
+// exportar funciones async (CU-868khttg2). Ver la nota de ese módulo.
+import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 
 /**
  * Persists the org-switcher's selection (CU-868kfva6c). This is a UI preference
