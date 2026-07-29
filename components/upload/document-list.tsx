@@ -85,9 +85,9 @@ export function DocumentList({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Archivo</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Fecha</TableHead>
+          <TableHead>{labels.table.file}</TableHead>
+          <TableHead>{labels.table.status}</TableHead>
+          <TableHead>{labels.table.date}</TableHead>
           {canRevert && <TableHead />}
         </TableRow>
       </TableHeader>
