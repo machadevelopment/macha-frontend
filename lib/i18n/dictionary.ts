@@ -7,6 +7,15 @@ export interface Dictionary {
     loading: string;
     /** aria-label del botón de cierre de Dialog/Sheet — lo lee un lector de pantalla. */
     close: string;
+    /** Control de tema del `side-bot` (CU-868khvzdf). */
+    theme: {
+      /** aria-label del disparador: es un botón de solo ícono. */
+      label: string;
+      light: string;
+      dark: string;
+      /** "Sistema" = seguir la preferencia del SO (`enableSystem` de next-themes). */
+      system: string;
+    };
   };
   admin: {
     eyebrow: string;

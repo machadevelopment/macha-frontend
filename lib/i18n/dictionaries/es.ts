@@ -8,6 +8,12 @@ export const es: Dictionary = {
     machaInternal: 'Macha Internal',
     loading: 'Cargando…',
     close: 'Cerrar',
+    theme: {
+      label: 'Tema',
+      light: 'Claro',
+      dark: 'Oscuro',
+      system: 'Sistema',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',
