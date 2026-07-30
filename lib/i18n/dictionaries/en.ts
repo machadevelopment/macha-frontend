@@ -23,6 +23,7 @@ export const en: Dictionary = {
     mainNav: 'Main navigation',
     collapse: 'Collapse menu',
     expand: 'Expand menu',
+    openMenu: 'Open menu',
     section: {
       analysis: 'Analysis',
       data: 'Data',

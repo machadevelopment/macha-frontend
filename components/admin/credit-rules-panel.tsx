@@ -57,7 +57,7 @@ export function CreditRulesPanel() {
     <div className="flex flex-col gap-4">
       <Card>
         <p className="mb-2 text-cardh2">Nueva versión (desactiva la anterior de la misma acción)</p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="creditRuleActionKind" className="text-body font-medium">
               Acción

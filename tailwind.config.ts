@@ -30,6 +30,12 @@ export default {
   ],
   theme: {
     extend: {
+      // CU-868khvzbd: el breakpoint del design guide §Responsive es 1080px, no los
+      // 1024px de `lg`. Se agrega como screen propio en vez de redondear al de
+      // Tailwind: 1080 es donde el sidebar de 212px + el contenido dejan de caber
+      // cómodamente, y aproximarlo movería el punto exacto que el guide especifica.
+      // `sm` (640px) sí es el del guide, así que se reutiliza tal cual.
+      screens: { app: '1080px' },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',

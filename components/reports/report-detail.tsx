@@ -131,7 +131,7 @@ export function ReportDetail({
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.revenue}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
@@ -157,7 +157,7 @@ export function ReportDetail({
           tres de arriba a propósito: ingresos/costo/margen son el resultado del período,
           estos dos son posición de liquidez al cierre — mezclarlos en una sola fila de
           cinco sugeriría que se leen igual. */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.arOpen}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
