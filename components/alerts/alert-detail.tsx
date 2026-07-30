@@ -79,7 +79,7 @@ export function AlertDetail({
           <Badge variant={alert.notifyImmediately ? 'danger' : 'warning'}>{labels.eyebrow}</Badge>
         </CardHeader>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.triggeredValue}</p>
             <p className="mt-1 font-mono text-kpi tabular-nums">

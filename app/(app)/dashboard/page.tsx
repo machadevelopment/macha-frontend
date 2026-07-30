@@ -21,7 +21,7 @@ export default function DashboardPage() {
         <KpiRow locale={locale} labels={t.dashboard.kpi} />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 app:grid-cols-2">
         <TrendChart locale={locale} title={t.dashboard.trendTitle} labels={t.dashboard} />
         <ArApChart
           locale={locale}

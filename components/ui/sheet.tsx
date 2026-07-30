@@ -45,3 +45,10 @@ export const SheetContent = React.forwardRef<
   </DialogPrimitive.Portal>
 ));
 SheetContent.displayName = 'SheetContent';
+
+/**
+ * CU-868khvzbd: Radix exige un `Dialog.Title` dentro de todo `Dialog.Content` — sin él
+ * el panel queda sin nombre accesible y Radix lo avisa en consola. En el drawer de
+ * navegación el título visual lo hace el wordmark, así que se monta con `sr-only`.
+ */
+export const SheetTitle = DialogPrimitive.Title;

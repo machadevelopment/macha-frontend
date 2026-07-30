@@ -30,6 +30,8 @@ export interface Dictionary {
     mainNav: string;
     collapse: string;
     expand: string;
+    /** aria-label del botón hamburguesa del topbar móvil (CU-868khvzbd). */
+    openMenu: string;
     /** Encabezados de sección del sidebar (mono uppercase, `nav-sec`). */
     section: {
       analysis: string;

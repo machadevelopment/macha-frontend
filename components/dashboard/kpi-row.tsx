@@ -24,7 +24,7 @@ export function KpiRow({
 
   if (!data) {
     return (
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3">
         <KpiCard label={labels.revenue} value="" loading />
         <KpiCard label={labels.cogs} value="" loading />
         <KpiCard label={labels.margin} value="" loading />
@@ -42,7 +42,7 @@ export function KpiRow({
   }
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3">
       <KpiCard
         label={labels.revenue}
         value={formatMoney(latest?.revenue ?? 0, currency, locale)}
