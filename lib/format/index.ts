@@ -23,9 +23,60 @@ export function formatMoney(
   }).format(amount as number);
 }
 
+/**
+ * CU-868khvyqa: variante compacta para los **ejes de los charts**, donde no cabe el
+ * monto completo.
+ *
+ * `formatMoney` produce `GTQ 145,100.00` (~14 caracteres). Con el ancho por defecto del
+ * eje Y de Tremor (~56px) en JetBrains Mono, todas las etiquetas se recortaban por la
+ * izquierda y quedaban en `000.00`: los dos charts del dashboard perdían la escala por
+ * completo. Esto devuelve `GTQ 145 k`.
+ *
+ * **Solo para ejes.** Todo lo que el usuario lea como dato — tooltips, KPIs, tablas,
+ * reportes — sigue usando `formatMoney` con el monto exacto: la regla de mostrar la
+ * cifra completa con su código de moneda no se negocia por espacio.
+ */
+export function formatMoneyCompact(
+  amount: number | string,
+  currency: Currency,
+  locale: Locale = 'es',
+): string {
+  return new Intl.NumberFormat(intlLocale[locale], {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'code',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(amount as number);
+}
+
+/** Fecha sin hora, tal como serializa una columna `DATE` de Postgres: `2026-06-01`. */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * CU-868khvyt6: una fecha date-only se corría un día hacia atrás.
+ *
+ * `new Date('2026-06-01')` se parsea como **medianoche UTC** (comportamiento que la
+ * especificación de ECMAScript fija para el formato date-only), y `Intl.DateTimeFormat`
+ * la renderizaba en la zona local del navegador. En Guatemala (UTC−6) esa medianoche
+ * cae a las 18:00 del día anterior, así que el reporte de junio (`periodStart`
+ * `2026-06-01`) se mostraba como "31 de mayo".
+ *
+ * Una fecha date-only **no representa un instante**, representa un día de calendario:
+ * no tiene zona horaria que convertir. Por eso se formatea en UTC, la misma zona en la
+ * que se parseó — así el día que sale es el día que mandó el backend, en cualquier
+ * huso del cliente.
+ *
+ * Los `timestamptz` (`createdAt`/`updatedAt`) sí son instantes y se siguen mostrando en
+ * la zona local del usuario, que es lo correcto para ellos.
+ */
 export function formatDate(date: Date | string, locale: Locale = 'es'): string {
+  const isDateOnly = typeof date === 'string' && DATE_ONLY.test(date);
   const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat(intlLocale[locale], { dateStyle: 'medium' }).format(d);
+  return new Intl.DateTimeFormat(intlLocale[locale], {
+    dateStyle: 'medium',
+    ...(isDateOnly ? { timeZone: 'UTC' } : {}),
+  }).format(d);
 }
 
 export function formatPct(value: number, locale: Locale = 'es', fractionDigits = 1): string {

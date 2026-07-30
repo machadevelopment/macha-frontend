@@ -12,6 +12,22 @@ export default {
     // them and Tremor renders unstyled.
     './node_modules/@tremor/react/dist/**/*.js',
   ],
+  // CU-868khvz06: escanear el dist de Tremor NO alcanza. Sus clases de color de serie
+  // se construyen con template literals (`fill-${color}-${shade}`, `stroke-${r}` — se
+  // pueden ver en node_modules/@tremor/react/dist), y el JIT de Tailwind solo extrae
+  // strings LITERALES. Resultado: `fill-rose-500` nunca se generaba, las barras se
+  // quedaban sin fill y salían negras — las dos series de CxC/CxP eran idénticas, y en
+  // dark mode desaparecían contra el fondo oscuro. La leyenda sí tenía color porque
+  // toma otra ruta, lo que hacía el síntoma aún más confuso.
+  //
+  // El safelist fuerza a generar esas clases para los únicos colores que usamos
+  // (chart-theme.ts: neutral / emerald / rose). Si se agrega un color de serie ahí,
+  // hay que agregarlo aquí o volverá a salir negro.
+  safelist: [
+    {
+      pattern: /(fill|stroke|bg|text|border)-(neutral|emerald|rose)-(300|400|500|600)/,
+    },
+  ],
   theme: {
     extend: {
       colors: {
