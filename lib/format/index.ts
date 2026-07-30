@@ -23,6 +23,33 @@ export function formatMoney(
   }).format(amount as number);
 }
 
+/**
+ * CU-868khvyqa: variante compacta para los **ejes de los charts**, donde no cabe el
+ * monto completo.
+ *
+ * `formatMoney` produce `GTQ 145,100.00` (~14 caracteres). Con el ancho por defecto del
+ * eje Y de Tremor (~56px) en JetBrains Mono, todas las etiquetas se recortaban por la
+ * izquierda y quedaban en `000.00`: los dos charts del dashboard perdían la escala por
+ * completo. Esto devuelve `GTQ 145 k`.
+ *
+ * **Solo para ejes.** Todo lo que el usuario lea como dato — tooltips, KPIs, tablas,
+ * reportes — sigue usando `formatMoney` con el monto exacto: la regla de mostrar la
+ * cifra completa con su código de moneda no se negocia por espacio.
+ */
+export function formatMoneyCompact(
+  amount: number | string,
+  currency: Currency,
+  locale: Locale = 'es',
+): string {
+  return new Intl.NumberFormat(intlLocale[locale], {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'code',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(amount as number);
+}
+
 /** Fecha sin hora, tal como serializa una columna `DATE` de Postgres: `2026-06-01`. */
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
