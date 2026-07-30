@@ -98,7 +98,16 @@ export const es: Dictionary = {
       revenue: 'Ingresos',
       cogs: 'Costo de ventas',
       margin: 'Margen',
+      arOpen: 'Por cobrar abierto',
+      apOpen: 'Por pagar abierto',
     },
+    frequencyValue: {
+      daily: 'Diario',
+      weekly: 'Semanal',
+      monthly: 'Mensual',
+      quarterly: 'Trimestral',
+    },
+    baseCurrencyLabel: 'Moneda base',
     table: {
       period: 'Periodo',
       frequency: 'Frecuencia',

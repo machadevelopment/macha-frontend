@@ -96,7 +96,19 @@ export interface Dictionary {
       revenue: string;
       cogs: string;
       margin: string;
+      /** CU-868khvzve: posición de liquidez al cierre del período. */
+      arOpen: string;
+      apOpen: string;
     };
+    /** CU-868khvzve: `reports.frequency` viene del backend como valor crudo
+     * (`monthly`/`quarterly`); esto lo traduce para mostrarlo. */
+    frequencyValue: {
+      daily: string;
+      weekly: string;
+      monthly: string;
+      quarterly: string;
+    };
+    baseCurrencyLabel: string;
     table: {
       period: string;
       frequency: string;
