@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { formatDate, formatMoney, formatPct } from './index';
+import { formatDate, formatMoney, formatNumber, formatPct } from './index';
 
 describe('formatMoney', () => {
   test('always shows the explicit currency code (design guide §11.5)', () => {
@@ -18,6 +18,36 @@ describe('formatMoney', () => {
 
   test('numeric string and number produce identical output for a negative amount', () => {
     expect(formatMoney('-500.25', 'USD', 'en')).toBe(formatMoney(-500.25, 'USD', 'en'));
+  });
+
+  // CU-868khw0ng: el costo de IA se mostraba como `$18.4200` (símbolo pelado, ambiguo
+  // en un producto GTQ+USD). Con código explícito y sin perder los 4 decimales.
+  test('fractionDigits conserva la precisión sin perder el código de moneda', () => {
+    const out = formatMoney('18.42', 'USD', 'es', { fractionDigits: 4 });
+    expect(out).toContain('USD');
+    expect(out).toContain('18.4200');
+    expect(out).not.toContain('$');
+  });
+
+  test('sin fractionDigits se mantienen los decimales por defecto de la moneda', () => {
+    expect(formatMoney(18.42, 'USD', 'es')).toBe(formatMoney(18.42, 'USD', 'es', {}));
+    expect(formatMoney(18.42, 'USD', 'es')).not.toContain('18.4200');
+  });
+});
+
+describe('formatNumber', () => {
+  // CU-868khw0ng: los tokens de `/admin/ai-cost` salían como `4120400`.
+  test('agrupa miles', () => {
+    expect(formatNumber(4120400, 'en')).toBe('4,120,400');
+  });
+
+  test('acepta el string numérico que manda el backend', () => {
+    expect(formatNumber('4120400', 'en')).toBe(formatNumber(4120400, 'en'));
+  });
+
+  test('por defecto no muestra decimales', () => {
+    expect(formatNumber(1234.56, 'en')).toBe('1,235');
+    expect(formatNumber(1234.56, 'en', 2)).toBe('1,234.56');
   });
 });
 

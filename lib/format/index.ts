@@ -15,12 +15,44 @@ export function formatMoney(
   amount: number | string,
   currency: Currency,
   locale: Locale = 'es',
+  options: { fractionDigits?: number } = {},
 ): string {
+  const { fractionDigits } = options;
   return new Intl.NumberFormat(intlLocale[locale], {
     style: 'currency',
     currency,
     currencyDisplay: 'code', // explicit GTQ/USD
+    // CU-868khw0ng: por defecto se respetan los decimales de la moneda (2 para
+    // GTQ/USD). `fractionDigits` es para el único caso donde eso no alcanza: el
+    // costo unitario de IA en `/admin/ai-cost`, del orden de USD 0.0004 por
+    // llamada, que con 2 decimales se redondea a cero. Sigue mostrando el código
+    // de moneda — lo que cambia es la precisión, nunca el `currencyDisplay`.
+    ...(fractionDigits === undefined
+      ? {}
+      : { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits }),
   }).format(amount as number);
+}
+
+/**
+ * CU-868khw0ng: enteros con separadores de miles (`4,120,400`).
+ *
+ * Nace de los contadores de tokens de `/admin/ai-cost`, las cifras más grandes del
+ * producto, que se imprimían crudas (`4120400`). No es dinero — no lleva código de
+ * moneda — pero sí es un número que el usuario lee, así que pasa por el mismo
+ * formateo centralizado y locale-aware que el resto (nunca `Intl.*` inline).
+ *
+ * Acepta `string` por el mismo contrato que `formatMoney`: las columnas `numeric` /
+ * los `count()` del backend serializan a JSON como strings decimales.
+ */
+export function formatNumber(
+  value: number | string,
+  locale: Locale = 'es',
+  fractionDigits = 0,
+): string {
+  return new Intl.NumberFormat(intlLocale[locale], {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(value as number);
 }
 
 /**

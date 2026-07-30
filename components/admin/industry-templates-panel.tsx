@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { formatDate } from '@/lib/format';
 import {
   Table,
   TableBody,
@@ -65,7 +66,7 @@ export function IndustryTemplatesPanel() {
                     v{v.version} {v.id === t.currentVersionId && '(actual)'}
                   </TableCell>
                   <TableCell className="font-mono tabular-nums text-muted-foreground">
-                    {v.createdAt}
+                    {formatDate(v.createdAt)}
                   </TableCell>
                 </TableRow>
               ))}
