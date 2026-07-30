@@ -1,11 +1,8 @@
 import { CompanyDetailPanel } from '@/components/admin/company-detail-panel';
 
+// CU-868khvzqn: el título vive dentro del panel porque ahora es el nombre real de la
+// empresa, y ese dato solo se conoce después del fetch. Acá decía "Detalle", que no
+// indicaba en cuál de las empresas estabas parado.
 export default function AdminCompanyDetailPage({ params }: { params: { id: string } }) {
-  return (
-    <>
-      <p className="font-mono text-eyebrow uppercase text-faint">EMPRESA</p>
-      <h1 className="mb-4 text-h1">Detalle</h1>
-      <CompanyDetailPanel companyId={params.id} />
-    </>
-  );
+  return <CompanyDetailPanel companyId={params.id} />;
 }
