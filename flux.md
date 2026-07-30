@@ -315,6 +315,7 @@ Si hay que crear una tarea nueva:
 - **Valida en backend con TypeBox de Elysia** (no zod por defecto). La auth UI es **WorkOS AuthKit** (no login/password propio).
 - **En frontend:** los tokens de diseño son la fuente de verdad (light+dark) — no hardcodees hex; **Tremor Raw** para charts/KPIs y **shadcn/ui** para el resto (no los mezcles); regla mono (**JetBrains Mono** para números/IDs, **Inter** para el resto); formatters centralizados locale-aware; **nada de `localStorage`/`sessionStorage`** en prototipos.
 - **Crea siempre `feat/*` desde `dev`, nunca desde `main`.** Si `dev` no existe todavía en un repo, créala desde `main` antes de arrancar cualquier rama de tarea.
+- **Si `git push` se cuelga, es credenciales, no el hook** (CU-868khvgpy, confirmado 2026-07-30 con `GIT_TRACE=1`). El `~/.gitconfig` de la máquina fija `credential.username = kenethruiz20`; `gh auth git-credential` solo tiene credencial para `machadevelopment`, no responde para ese usuario, y git cae al askpass GUI de VS Code, que espera para siempre. Arreglo por clon: `git config --local credential.username machadevelopment` (o quitar `credential.username` del `~/.gitconfig` global). **No** lo diagnostiques otra vez como problema del hook: `--no-verify` también se colgaba.
 
 ---
 
