@@ -6,10 +6,9 @@ import { ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/format';
+import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
-
-type RuleKey = keyof Dictionary['alerts']['rule'];
 
 interface AlertData {
   id: string;
@@ -25,23 +24,9 @@ interface AlertData {
   document: { id: string; originalFilename: string } | null;
 }
 
-/**
- * Unidad de cada regla, espejo de `config/alert-catalog.ts` en el backend. `ar_overdue`
- * se mide en días de vencimiento; las otras cinco son porcentajes. Sin esto un "60" se
- * leería como 60% cuando son 60 días.
- */
-const RULE_UNIT: Record<RuleKey, 'days' | 'percent'> = {
-  ar_overdue: 'days',
-  portfolio_concentration: 'percent',
-  revenue_drop: 'percent',
-  margin_drop: 'percent',
-  spend_out_of_range: 'percent',
-  low_credit_balance: 'percent',
-};
-
-function isKnownRule(key: string): key is RuleKey {
-  return key in RULE_UNIT;
-}
+// CU-868khvzqn: `RULE_UNIT` y `isKnownRule` vivían aquí. Se movieron a
+// `lib/alerts/rule-units.ts` porque el histórico de alertas y los umbrales del
+// backoffice necesitan el mismo mapa — copiarlo era garantizar que se desincronizara.
 
 export function AlertDetail({
   alertId,
@@ -94,7 +79,7 @@ export function AlertDetail({
           <Badge variant={alert.notifyImmediately ? 'danger' : 'warning'}>{labels.eyebrow}</Badge>
         </CardHeader>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.triggeredValue}</p>
             <p className="mt-1 font-mono text-kpi tabular-nums">

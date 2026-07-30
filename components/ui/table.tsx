@@ -3,6 +3,14 @@ import { cn } from '@/lib/cn';
 
 // design guide.md §5 "Tabla" — th mono uppercase, td density-aware padding, numeric cells
 // should get font-mono tabular-nums at the call site (this primitive stays generic).
+//
+// CU-868khvzbd, criterio 3 (<640px): el contenedor ya tenía `overflow-x-auto`, pero eso
+// solo no alcanzaba — con `w-full` y celdas que envuelven, en 390px la tabla se
+// comprimía hasta volverse ilegible (una palabra por línea) en vez de desbordar. El
+// `whitespace-nowrap` de las celdas la hace naturalmente más ancha que el viewport, y
+// ahí sí el scroll horizontal entra en acción. Se elige scroll y no layout apilado
+// porque estas tablas se leen comparando filas —montos, estados, roles— y apilarlas
+// destruye justo esa comparación.
 export const Table = React.forwardRef<
   HTMLTableElement,
   React.TableHTMLAttributes<HTMLTableElement>
@@ -42,7 +50,7 @@ export const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'p-[var(--density-td-p)] text-left font-mono text-eyebrow uppercase text-faint',
+      'whitespace-nowrap p-[var(--density-td-p)] text-left font-mono text-eyebrow uppercase text-faint',
       className,
     )}
     {...props}
@@ -54,6 +62,6 @@ export const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn('p-[var(--density-td-p)]', className)} {...props} />
+  <td ref={ref} className={cn('whitespace-nowrap p-[var(--density-td-p)]', className)} {...props} />
 ));
 TableCell.displayName = 'TableCell';

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { formatMoney, formatNumber } from '@/lib/format';
 import {
   Table,
   TableBody,
@@ -41,7 +42,7 @@ export function AiCostPanel() {
           <TableRow>
             <TableHead>Empresa</TableHead>
             <TableHead>Tipo</TableHead>
-            <TableHead>Costo USD</TableHead>
+            <TableHead>Costo</TableHead>
             <TableHead>Tokens in/out</TableHead>
             <TableHead>Llamadas</TableHead>
           </TableRow>
@@ -53,13 +54,16 @@ export function AiCostPanel() {
               <TableCell className="font-mono text-eyebrow uppercase text-faint">
                 {r.kind}
               </TableCell>
+              {/* Código de moneda explícito (CLAUDE.md): el producto opera en GTQ y USD,
+                  `$` es ambiguo. Los 4 decimales sí se conservan: el costo por llamada
+                  está en el orden de USD 0.0004 y con 2 decimales se vería como cero. */}
               <TableCell className="font-mono tabular-nums">
-                ${Number(r.totalCostUsd).toFixed(4)}
+                {formatMoney(r.totalCostUsd, 'USD', 'es', { fractionDigits: 4 })}
               </TableCell>
               <TableCell className="font-mono tabular-nums">
-                {r.totalInputTokens} / {r.totalOutputTokens}
+                {formatNumber(r.totalInputTokens)} / {formatNumber(r.totalOutputTokens)}
               </TableCell>
-              <TableCell className="font-mono tabular-nums">{r.callCount}</TableCell>
+              <TableCell className="font-mono tabular-nums">{formatNumber(r.callCount)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

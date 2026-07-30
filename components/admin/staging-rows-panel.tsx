@@ -9,6 +9,9 @@ import { Badge } from '@/components/ui/badge';
 interface StagingRow {
   id: string;
   companyId: string;
+  /** CU-868khvzqn: lo agrega el join del backend (`modules/admin/staging-rows.ts`),
+   * igual que en `/admin/documents`. El UUID solo no le dice nada a un operador. */
+  companyName: string;
   targetEntity: string;
   payload: Record<string, unknown>;
   confidence: string | null;
@@ -59,10 +62,18 @@ export function StagingRowsPanel() {
     <div className="flex flex-col gap-3">
       {rows.map((row) => (
         <Card key={row.id}>
-          <div className="flex items-center justify-between">
+          {/* CU-868khvzqn: la empresa encabeza la card y no es un dato más al margen.
+              La lista mezcla tenants (viene ordenada por fecha, no agrupada), así que
+              es lo primero que hay que leer antes de aprobar o rechazar: lo que se
+              apruebe acá se promueve a la contabilidad de ese cliente. */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-mono text-eyebrow uppercase text-faint">EMPRESA</p>
+              <p className="truncate text-cardh2">{row.companyName}</p>
+            </div>
             <Badge variant="warning">{row.targetEntity}</Badge>
-            <p className="font-mono text-eyebrow uppercase text-faint">{row.flagReason}</p>
           </div>
+          <p className="mt-2 font-mono text-eyebrow uppercase text-faint">{row.flagReason}</p>
           <Textarea
             rows={5}
             className="mt-2 font-mono text-body"

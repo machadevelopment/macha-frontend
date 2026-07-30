@@ -24,6 +24,14 @@ import type { Membership } from '@/app/api/memberships/route';
  * `initialCompanyId` is read server-side (Server Component) from the
  * `macha-company-id` cookie so the trigger label doesn't flash "Selecciona..."
  * before the client fetch resolves.
+ *
+ * CU-868khvynk: vive en el `orgbar` del sidebar, no en el body de `/`. Dos cambios
+ * que trae ese traslado:
+ *   - `collapsed`: en el riel de 56px solo cabe el avatar.
+ *   - cuando no hay nada entre qué cambiar (una sola membresía y sin staff) ya no
+ *     devuelve `null`, sino una fila estática con la empresa. En `/` un hueco vacío
+ *     pasaba desapercibido; en el orgbar del shell dejaba un borde flotando sin
+ *     contenido y al usuario sin saber en qué empresa está.
  */
 export interface OrgSwitcherLabels {
   selectCompany: string;
@@ -38,9 +46,11 @@ const defaultLabels: OrgSwitcherLabels = {
 export function OrgSwitcher({
   initialCompanyId,
   labels = defaultLabels,
+  collapsed = false,
 }: {
   initialCompanyId?: string;
   labels?: OrgSwitcherLabels;
+  collapsed?: boolean;
 }) {
   const router = useRouter();
   const [memberships, setMemberships] = useState<Membership[] | null>(null);
@@ -79,22 +89,35 @@ export function OrgSwitcher({
     });
   }
 
-  // Nothing to switch between: exactly one membership and not staff.
-  if (memberships.length <= 1 && !staffTier) return null;
-
   const current = memberships.find((m) => m.companyId === selected);
+  const name = current?.companyName ?? memberships[0]?.companyName ?? labels.selectCompany;
+  const initial = name.slice(0, 1).toUpperCase();
+
+  // Nothing to switch between: exactly one membership and not staff.
+  if (memberships.length <= 1 && !staffTier) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-1.5" title={name}>
+        <Avatar className="h-5 w-5 shrink-0 rounded-sm">
+          <AvatarFallback className="font-mono text-eyebrow">{initial}</AvatarFallback>
+        </Avatar>
+        {!collapsed && <span className="truncate text-body">{name}</span>}
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2">
-          <Avatar className="h-5 w-5">
-            <AvatarFallback className="font-mono text-eyebrow">
-              {(current?.companyName ?? 'M').slice(0, 1).toUpperCase()}
-            </AvatarFallback>
+        <Button variant="ghost" className="flex w-full items-center gap-2 px-2 py-1.5" title={name}>
+          <Avatar className="h-5 w-5 shrink-0 rounded-sm">
+            <AvatarFallback className="font-mono text-eyebrow">{initial}</AvatarFallback>
           </Avatar>
-          <span className="text-body">{current?.companyName ?? labels.selectCompany}</span>
-          <ChevronsUpDown className="h-4 w-4 text-faint" />
+          {!collapsed && (
+            <>
+              <span className="min-w-0 flex-1 truncate text-left text-body">{name}</span>
+              <ChevronsUpDown className="h-4 w-4 shrink-0 text-faint" strokeWidth={1.7} />
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">

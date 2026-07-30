@@ -88,7 +88,7 @@ export function ChatClient({ locale, labels }: { locale: Locale; labels: Diction
   }
 
   return (
-    <div className="grid grid-cols-[212px_1fr] gap-4">
+    <div className="grid grid-cols-1 gap-4 app:grid-cols-[212px_1fr]">
       <div className="flex flex-col gap-2">
         <Button size="sm" variant="outline" className="gap-1.5" onClick={createChat}>
           <Plus className="h-3.5 w-3.5" strokeWidth={1.7} />

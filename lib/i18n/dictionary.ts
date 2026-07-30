@@ -7,10 +7,58 @@ export interface Dictionary {
     loading: string;
     /** aria-label del botón de cierre de Dialog/Sheet — lo lee un lector de pantalla. */
     close: string;
+    /** Control de tema del `side-bot` (CU-868khvzdf). */
+    theme: {
+      /** aria-label del disparador: es un botón de solo ícono. */
+      label: string;
+      light: string;
+      dark: string;
+      /** "Sistema" = seguir la preferencia del SO (`enableSystem` de next-themes). */
+      system: string;
+    };
   };
   admin: {
     eyebrow: string;
     title: string;
+  };
+  /**
+   * Shell de navegación (CU-868khvynk, design guide.md §7). El wordmark "Macha" NO
+   * vive aquí a propósito: es la marca, no texto traducible — igual que un logotipo.
+   */
+  shell: {
+    /** aria-label del <nav> del sidebar — lo anuncia un lector de pantalla. */
+    mainNav: string;
+    collapse: string;
+    expand: string;
+    /** aria-label del botón hamburguesa del topbar móvil (CU-868khvzbd). */
+    openMenu: string;
+    /** Encabezados de sección del sidebar (mono uppercase, `nav-sec`). */
+    section: {
+      analysis: string;
+      data: string;
+      account: string;
+      operations: string;
+      platform: string;
+    };
+    /** Etiquetas cortas de los ítems de nav: los títulos de pantalla no caben en 212px. */
+    nav: {
+      dashboard: string;
+      alerts: string;
+      upload: string;
+      reports: string;
+      chat: string;
+      credits: string;
+    };
+    /** Ítems del backoffice — antes hardcodeados en español en components/admin/admin-nav.tsx. */
+    adminNav: {
+      companies: string;
+      stagingRows: string;
+      templates: string;
+      creditRules: string;
+      config: string;
+      aiCost: string;
+      uploads: string;
+    };
   };
   home: {
     eyebrow: string;
@@ -96,7 +144,19 @@ export interface Dictionary {
       revenue: string;
       cogs: string;
       margin: string;
+      /** CU-868khvzve: posición de liquidez al cierre del período. */
+      arOpen: string;
+      apOpen: string;
     };
+    /** CU-868khvzve: `reports.frequency` viene del backend como valor crudo
+     * (`monthly`/`quarterly`); esto lo traduce para mostrarlo. */
+    frequencyValue: {
+      daily: string;
+      weekly: string;
+      monthly: string;
+      quarterly: string;
+    };
+    baseCurrencyLabel: string;
     table: {
       period: string;
       frequency: string;
@@ -106,6 +166,17 @@ export interface Dictionary {
   alerts: {
     eyebrow: string;
     title: string;
+    /** CU-868kj0tdq: el histórico es una pantalla distinta del detalle, con su
+     * propio encabezado — `title` es el del detalle y decía "Detalle de alerta". */
+    historyEyebrow: string;
+    historyTitle: string;
+    /** Cabeceras de la tabla del histórico. */
+    table: {
+      rule: string;
+      triggeredValue: string;
+      threshold: string;
+      date: string;
+    };
     empty: string;
     notFound: string;
     triggeredValue: string;

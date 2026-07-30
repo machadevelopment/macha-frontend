@@ -4,16 +4,22 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { formatMoney } from '@/lib/format';
+import { formatDate, formatMoney } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
+
+type Frequency = keyof Dictionary['reports']['frequencyValue'];
 
 interface ReportData {
   id: string;
   periodStart: string;
   periodEnd: string;
+  /** CU-868khvzve: ya venía en la respuesta del backend (`reports.frequency`) y el
+   * cliente no la declaraba, así que se descartaba en silencio. */
+  frequency: string;
   version: number;
   narrative: string;
   /** CU-868kh8rz8: moneda base REAL de la empresa. `metrics` no la trae (son
@@ -93,9 +99,27 @@ export function ReportDetail({
 
   if (!report) return null;
   const currency = report.baseCurrency as 'GTQ' | 'USD';
+  const frequencyLabel = labels.frequencyValue[report.frequency as Frequency] ?? report.frequency;
 
   return (
     <div className="flex flex-col gap-4">
+      {/* CU-868khvzve: la pantalla no decía de qué reporte era. El eyebrow y el título
+          repetían los de la lista ("REPORTES / Reportes") y el único identificador
+          visible era "v3": llegando por el deep-link del email —que es el camino
+          normal— no había forma de saber qué se estaba leyendo. El período es la
+          identidad del documento, así que es el título. */}
+      <div>
+        <h1 className="font-mono text-h1 tabular-nums">
+          {formatDate(report.periodStart, locale)} — {formatDate(report.periodEnd, locale)}
+        </h1>
+        <div className="mt-1 flex items-center gap-2">
+          <Badge variant="neutral">{frequencyLabel}</Badge>
+          <span className="font-mono text-eyebrow uppercase text-faint">
+            {labels.baseCurrencyLabel}: {currency}
+          </span>
+        </div>
+      </div>
+
       <div className="flex gap-2">
         <Button variant="outline" size="sm" className="gap-1.5" onClick={openRendered}>
           <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.7} />
@@ -107,7 +131,7 @@ export function ReportDetail({
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.revenue}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
@@ -124,6 +148,26 @@ export function ReportDetail({
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.margin}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
             {formatMoney(report.metrics.margin, currency, locale)}
+          </p>
+        </Card>
+      </div>
+
+      {/* CU-868khvzve criterio 3: `accountsReceivableOpen`/`accountsPayableOpen` ya
+          venían en `metrics` y no se mostraban. Van en una fila aparte y no junto a los
+          tres de arriba a propósito: ingresos/costo/margen son el resultado del período,
+          estos dos son posición de liquidez al cierre — mezclarlos en una sola fila de
+          cinco sugeriría que se leen igual. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Card>
+          <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.arOpen}</p>
+          <p className="mt-1 font-mono text-kpi tabular-nums">
+            {formatMoney(report.metrics.accountsReceivableOpen, currency, locale)}
+          </p>
+        </Card>
+        <Card>
+          <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.apOpen}</p>
+          <p className="mt-1 font-mono text-kpi tabular-nums">
+            {formatMoney(report.metrics.accountsPayableOpen, currency, locale)}
           </p>
         </Card>
       </div>

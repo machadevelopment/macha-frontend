@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { AreaChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatMoneyCompact } from '@/lib/format';
+import { makeChartTooltip } from '@/components/charts/chart-tooltip';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { MetricsResponse } from '@/lib/api/dashboard';
@@ -42,7 +43,11 @@ export function TrendChart({
         index="period"
         categories={['revenue', 'cogs', 'margin']}
         colors={[chartColors.neutral, chartColors.negative, chartColors.positive]}
-        valueFormatter={(v: number) => formatMoney(v, currency, locale)}
+        // CU-868khvyqa: el eje va compacto o se recorta a "000.00"; el monto completo
+        // vive en el tooltip, porque `valueFormatter` alimenta a los dos.
+        valueFormatter={(v: number) => formatMoneyCompact(v, currency, locale)}
+        customTooltip={makeChartTooltip(currency, locale)}
+        yAxisWidth={72}
         className="h-64 font-mono text-eyebrow"
         showLegend
         showGridLines

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { BarChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatMoneyCompact } from '@/lib/format';
+import { makeChartTooltip } from '@/components/charts/chart-tooltip';
 import type { Locale } from '@/lib/i18n/config';
 import type { ArApResponse } from '@/lib/api/dashboard';
 import { chartColors } from '@/components/charts/chart-theme';
@@ -51,7 +52,10 @@ export function ArApChart({
         index="bucket"
         categories={[arLabel, apLabel]}
         colors={[chartColors.neutral, chartColors.negative]}
-        valueFormatter={(v: number) => formatMoney(v, currency, locale)}
+        // CU-868khvyqa: ver nota en trend-chart.tsx — eje compacto, tooltip exacto.
+        valueFormatter={(v: number) => formatMoneyCompact(v, currency, locale)}
+        customTooltip={makeChartTooltip(currency, locale)}
+        yAxisWidth={72}
         className="h-64 font-mono text-eyebrow"
         showLegend
       />

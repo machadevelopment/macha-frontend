@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { RULE_UNIT, RULE_UNIT_LABEL_ES, isKnownRule } from '@/lib/alerts/rule-units';
 import {
   Table,
   TableBody,
@@ -11,6 +13,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
+/**
+ * CU-868khvzqn criterio 2: esta pantalla titulaba "EMPRESA / Detalle" y nada más. Desde
+ * acá se cambian roles y umbrales de alerta de un tenant; con cinco empresas en la lista,
+ * entrabas al detalle sin saber en cuál estabas.
+ */
+interface CompanySummary {
+  id: string;
+  name: string;
+  industry: string;
+  baseCurrency: string;
+  status: 'active' | 'suspended';
+  locale: 'es' | 'en';
+}
 
 interface CompanyUserRow {
   userId: string;
@@ -30,9 +46,17 @@ interface AlertRuleRow {
 }
 
 export function CompanyDetailPanel({ companyId }: { companyId: string }) {
+  const [company, setCompany] = useState<CompanySummary | null>(null);
   const [users, setUsers] = useState<CompanyUserRow[] | null>(null);
   const [alertRules, setAlertRules] = useState<AlertRuleRow[] | null>(null);
 
+  function loadCompany() {
+    fetch(`/api/admin/companies/${companyId}`)
+      .then((r) => r.json())
+      .then((data: CompanySummary | { error: string }) =>
+        setCompany('error' in data ? null : data),
+      );
+  }
   function loadUsers() {
     fetch(`/api/admin/companies/${companyId}/users`)
       .then((r) => r.json())
@@ -45,6 +69,7 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
   }
 
   useEffect(() => {
+    loadCompany();
     loadUsers();
     loadAlertRules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,6 +93,29 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* CU-868khvzqn criterio 2: el nombre es el título de la pantalla, no un dato más.
+          Industria, moneda base y estado van al lado porque cambian cómo se leen los
+          umbrales y los montos de abajo. `locale` se muestra porque decide el idioma de
+          los emails que recibe esa empresa, y no se ve en ninguna otra pantalla. */}
+      <div>
+        <p className="font-mono text-eyebrow uppercase text-faint">EMPRESA</p>
+        <h1 className="text-h1">{company?.name ?? '—'}</h1>
+        {company && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Badge variant={company.status === 'active' ? 'success' : 'danger'}>
+              {company.status}
+            </Badge>
+            <span className="font-mono text-eyebrow uppercase text-faint">{company.industry}</span>
+            <span className="font-mono text-eyebrow uppercase text-faint">
+              MONEDA BASE {company.baseCurrency}
+            </span>
+            <span className="font-mono text-eyebrow uppercase text-faint">
+              IDIOMA {company.locale.toUpperCase()}
+            </span>
+          </div>
+        )}
+      </div>
+
       <Card>
         <p className="mb-2 text-cardh2">Usuarios</p>
         <Table>
@@ -114,25 +162,44 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {alertRules?.map((rule) => (
-              <TableRow key={rule.id}>
-                <TableCell className="font-mono text-eyebrow uppercase text-faint">
-                  {rule.ruleKey}
-                </TableCell>
-                <TableCell>
-                  <Input
-                    type="number"
-                    aria-label={`Umbral de ${rule.ruleKey}`}
-                    defaultValue={rule.threshold}
-                    className="w-24"
-                    onBlur={(e) => updateThreshold(rule.ruleKey, Number(e.target.value))}
-                  />
-                </TableCell>
-                <TableCell className="font-mono text-eyebrow uppercase text-faint">
-                  {rule.notifyImmediately ? 'sí' : 'no'}
-                </TableCell>
-              </TableRow>
-            ))}
+            {alertRules?.map((rule) => {
+              // CU-868khvzqn criterio 3: `ar_overdue: 30` (días) y
+              // `portfolio_concentration: 35` (por ciento) se veían idénticos. El campo es
+              // editable, así que la ambigüedad no era solo de lectura: un operador podía
+              // meter un porcentaje donde van días. La unidad sale de `lib/alerts/rule-units`,
+              // la misma fuente que usan el detalle y el histórico de alertas del cliente.
+              const unit = isKnownRule(rule.ruleKey)
+                ? RULE_UNIT_LABEL_ES[RULE_UNIT[rule.ruleKey]]
+                : null;
+              return (
+                <TableRow key={rule.id}>
+                  <TableCell className="font-mono text-eyebrow uppercase text-faint">
+                    {rule.ruleKey}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        aria-label={
+                          unit
+                            ? `Umbral de ${rule.ruleKey} en ${unit}`
+                            : `Umbral de ${rule.ruleKey}`
+                        }
+                        defaultValue={rule.threshold}
+                        className="w-24"
+                        onBlur={(e) => updateThreshold(rule.ruleKey, Number(e.target.value))}
+                      />
+                      {/* Una regla que exista en el catálogo del backend pero todavía no
+                          acá se degrada a no mostrar unidad, nunca a romper la fila. */}
+                      <span className="font-mono text-eyebrow text-faint">{unit ?? ''}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-eyebrow uppercase text-faint">
+                    {rule.notifyImmediately ? 'sí' : 'no'}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </Card>

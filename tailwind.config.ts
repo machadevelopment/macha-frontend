@@ -12,8 +12,30 @@ export default {
     // them and Tremor renders unstyled.
     './node_modules/@tremor/react/dist/**/*.js',
   ],
+  // CU-868khvz06: escanear el dist de Tremor NO alcanza. Sus clases de color de serie
+  // se construyen con template literals (`fill-${color}-${shade}`, `stroke-${r}` — se
+  // pueden ver en node_modules/@tremor/react/dist), y el JIT de Tailwind solo extrae
+  // strings LITERALES. Resultado: `fill-rose-500` nunca se generaba, las barras se
+  // quedaban sin fill y salían negras — las dos series de CxC/CxP eran idénticas, y en
+  // dark mode desaparecían contra el fondo oscuro. La leyenda sí tenía color porque
+  // toma otra ruta, lo que hacía el síntoma aún más confuso.
+  //
+  // El safelist fuerza a generar esas clases para los únicos colores que usamos
+  // (chart-theme.ts: neutral / emerald / rose). Si se agrega un color de serie ahí,
+  // hay que agregarlo aquí o volverá a salir negro.
+  safelist: [
+    {
+      pattern: /(fill|stroke|bg|text|border)-(neutral|emerald|rose)-(300|400|500|600)/,
+    },
+  ],
   theme: {
     extend: {
+      // CU-868khvzbd: el breakpoint del design guide §Responsive es 1080px, no los
+      // 1024px de `lg`. Se agrega como screen propio en vez de redondear al de
+      // Tailwind: 1080 es donde el sidebar de 212px + el contenido dejan de caber
+      // cómodamente, y aproximarlo movería el punto exacto que el guide especifica.
+      // `sm` (640px) sí es el del guide, así que se reutiliza tal cual.
+      screens: { app: '1080px' },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',

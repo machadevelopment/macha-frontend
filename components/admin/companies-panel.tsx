@@ -87,7 +87,7 @@ export function CompaniesPanel() {
     <div className="flex flex-col gap-4">
       <Card>
         <p className="mb-2 text-cardh2">Alta manual de empresa</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field
             id="workosOrgId"
             label="WorkOS Org ID"
