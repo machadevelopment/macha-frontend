@@ -1,1 +1,19 @@
-bun run typecheck && bun run lint && bun test
+# CU-868khvgpy: `git push` se colgaba indefinidamente en este repo con el hook activo
+# (dos veces, abortado a los 2 y a los 10 minutos), mientras que `--no-verify` completaba
+# al instante. El mismo hook en macha-backend nunca dio problema.
+#
+# Git alimenta al hook de pre-push con las refs por STDIN. Ninguno de los comandos de
+# abajo lee stdin, así que lo dejan abierto; el `< /dev/null` corta esa vía de raíz —
+# cada comando ve EOF inmediato y no puede quedarse esperando una entrada que nunca llega.
+#
+# Sobre la causa: la hipótesis original del ticket era que `next lint` se quedaba
+# esperando stdin (tiene ruta interactiva: el wizard de configuración de ESLint).
+# **Queda descartada.** Se ejecutaron `bun run lint` y `bun test` con stdin conectado a
+# un pipe que nunca cierra y ambos terminaron en verde y en tiempo normal. La causa
+# exacta sigue sin confirmarse; esto es una defensa, no un diagnóstico cerrado. Si
+# vuelve a colgarse, el contenido del hook ya no es el sospechoso.
+#
+# `build` no se corre aquí a propósito (criterio 4 del ticket): `next build` tarda más
+# que los otros tres juntos y el gate de CI ya lo cubre desde CU-868khttg2
+# (.github/workflows/ci.yml). El hook es el bucle rápido; CI es la red final.
+bun run typecheck < /dev/null && bun run lint < /dev/null && bun test < /dev/null
