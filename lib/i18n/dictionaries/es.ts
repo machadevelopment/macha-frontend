@@ -13,11 +13,39 @@ export const es: Dictionary = {
     eyebrow: 'ADMIN',
     title: 'Backoffice',
   },
+  shell: {
+    mainNav: 'Navegación principal',
+    collapse: 'Colapsar menú',
+    expand: 'Expandir menú',
+    section: {
+      analysis: 'Análisis',
+      data: 'Datos',
+      account: 'Cuenta',
+      operations: 'Operación',
+      platform: 'Plataforma',
+    },
+    nav: {
+      dashboard: 'Panorama',
+      upload: 'Cargar datos',
+      reports: 'Reportes',
+      chat: 'Asistente',
+      credits: 'Créditos',
+    },
+    adminNav: {
+      companies: 'Empresas',
+      stagingRows: 'Filas marcadas',
+      templates: 'Plantillas',
+      creditRules: 'Reglas de créditos',
+      config: 'Configuración',
+      aiCost: 'Costo IA',
+      uploads: 'Cargas',
+    },
+  },
   home: {
     eyebrow: 'MACHA FINANCE',
-    title: 'Fundaciones F1',
+    title: 'Tu capa de CFO',
     subtitle:
-      'Scaffolding listo: tokens de diseño, tipografía Inter/JetBrains Mono y temas claro/oscuro.',
+      'Sube tu contabilidad, entiende tus números y decide con un asistente financiero que conoce tu empresa.',
   },
   upload: {
     eyebrow: 'INGESTA',
