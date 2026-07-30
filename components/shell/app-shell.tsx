@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { OrgSwitcher } from '@/components/org-switcher';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { signOutAction } from '@/app/actions/sign-out';
 import { adminNav, appNav, isNavItemActive, type NavItem } from '@/components/shell/nav-config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -148,9 +149,12 @@ export function AppShell({
           </nav>
 
           {/*
-            side-bot (design guide.md §7): identidad de la sesión + idioma + salir.
+            side-bot (design guide.md §7): identidad de la sesión + idioma + tema + salir.
             El correo hace de acceso a perfil — no hay ruta `/profile` todavía, y un
             link muerto es peor que ninguno.
+
+            CU-868khvzdf: el control de tema va aquí y no en cada superficie, así queda
+            en la app de cliente y en `/admin/*` con un solo montaje (criterio 3).
           */}
           <div className="mt-auto flex flex-col gap-1 border-t border-border p-2">
             <div
@@ -172,7 +176,10 @@ export function AppShell({
                   {userEmail}
                 </span>
               )}
-              <LocaleSwitcher locale={locale} />
+              <div className={cn('flex shrink-0 items-center', collapsed && 'flex-col')}>
+                <LocaleSwitcher locale={locale} />
+                <ThemeSwitcher labels={common.theme} />
+              </div>
             </div>
             <form action={signOutAction}>
               <button
