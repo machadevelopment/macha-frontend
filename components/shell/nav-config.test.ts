@@ -34,19 +34,27 @@ describe('isNavItemActive', () => {
     expect(isNavItemActive('/admin/staging-rows', admin)).toBe(false);
   });
 
-  it('usa `matchAlso` para las pantallas de detalle que no tienen ítem propio', () => {
-    // `/alerts/[id]` se llega por deep-link desde el email; sin esto el sidebar se
+  it('mantiene activo el ítem al abrir una pantalla de detalle', () => {
+    // A `/alerts/[id]` se llega por deep-link desde el email: sin esto el sidebar se
     // queda sin ítem activo y el usuario aterriza sin saber dónde está.
-    const dashboard = item('/dashboard', { matchAlso: ['/alerts'] });
-    expect(isNavItemActive('/alerts/abc', dashboard)).toBe(true);
-    expect(isNavItemActive('/credits', dashboard)).toBe(false);
+    expect(isNavItemActive('/alerts/abc', item('/alerts'))).toBe(true);
+    expect(isNavItemActive('/credits', item('/alerts'))).toBe(false);
   });
 });
 
 describe('modelo de navegación', () => {
-  it('cubre las cinco pantallas raíz de cliente', () => {
+  it('cubre las seis pantallas raíz de cliente', () => {
+    // `/alerts` entra en CU-868kj0tdq: antes solo existía `/alerts/[id]` (deep-link del
+    // email) y colgaba de `/dashboard` por `matchAlso`. Ahora hay histórico y es sección.
     const hrefs = appNav(t).flatMap((s) => s.items.map((i) => i.href));
-    expect(hrefs.sort()).toEqual(['/chat', '/credits', '/dashboard', '/reports', '/upload']);
+    expect(hrefs.sort()).toEqual([
+      '/alerts',
+      '/chat',
+      '/credits',
+      '/dashboard',
+      '/reports',
+      '/upload',
+    ]);
   });
 
   it('cubre las siete rutas del backoffice', () => {

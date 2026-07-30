@@ -33,6 +33,7 @@ export const en: Dictionary = {
     },
     nav: {
       dashboard: 'Overview',
+      alerts: 'Alerts',
       upload: 'Upload data',
       reports: 'Reports',
       chat: 'Assistant',
@@ -152,6 +153,14 @@ export const en: Dictionary = {
   alerts: {
     eyebrow: 'ALERT',
     title: 'Alert detail',
+    historyEyebrow: 'ALERTS',
+    historyTitle: 'Alert history',
+    table: {
+      rule: 'Rule',
+      triggeredValue: 'Value',
+      threshold: 'Threshold',
+      date: 'Date',
+    },
     empty: 'No alerts have fired yet.',
     notFound: "We couldn't find this alert.",
     triggeredValue: 'Triggering value',

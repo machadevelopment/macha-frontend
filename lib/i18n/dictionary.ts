@@ -43,6 +43,7 @@ export interface Dictionary {
     /** Etiquetas cortas de los ítems de nav: los títulos de pantalla no caben en 212px. */
     nav: {
       dashboard: string;
+      alerts: string;
       upload: string;
       reports: string;
       chat: string;
@@ -165,6 +166,17 @@ export interface Dictionary {
   alerts: {
     eyebrow: string;
     title: string;
+    /** CU-868kj0tdq: el histórico es una pantalla distinta del detalle, con su
+     * propio encabezado — `title` es el del detalle y decía "Detalle de alerta". */
+    historyEyebrow: string;
+    historyTitle: string;
+    /** Cabeceras de la tabla del histórico. */
+    table: {
+      rule: string;
+      triggeredValue: string;
+      threshold: string;
+      date: string;
+    };
     empty: string;
     notFound: string;
     triggeredValue: string;
