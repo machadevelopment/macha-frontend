@@ -8,8 +8,11 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.reports.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.reports.title}</h1>
+      {/* CU-868khvzve: el h1 estático decía "Reportes", igual que la pantalla de lista.
+          Ahora el título lo pone ReportDetail con el período real del reporte, que es lo
+          que identifica al documento. El eyebrow se queda acá porque no depende del
+          fetch y evita que la cabecera aparezca vacía mientras carga. */}
+      <p className="mb-4 font-mono text-eyebrow uppercase text-faint">{t.reports.eyebrow}</p>
       <ReportDetail reportId={params.id} locale={locale} labels={t.reports} />
     </main>
   );
