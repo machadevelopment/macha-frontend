@@ -1,17 +1,29 @@
-# CU-868khvgpy: `git push` se colgaba indefinidamente en este repo con el hook activo
-# (dos veces, abortado a los 2 y a los 10 minutos), mientras que `--no-verify` completaba
-# al instante. El mismo hook en macha-backend nunca dio problema.
+# CU-868khvgpy — CAUSA CONFIRMADA (2026-07-30). El hook nunca fue el culpable.
 #
-# Git alimenta al hook de pre-push con las refs por STDIN. Ninguno de los comandos de
-# abajo lee stdin, así que lo dejan abierto; el `< /dev/null` corta esa vía de raíz —
-# cada comando ve EOF inmediato y no puede quedarse esperando una entrada que nunca llega.
+# Síntoma: `git push` en este repo se colgaba indefinidamente (abortado a los 2 y a los
+# 10 minutos). Dos hipótesis previas quedaron descartadas:
+#   1. "`next lint` espera stdin (wizard interactivo de ESLint)". Falso: `bun run lint` y
+#      `bun test` corridos con stdin conectado a un pipe que nunca cierra terminaron en
+#      verde y en tiempo normal.
+#   2. "Es el hook". Falso: `git push --no-verify` también se colgaba.
 #
-# Sobre la causa: la hipótesis original del ticket era que `next lint` se quedaba
-# esperando stdin (tiene ruta interactiva: el wizard de configuración de ESLint).
-# **Queda descartada.** Se ejecutaron `bun run lint` y `bun test` con stdin conectado a
-# un pipe que nunca cierra y ambos terminaron en verde y en tiempo normal. La causa
-# exacta sigue sin confirmarse; esto es una defensa, no un diagnóstico cerrado. Si
-# vuelve a colgarse, el contenido del hook ya no es el sospechoso.
+# Causa real, vista con `GIT_TRACE=1`: el `~/.gitconfig` de la máquina tiene
+# `credential.username = kenethruiz20`. Git fija ese usuario antes de consultar helpers,
+# así que `gh auth git-credential` — que solo tiene credencial para la cuenta
+# `machadevelopment` — no responde para ese usuario, git cae al askpass de VS Code
+# (`.../extensions/git/dist/askpass.sh`), este lanza un Electron pidiendo contraseña por
+# GUI, y el push espera para siempre una respuesta que nadie va a dar.
+#
+# Arreglo (por máquina, no versionable — el `.gitconfig` global no vive en el repo):
+#
+#     git config --local credential.username machadevelopment
+#
+# Ya aplicado en este clon. Hay que repetirlo en cada clon nuevo y en macha-backend, o
+# quitar `credential.username` del `~/.gitconfig` global para arreglarlo de una vez.
+# Con eso el push completa con el hook activo, en tiempo normal.
+#
+# El `< /dev/null` de abajo se deja como defensa barata (ningún comando lee stdin y así
+# no puede quedarse esperándolo), pero NO es lo que arregló el cuelgue.
 #
 # `build` no se corre aquí a propósito (criterio 4 del ticket): `next build` tarda más
 # que los otros tres juntos y el gate de CI ya lo cubre desde CU-868khttg2
