@@ -273,7 +273,10 @@ function SidebarBody({
       */}
       <div className="mt-auto flex flex-col gap-1 border-t border-border p-2">
         <div
-          className={cn('flex min-w-0 items-center gap-2', collapsed && 'app:flex-col app:items-stretch')}
+          className={cn(
+            'flex min-w-0 items-center gap-2',
+            collapsed && 'app:flex-col app:items-stretch',
+          )}
         >
           <Avatar className="h-6 w-6 shrink-0 self-center">
             <AvatarFallback className="font-mono text-[10px] uppercase text-muted-foreground">

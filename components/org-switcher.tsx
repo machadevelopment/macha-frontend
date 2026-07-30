@@ -108,11 +108,7 @@ export function OrgSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="flex w-full items-center gap-2 px-2 py-1.5"
-          title={name}
-        >
+        <Button variant="ghost" className="flex w-full items-center gap-2 px-2 py-1.5" title={name}>
           <Avatar className="h-5 w-5 shrink-0 rounded-sm">
             <AvatarFallback className="font-mono text-eyebrow">{initial}</AvatarFallback>
           </Avatar>

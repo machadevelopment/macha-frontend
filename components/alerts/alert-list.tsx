@@ -54,8 +54,7 @@ export function AlertList({ locale, labels }: { locale: Locale; labels: Dictiona
   useEffect(() => load(0), []);
 
   if (!alerts) return null;
-  if (alerts.length === 0)
-    return <p className="text-body text-muted-foreground">{labels.empty}</p>;
+  if (alerts.length === 0) return <p className="text-body text-muted-foreground">{labels.empty}</p>;
 
   return (
     <>

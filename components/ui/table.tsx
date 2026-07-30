@@ -62,10 +62,6 @@ export const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
-  <td
-    ref={ref}
-    className={cn('whitespace-nowrap p-[var(--density-td-p)]', className)}
-    {...props}
-  />
+  <td ref={ref} className={cn('whitespace-nowrap p-[var(--density-td-p)]', className)} {...props} />
 ));
 TableCell.displayName = 'TableCell';

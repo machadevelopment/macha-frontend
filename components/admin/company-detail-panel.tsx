@@ -105,9 +105,7 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
             <Badge variant={company.status === 'active' ? 'success' : 'danger'}>
               {company.status}
             </Badge>
-            <span className="font-mono text-eyebrow uppercase text-faint">
-              {company.industry}
-            </span>
+            <span className="font-mono text-eyebrow uppercase text-faint">{company.industry}</span>
             <span className="font-mono text-eyebrow uppercase text-faint">
               MONEDA BASE {company.baseCurrency}
             </span>
