@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request, type RequestError } from '@/lib/api/browser';
 import { formatDate } from '@/lib/format';
 import {
   Table,
@@ -29,19 +31,29 @@ export function IndustryTemplatesPanel() {
   const [templates, setTemplates] = useState<Template[] | null>(null);
   const [versions, setVersions] = useState<Record<string, Version[]>>({});
 
+  const [loadError, setLoadError] = useState<RequestError | null>(null);
+
+  // CU-868kkgb3c: dos niveles de fetch anidados y ninguno protegido. Si fallaba el de
+  // versiones, la plantilla quedaba con la tabla vacía — indistinguible de una plantilla
+  // recién creada y sin versiones.
   useEffect(() => {
-    fetch('/api/admin/industry-templates')
-      .then((r) => r.json())
-      .then((data: Template[]) => {
-        setTemplates(data);
-        for (const t of data) {
-          fetch(`/api/admin/industry-templates/${t.id}/versions`)
-            .then((r) => r.json())
-            .then((v: Version[]) => setVersions((prev) => ({ ...prev, [t.id]: v })));
-        }
-      });
+    void request<Template[]>('/api/admin/industry-templates').then((result) => {
+      if (!result.ok) {
+        setLoadError(result.error);
+        return;
+      }
+      setTemplates(result.data);
+      for (const t of result.data) {
+        void request<Version[]>(`/api/admin/industry-templates/${t.id}/versions`).then((v) => {
+          // El fallo de UNA plantilla no tumba el panel: se deja su tabla sin filas y el
+          // resto sigue. Reintentar recarga la pantalla completa.
+          if (v.ok) setVersions((prev) => ({ ...prev, [t.id]: v.data }));
+        });
+      }
+    });
   }, []);
 
+  if (loadError) return <AdminLoadError error={loadError} onRetry={() => location.reload()} />;
   if (!templates) return null;
 
   return (

@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadError } from '@/components/ui/load-error';
+import { errorMessage, request, requestJson, type RequestError } from '@/lib/api/browser';
 import { formatDate, formatMoney } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -40,35 +42,75 @@ export function ReportDetail({
   reportId,
   locale,
   labels,
+  common,
 }: {
   reportId: string;
   locale: Locale;
   labels: Dictionary['reports'];
+  common: Dictionary['common'];
 }) {
   const router = useRouter();
   const [report, setReport] = useState<ReportData | null>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<RequestError | null>(null);
+  /** Fallo al guardar: se muestra JUNTO al editor, que sigue abierto. */
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/reports/${reportId}`)
-      .then((r) => r.json())
-      .then((data: ReportData) => {
-        setReport(data);
-        setDraft(data.narrative);
-      });
+    void request<ReportData>(`/api/reports/${reportId}`).then((result) => {
+      if (!result.ok) {
+        setLoadError(result.error);
+        return;
+      }
+      setReport(result.data);
+      setDraft(result.data.narrative);
+    });
   }, [reportId]);
 
+  /**
+   * CU-868kkg9z5: esto NUNCA miraba `res.ok`.
+   *
+   * `fetch` solo rechaza si no hubo respuesta, así que un 403/409/429/500 seguía de
+   * largo: se cerraba el editor —la señal universal de "guardado"— y el texto del
+   * usuario desaparecía, reemplazado por la versión anterior que devolvía el GET. Sin
+   * aviso y sin forma de recuperarlo: `draft` se perdía al desmontar.
+   *
+   * Es contenido financiero que después se firma y se distribuye. El daño no era el
+   * error, era que el error se presentaba como éxito.
+   *
+   * Ahora, si algo falla, el editor SIGUE ABIERTO con el texto intacto. Nunca se
+   * descarta `draft` sin haberlo persistido.
+   */
   async function save() {
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch(`/api/reports/${reportId}/versions`, {
-        method: 'POST',
-        body: JSON.stringify({ narrative: draft }),
+      const created = await requestJson(`/api/reports/${reportId}/versions`, 'POST', {
+        narrative: draft,
       });
-      const updated = await fetch(`/api/reports/${reportId}`).then((r) => r.json());
-      setReport(updated);
+      if (!created.ok) {
+        setSaveError(
+          errorMessage(created.error) ??
+            (created.error.kind === 'http' && created.error.status === 403
+              ? common.loadError.forbidden
+              : common.loadError.server),
+        );
+        return;
+      }
+
+      // El refetch también se comprueba: antes un fallo suyo metía `undefined` en
+      // `setReport` y rompía el render de toda la pantalla.
+      const updated = await request<ReportData>(`/api/reports/${reportId}`);
+      if (!updated.ok) {
+        // La versión SÍ se creó; lo que falló fue releerla. Cerrar el editor es correcto
+        // —el trabajo está guardado— y se refleja el texto que se acaba de mandar.
+        setReport((prev) => (prev ? { ...prev, narrative: draft } : prev));
+        setEditing(false);
+        return;
+      }
+      setReport(updated.data);
       setEditing(false);
     } finally {
       setSaving(false);
@@ -76,8 +118,14 @@ export function ReportDetail({
   }
 
   async function openRendered() {
-    const { url } = await fetch(`/api/reports/${reportId}/view`).then((r) => r.json());
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const result = await request<{ url: string }>(`/api/reports/${reportId}/view`);
+    // CU-868kkg9z5: sin esto, un fallo dejaba `url` en `undefined` y se abría una
+    // pestaña en blanco — que el usuario lee como "el reporte está vacío".
+    if (!result.ok) {
+      setSaveError(errorMessage(result.error) ?? common.loadError.server);
+      return;
+    }
+    window.open(result.data.url, '_blank', 'noopener,noreferrer');
   }
 
   // CU-868kh8uau: se manda `versionId` (el `report_versions.id` real), no `reportId`.
@@ -86,17 +134,21 @@ export function ReportDetail({
   // la FK compuesta de la migración 0011 lo hace imposible a nivel de base.
   async function askInChat() {
     if (!report) return;
-    const res = await fetch('/api/chats', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: `${labels.chatThreadTitle} ${report.periodStart}`,
-        reportVersionId: report.versionId,
-      }),
+    const result = await requestJson<{ id: string }>('/api/chats', 'POST', {
+      title: `${labels.chatThreadTitle} ${report.periodStart}`,
+      reportVersionId: report.versionId,
     });
-    const chat: { id: string } = await res.json();
-    router.push(`/chat?thread=${chat.id}`);
+    // CU-868kkg9z5: antes navegaba a `/chat?thread=undefined` cuando esto fallaba.
+    if (!result.ok) {
+      setSaveError(errorMessage(result.error) ?? common.loadError.server);
+      return;
+    }
+    router.push(`/chat?thread=${result.data.id}`);
   }
 
+  if (loadError) {
+    return <LoadError error={loadError} labels={common.loadError} />;
+  }
   if (!report) return null;
   const currency = report.baseCurrency as 'GTQ' | 'USD';
   const frequencyLabel = labels.frequencyValue[report.frequency as Frequency] ?? report.frequency;
@@ -119,6 +171,8 @@ export function ReportDetail({
           </span>
         </div>
       </div>
+
+      {!editing && saveError && <p className="text-body text-danger">{saveError}</p>}
 
       <div className="flex gap-2">
         <Button variant="outline" size="sm" className="gap-1.5" onClick={openRendered}>
@@ -184,6 +238,8 @@ export function ReportDetail({
         {editing ? (
           <div className="mt-2 flex flex-col gap-2">
             <Textarea rows={8} value={draft} onChange={(e) => setDraft(e.target.value)} />
+            {/* CU-868kkg9z5: el error va acá, con el editor abierto y el texto puesto. */}
+            {saveError && <p className="text-body text-danger">{saveError}</p>}
             <Button size="sm" onClick={save} disabled={saving} className="self-start">
               {saving ? labels.saving : labels.save}
             </Button>

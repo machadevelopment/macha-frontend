@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request, requestJson, type RequestError } from '@/lib/api/browser';
 import { RULE_UNIT, RULE_UNIT_LABEL_ES, isKnownRule } from '@/lib/alerts/rule-units';
 import {
   Table,
@@ -50,22 +52,29 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
   const [users, setUsers] = useState<CompanyUserRow[] | null>(null);
   const [alertRules, setAlertRules] = useState<AlertRuleRow[] | null>(null);
 
+  const [loadError, setLoadError] = useState<RequestError | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // CU-868kkgb3c: las tres cargas iban sin manejo de fallo. La de empresa además
+  // interpretaba `{error}` como "no existe" y dejaba `company` en `null`, así que un 500
+  // se mostraba igual que una empresa inexistente.
   function loadCompany() {
-    fetch(`/api/admin/companies/${companyId}`)
-      .then((r) => r.json())
-      .then((data: CompanySummary | { error: string }) =>
-        setCompany('error' in data ? null : data),
-      );
+    void request<CompanySummary>(`/api/admin/companies/${companyId}`).then((result) => {
+      if (result.ok) setCompany(result.data);
+      else setLoadError(result.error);
+    });
   }
   function loadUsers() {
-    fetch(`/api/admin/companies/${companyId}/users`)
-      .then((r) => r.json())
-      .then(setUsers);
+    void request<CompanyUserRow[]>(`/api/admin/companies/${companyId}/users`).then((result) => {
+      if (result.ok) setUsers(result.data);
+      else setLoadError(result.error);
+    });
   }
   function loadAlertRules() {
-    fetch(`/api/admin/companies/${companyId}/alert-rules`)
-      .then((r) => r.json())
-      .then(setAlertRules);
+    void request<AlertRuleRow[]>(`/api/admin/companies/${companyId}/alert-rules`).then((result) => {
+      if (result.ok) setAlertRules(result.data);
+      else setLoadError(result.error);
+    });
   }
 
   useEffect(() => {
@@ -75,24 +84,41 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId]);
 
+  // Cambiar el rol de alguien decide qué puede hacer con la contabilidad de su empresa;
+  // un umbral decide cuándo se le avisa de un problema de liquidez. Que cualquiera de
+  // los dos fallara en silencio dejaba al staff creyendo que había aplicado un cambio
+  // que no existe.
   async function updateRole(userId: string, role: string) {
-    await fetch(`/api/admin/companies/${companyId}/users/${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ role }),
+    setActionError(null);
+    const result = await requestJson(`/api/admin/companies/${companyId}/users/${userId}`, 'PATCH', {
+      role,
     });
+    if (!result.ok) {
+      setActionError('No se pudo cambiar el rol de este usuario.');
+      return;
+    }
     loadUsers();
   }
 
   async function updateThreshold(ruleKey: string, threshold: number) {
-    await fetch(`/api/admin/companies/${companyId}/alert-rules/${ruleKey}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ threshold }),
-    });
+    setActionError(null);
+    const result = await requestJson(
+      `/api/admin/companies/${companyId}/alert-rules/${ruleKey}`,
+      'PATCH',
+      { threshold },
+    );
+    if (!result.ok) {
+      setActionError('No se pudo actualizar este umbral.');
+      return;
+    }
     loadAlertRules();
   }
 
+  if (loadError) return <AdminLoadError error={loadError} onRetry={() => location.reload()} />;
+
   return (
     <div className="flex flex-col gap-4">
+      {actionError && <p className="text-body text-danger">{actionError}</p>}
       {/* CU-868khvzqn criterio 2: el nombre es el título de la pantalla, no un dato más.
           Industria, moneda base y estado van al lado porque cambian cómo se leen los
           umbrales y los montos de abajo. `locale` se muestra porque decide el idioma de

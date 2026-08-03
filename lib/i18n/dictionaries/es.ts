@@ -19,6 +19,12 @@ export const es: Dictionary = {
       body: 'El error se reportó al equipo. Puedes reintentar o volver más tarde.',
       retry: 'Reintentar',
     },
+    loadError: {
+      network: 'No pudimos conectar. Revisa tu conexión e intenta de nuevo.',
+      server: 'No pudimos cargar estos datos. Intenta de nuevo en un momento.',
+      forbidden: 'No tienes acceso a esta información.',
+      retry: 'Reintentar',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',
@@ -112,6 +118,12 @@ export const es: Dictionary = {
     insightCta: 'Generar insight',
     insightLoading: 'Generando…',
     insightInsufficientCredits: 'Saldo de créditos insuficiente para generar un insight.',
+    insightError: {
+      insufficientDetail: 'Necesitas {required} créditos y tienes {balance}.',
+      rateLimited: 'Hay demasiadas solicitudes en curso. Intenta en un momento.',
+      failed: 'No pudimos generar el insight. Tu saldo no se vio afectado.',
+      retry: 'Reintentar',
+    },
     creditsLabel: 'créditos',
   },
   chat: {

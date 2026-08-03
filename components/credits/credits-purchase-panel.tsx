@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { CreditsBadge } from '@/components/dashboard/credits-badge';
 import type { Dictionary } from '@/lib/i18n/dictionary';
+import { request, requestJson } from '@/lib/api/browser';
 import type { CreditsTopupRequest, CreditsTopupResponse } from '@/lib/api/billing';
 
 /**
@@ -21,9 +22,11 @@ export function CreditsPurchasePanel({ labels }: { labels: Dictionary['credits']
   const [error, setError] = useState<'generic' | 'forbidden' | null>(null);
 
   useEffect(() => {
-    fetch('/api/credits-balance')
-      .then((r) => r.json())
-      .then((data: { balance: number }) => setBalance(data.balance));
+    // CU-868kkgb3c: el único fetch sin protección de esta pantalla. El camino de compra
+    // ya distinguía 403 de fallo genérico; este dejaba una unhandled rejection.
+    void request<{ balance: number }>('/api/credits-balance').then((result) => {
+      if (result.ok) setBalance(result.data.balance);
+    });
   }, []);
 
   async function submit(e: React.FormEvent) {
@@ -31,19 +34,17 @@ export function CreditsPurchasePanel({ labels }: { labels: Dictionary['credits']
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch('/api/credits-topup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credits } satisfies CreditsTopupRequest),
-      });
-      if (!res.ok) {
-        setError(res.status === 403 ? 'forbidden' : 'generic');
+      const result = await requestJson<CreditsTopupResponse>('/api/credits-topup', 'POST', {
+        credits,
+      } satisfies CreditsTopupRequest);
+      if (!result.ok) {
+        // `requestJson` ya no deja pasar un fallo de red como excepción, así que el
+        // `catch` genérico de antes sobra: el 403 (solo el owner puede comprar) sigue
+        // distinguiéndose del resto.
+        setError(result.error.status === 403 ? 'forbidden' : 'generic');
         return;
       }
-      const data: CreditsTopupResponse = await res.json();
-      window.location.href = data.checkoutUrl;
-    } catch {
-      setError('generic');
+      window.location.href = result.data.checkoutUrl;
     } finally {
       setSubmitting(false);
     }

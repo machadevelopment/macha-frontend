@@ -20,7 +20,7 @@ export default async function UploadPage() {
       <p className="font-mono text-eyebrow uppercase text-faint">{t.upload.eyebrow}</p>
       <h1 className="text-h1">{t.upload.title}</h1>
       <p className="mb-4 text-body text-muted-foreground">{t.upload.subtitle}</p>
-      <UploadScreen locale={locale} labels={t.upload} canRevert={canRevert} />
+      <UploadScreen locale={locale} labels={t.upload} common={t.common} canRevert={canRevert} />
     </main>
   );
 }

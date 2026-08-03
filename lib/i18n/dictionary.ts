@@ -26,6 +26,23 @@ export interface Dictionary {
       body: string;
       retry: string;
     };
+    /**
+     * Estados de fallo de una carga de datos del cliente (CU-868kkgb3c). Antes no
+     * existían: un fetch caído dejaba el mismo `null` que "todavía cargando", así que la
+     * pantalla se quedaba en blanco sin decir nada.
+     *
+     * Se distingue "no hubo respuesta" de "el servidor contestó que no" porque la acción
+     * del usuario es distinta: en el primer caso reintentar sirve, en el segundo no.
+     */
+    loadError: {
+      /** Fallo de red / sin respuesta. */
+      network: string;
+      /** El servidor respondió con error. */
+      server: string;
+      /** Sin permiso (403). */
+      forbidden: string;
+      retry: string;
+    };
   };
   admin: {
     eyebrow: string;
@@ -127,6 +144,20 @@ export interface Dictionary {
     insightCta: string;
     insightLoading: string;
     insightInsufficientCredits: string;
+    /**
+     * CU-868kkgav2: el panel colapsaba TODO fallo en "créditos insuficientes" — un 500,
+     * un 429 o un corte de red mandaban al usuario a comprar créditos que ya tenía.
+     * Cada motivo dice ahora lo suyo.
+     */
+    insightError: {
+      /** 402 con el detalle que ya manda el backend (`{required, balance}`). */
+      insufficientDetail: string;
+      /** 429: el gate de cola / rate limit por empresa. */
+      rateLimited: string;
+      /** 5xx o red: problema del sistema, no del saldo. */
+      failed: string;
+      retry: string;
+    };
     creditsLabel: string;
   };
   chat: {

@@ -15,7 +15,7 @@ export default function ChatPage() {
       {/* ChatClient reads ?thread= via useSearchParams() (deep-link from reports,
           CU-868kfvacr) — Next.js requires a Suspense boundary around that. */}
       <Suspense fallback={null}>
-        <ChatClient locale={locale} labels={t.chat} />
+        <ChatClient locale={locale} labels={t.chat} common={t.common} />
       </Suspense>
     </main>
   );

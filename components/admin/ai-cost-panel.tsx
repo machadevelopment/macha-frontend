@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request } from '@/lib/api/browser';
+import { useResource } from '@/lib/api/use-resource';
 import { formatMoney, formatNumber } from '@/lib/format';
 import {
   Table,
@@ -25,15 +27,13 @@ interface CostRow {
 // CU-868kfvag7 criterio 3: costo real en USD/tokens SOLO aquí (staff/super_admin) —
 // el cliente nunca ve esta pantalla ni estos números, solo su saldo en créditos.
 export function AiCostPanel() {
-  const [rows, setRows] = useState<CostRow[] | null>(null);
+  // CU-868kkgb3c: antes un 403 (o cualquier fallo) dejaba `rows` en `null` y el panel
+  // renderizaba la nada — sin decir que hacía falta rol staff.
+  const { state, reload } = useResource<CostRow[]>(() => request<CostRow[]>('/api/admin/ai-cost'));
 
-  useEffect(() => {
-    fetch('/api/admin/ai-cost')
-      .then((r) => r.json())
-      .then(setRows);
-  }, []);
-
-  if (!rows) return null;
+  if (state.status === 'loading') return null;
+  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  const rows = state.data;
 
   return (
     <Card>
