@@ -14,6 +14,11 @@ export const es: Dictionary = {
       dark: 'Oscuro',
       system: 'Sistema',
     },
+    error: {
+      title: 'Algo se rompió',
+      body: 'El error se reportó al equipo. Puedes reintentar o volver más tarde.',
+      retry: 'Reintentar',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',

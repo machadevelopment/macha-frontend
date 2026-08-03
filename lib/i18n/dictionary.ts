@@ -16,6 +16,16 @@ export interface Dictionary {
       /** "Sistema" = seguir la preferencia del SO (`enableSystem` de next-themes). */
       system: string;
     };
+    /**
+     * Pantalla de último recurso cuando el árbol de React se cae entero
+     * (`app/global-error.tsx`, CU-868kjc99f). No promete que el dato esté a salvo —
+     * solo dice que el fallo se reportó y ofrece salir del paso.
+     */
+    error: {
+      title: string;
+      body: string;
+      retry: string;
+    };
   };
   admin: {
     eyebrow: string;

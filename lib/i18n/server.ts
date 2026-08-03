@@ -1,8 +1,11 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import { defaultLocale, locales, type Locale } from './config';
+import { defaultLocale, locales, LOCALE_COOKIE, type Locale } from './config';
 
-export const LOCALE_COOKIE = 'macha-locale';
+// CU-868kjc99f: la constante se mudó a `./config` (módulo sin `server-only`) para que
+// `app/global-error.tsx`, que es client component, pueda leer la cookie. Se re-exporta
+// desde acá para no romper a quien ya la importaba de este módulo.
+export { LOCALE_COOKIE };
 
 function isLocale(value: string | undefined): value is Locale {
   return locales.includes(value as Locale);
