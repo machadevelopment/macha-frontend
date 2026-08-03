@@ -14,6 +14,11 @@ export const en: Dictionary = {
       dark: 'Dark',
       system: 'System',
     },
+    error: {
+      title: 'Something broke',
+      body: 'The error was reported to our team. You can retry or come back later.',
+      retry: 'Retry',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',
