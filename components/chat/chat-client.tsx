@@ -6,6 +6,8 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { LoadError } from '@/components/ui/load-error';
+import { request, requestJson, type RequestError } from '@/lib/api/browser';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import { formatDate } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
@@ -22,7 +24,15 @@ interface ChatMessage {
   createdAt: string;
 }
 
-export function ChatClient({ locale, labels }: { locale: Locale; labels: Dictionary['chat'] }) {
+export function ChatClient({
+  locale,
+  labels,
+  common,
+}: {
+  locale: Locale;
+  labels: Dictionary['chat'];
+  common: Dictionary['common'];
+}) {
   const searchParams = useSearchParams();
   const requestedThread = searchParams.get('thread');
   const [threads, setThreads] = useState<ChatThread[] | null>(null);
@@ -30,16 +40,23 @@ export function ChatClient({ locale, labels }: { locale: Locale; labels: Diction
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  /** Fallo cargando hilos/mensajes: reemplaza la pantalla. */
+  const [loadError, setLoadError] = useState<RequestError | null>(null);
+  /** Fallo enviando o creando: va junto al input, sin tapar la conversación. */
+  const [sendError, setSendError] = useState<RequestError | null>(null);
 
+  // CU-868kkgb3c: los tres fetch de esta pantalla iban sin manejo de fallo.
   useEffect(() => {
-    fetch('/api/chats')
-      .then((r) => r.json())
-      .then((data: ChatThread[]) => {
-        setThreads(data);
-        // Deep-link from a report (?thread=<id>, CU-868kfvacr) wins over the default
-        // "select the most recent thread" behavior.
-        if (!requestedThread && data[0]) setActiveId(data[0].id);
-      });
+    void request<ChatThread[]>('/api/chats').then((result) => {
+      if (!result.ok) {
+        setLoadError(result.error);
+        return;
+      }
+      setThreads(result.data);
+      // Deep-link from a report (?thread=<id>, CU-868kfvacr) wins over the default
+      // "select the most recent thread" behavior.
+      if (!requestedThread && result.data[0]) setActiveId(result.data[0].id);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -48,14 +65,20 @@ export function ChatClient({ locale, labels }: { locale: Locale; labels: Diction
       setMessages([]);
       return;
     }
-    fetch(`/api/chats/${activeId}/messages`)
-      .then((r) => r.json())
-      .then(setMessages);
+    void request<ChatMessage[]>(`/api/chats/${activeId}/messages`).then((result) => {
+      if (result.ok) setMessages(result.data);
+      else setLoadError(result.error);
+    });
   }, [activeId]);
 
   async function createChat() {
-    const res = await fetch('/api/chats', { method: 'POST', body: JSON.stringify({}) });
-    const chat: { id: string; title: string } = await res.json();
+    const result = await requestJson<{ id: string; title: string }>('/api/chats', 'POST', {});
+    if (!result.ok) {
+      // Antes un fallo acá lanzaba dentro del onClick: ni hilo nuevo ni aviso.
+      setSendError(result.error);
+      return;
+    }
+    const chat = result.data;
     setThreads((prev) => [
       { id: chat.id, title: chat.title, updatedAt: new Date().toISOString() },
       ...(prev ?? []),
@@ -67,24 +90,49 @@ export function ChatClient({ locale, labels }: { locale: Locale; labels: Diction
     const content = draft.trim();
     if (!content || !activeId) return;
     setDraft('');
+    setSendError(null);
     setSending(true);
     setMessages((prev) => [
       ...prev,
       { role: 'user', content, createdAt: new Date().toISOString() },
     ]);
     try {
-      const res = await fetch(`/api/chats/${activeId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({ content }),
-      });
-      const data: { content: string } = await res.json();
+      const result = await requestJson<{ content: string }>(
+        `/api/chats/${activeId}/messages`,
+        'POST',
+        { content },
+      );
+      if (!result.ok) {
+        /**
+         * CU-868kkgb3c: antes, si esto fallaba, el mensaje del usuario se quedaba en
+         * pantalla sin respuesta y sin error — indistinguible de un modelo que tarda.
+         * El usuario esperaba una respuesta que no iba a llegar nunca.
+         *
+         * Se retira el mensaje optimista y se devuelve el texto al input: es lo único
+         * que evita que alguien crea que su pregunta quedó registrada. El backend pudo
+         * no haberla persistido.
+         */
+        setMessages((prev) => prev.slice(0, -1));
+        setDraft(content);
+        setSendError(result.error);
+        return;
+      }
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.content, createdAt: new Date().toISOString() },
+        { role: 'assistant', content: result.data.content, createdAt: new Date().toISOString() },
       ]);
     } finally {
       setSending(false);
     }
+  }
+
+  // CU-868kkgb3c: si no se pudieron cargar los hilos no hay chat que mostrar. Antes esto
+  // renderizaba el panel vacío con el input habilitado, invitando a escribir en un hilo
+  // que no existía.
+  if (loadError) {
+    return (
+      <LoadError error={loadError} labels={common.loadError} onRetry={() => location.reload()} />
+    );
   }
 
   return (
@@ -130,6 +178,7 @@ export function ChatClient({ locale, labels }: { locale: Locale; labels: Diction
             </div>
           ))}
         </div>
+        {sendError && <LoadError error={sendError} labels={common.loadError} />}
         <div className="mt-3 flex gap-2">
           <Input
             value={draft}

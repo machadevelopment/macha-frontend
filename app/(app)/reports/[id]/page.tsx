@@ -13,7 +13,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
           que identifica al documento. El eyebrow se queda acá porque no depende del
           fetch y evita que la cabecera aparezca vacía mientras carga. */}
       <p className="mb-4 font-mono text-eyebrow uppercase text-faint">{t.reports.eyebrow}</p>
-      <ReportDetail reportId={params.id} locale={locale} labels={t.reports} />
+      <ReportDetail reportId={params.id} locale={locale} labels={t.reports} common={t.common} />
     </main>
   );
 }

@@ -19,6 +19,12 @@ export const en: Dictionary = {
       body: 'The error was reported to our team. You can retry or come back later.',
       retry: 'Retry',
     },
+    loadError: {
+      network: "We couldn't connect. Check your connection and try again.",
+      server: "We couldn't load this data. Try again in a moment.",
+      forbidden: "You don't have access to this information.",
+      retry: 'Try again',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',
@@ -112,6 +118,12 @@ export const en: Dictionary = {
     insightCta: 'Generate insight',
     insightLoading: 'Generating…',
     insightInsufficientCredits: 'Insufficient credit balance to generate an insight.',
+    insightError: {
+      insufficientDetail: 'You need {required} credits and have {balance}.',
+      rateLimited: 'Too many requests in flight. Try again in a moment.',
+      failed: "We couldn't generate the insight. Your balance was not affected.",
+      retry: 'Try again',
+    },
     creditsLabel: 'credits',
   },
   chat: {

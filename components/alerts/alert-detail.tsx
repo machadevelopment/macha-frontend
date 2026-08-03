@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { request } from '@/lib/api/browser';
 import { formatDate } from '@/lib/format';
 import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -41,12 +42,11 @@ export function AlertDetail({
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/alerts/${alertId}`).then(async (r) => {
-      if (!r.ok) {
-        setNotFound(true);
-        return;
-      }
-      setAlert((await r.json()) as AlertData);
+    // CU-868kkgb3c: el `!r.ok` ya estaba (CU-868kh8jxf), pero un `r.json()` que lanzara
+    // sobre un 200 con cuerpo corrupto quedaba como unhandled rejection.
+    void request<AlertData>(`/api/alerts/${alertId}`).then((result) => {
+      if (result.ok) setAlert(result.data);
+      else setNotFound(true);
     });
   }, [alertId]);
 

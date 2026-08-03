@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { requestJson } from '@/lib/api/browser';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Label } from '@/components/ui/label';
@@ -29,19 +30,12 @@ export function RegisterWizard({ labels }: { labels: Dictionary['register'] }) {
     setSubmitting(true);
     setError(false);
     try {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) {
+      const result = await requestJson<RegisterResponse>('/api/register', 'POST', form);
+      if (!result.ok) {
         setError(true);
         return;
       }
-      const data: RegisterResponse = await res.json();
-      window.location.href = data.checkoutUrl;
-    } catch {
-      setError(true);
+      window.location.href = result.data.checkoutUrl;
     } finally {
       setSubmitting(false);
     }

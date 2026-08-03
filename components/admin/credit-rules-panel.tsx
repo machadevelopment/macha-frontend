@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request, requestJson, type RequestError } from '@/lib/api/browser';
+import { useResource } from '@/lib/api/use-resource';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Badge } from '@/components/ui/badge';
@@ -25,29 +28,34 @@ interface CreditRule {
 }
 
 export function CreditRulesPanel() {
-  const [rules, setRules] = useState<CreditRule[] | null>(null);
   const [form, setForm] = useState({
     actionKind: 'insight',
     ruleType: 'fixed',
     creditsPerUnit: '1',
   });
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<RequestError | null>(null);
 
-  function load() {
-    fetch('/api/admin/credit-rules')
-      .then((r) => r.json())
-      .then(setRules);
-  }
-  useEffect(load, []);
+  // CU-868kkgb3c: ni la carga ni el alta miraban `res.ok`.
+  const { state, reload } = useResource<CreditRule[]>(
+    useCallback(() => request<CreditRule[]>('/api/admin/credit-rules'), []),
+  );
 
   async function createRule() {
     setSaving(true);
+    setSaveError(null);
     try {
-      await fetch('/api/admin/credit-rules', {
-        method: 'POST',
-        body: JSON.stringify({ ...form, creditsPerUnit: Number(form.creditsPerUnit) }),
+      const result = await requestJson('/api/admin/credit-rules', 'POST', {
+        ...form,
+        creditsPerUnit: Number(form.creditsPerUnit),
       });
-      load();
+      if (!result.ok) {
+        // Una regla de créditos define cuánto se le cobra a cada empresa por acción:
+        // creer que se guardó una versión que no existe es peor que el propio fallo.
+        setSaveError(result.error);
+        return;
+      }
+      reload();
     } finally {
       setSaving(false);
     }
@@ -99,39 +107,45 @@ export function CreditRulesPanel() {
         <Button size="sm" className="mt-3" onClick={createRule} disabled={saving}>
           {saving ? 'Guardando…' : 'Publicar nueva versión'}
         </Button>
+        {saveError && <AdminLoadError error={saveError} />}
       </Card>
 
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Acción</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Créditos/unidad</TableHead>
-              <TableHead>Versión</TableHead>
-              <TableHead>Estado</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rules?.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="font-mono text-eyebrow uppercase text-faint">
-                  {r.actionKind}
-                </TableCell>
-                <TableCell>{r.ruleType}</TableCell>
-                <TableCell className="font-mono tabular-nums">
-                  {r.creditsPerUnit} {r.unit ? `/ ${r.unit}` : ''}
-                </TableCell>
-                <TableCell className="font-mono tabular-nums">v{r.version}</TableCell>
-                <TableCell>
-                  <Badge variant={r.active ? 'success' : 'neutral'}>
-                    {r.active ? 'activa' : 'histórica'}
-                  </Badge>
-                </TableCell>
+        {state.status === 'error' ? (
+          <AdminLoadError error={state.error} onRetry={reload} />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Acción</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Créditos/unidad</TableHead>
+                <TableHead>Versión</TableHead>
+                <TableHead>Estado</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {state.status === 'ready' &&
+                state.data.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-mono text-eyebrow uppercase text-faint">
+                      {r.actionKind}
+                    </TableCell>
+                    <TableCell>{r.ruleType}</TableCell>
+                    <TableCell className="font-mono tabular-nums">
+                      {r.creditsPerUnit} {r.unit ? `/ ${r.unit}` : ''}
+                    </TableCell>
+                    <TableCell className="font-mono tabular-nums">v{r.version}</TableCell>
+                    <TableCell>
+                      <Badge variant={r.active ? 'success' : 'neutral'}>
+                        {r.active ? 'activa' : 'histórica'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        )}
       </Card>
     </div>
   );

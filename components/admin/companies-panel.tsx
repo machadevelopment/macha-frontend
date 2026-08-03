@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request, requestJson } from '@/lib/api/browser';
+import { usePagedList } from '@/lib/api/use-paged-list';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -26,8 +29,6 @@ interface CompanyRow {
 const PAGE_SIZE = 50;
 
 export function CompaniesPanel() {
-  const [companies, setCompanies] = useState<CompanyRow[] | null>(null);
-  const [hasMore, setHasMore] = useState(false);
   const [form, setForm] = useState({
     workosOrgId: '',
     name: '',
@@ -39,34 +40,34 @@ export function CompaniesPanel() {
   const [error, setError] = useState<string | null>(null);
 
   // CU-868kh913c: mismo patrón "load more" que los otros paneles de admin.
-  function load(offset = 0) {
-    fetch(`/api/admin/companies?limit=${PAGE_SIZE}&offset=${offset}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
-      .then((data: { companies: CompanyRow[]; hasMore: boolean }) => {
-        setCompanies((prev) =>
-          offset === 0 ? data.companies : [...(prev ?? []), ...data.companies],
-        );
-        setHasMore(data.hasMore);
-      })
-      .catch(() => setError('No autorizado — se necesita rol staff/super_admin.'));
-  }
-
-  useEffect(() => load(0), []);
+  // CU-868kkgb3c: este panel era el ÚNICO con un `.catch`, pero atribuía cualquier
+  // fallo a "no autorizado" — un 500 o un corte de red se reportaban como falta de
+  // permisos. Ahora el motivo real lo clasifica `request`.
+  const { state, loadMore, loadingMore, moreError, reload } = usePagedList<CompanyRow>(
+    useCallback(async (offset) => {
+      const result = await request<{ companies: CompanyRow[]; hasMore: boolean }>(
+        `/api/admin/companies?limit=${PAGE_SIZE}&offset=${offset}`,
+      );
+      return result.ok
+        ? {
+            ok: true as const,
+            data: { items: result.data.companies, hasMore: result.data.hasMore },
+          }
+        : result;
+    }, []),
+  );
 
   async function createCompany() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/companies', {
-        method: 'POST',
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) {
+      const result = await requestJson('/api/admin/companies', 'POST', form);
+      if (!result.ok) {
         setError('No se pudo crear la empresa.');
         return;
       }
       setForm({ workosOrgId: '', name: '', industry: '', baseCurrency: 'GTQ', locale: 'es' });
-      load();
+      reload();
     } finally {
       setCreating(false);
     }
@@ -74,14 +75,21 @@ export function CompaniesPanel() {
 
   async function toggleStatus(company: CompanyRow) {
     const nextStatus = company.status === 'active' ? 'suspended' : 'active';
-    await fetch(`/api/admin/companies/${company.id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: nextStatus }),
+    const result = await requestJson(`/api/admin/companies/${company.id}/status`, 'PATCH', {
+      status: nextStatus,
     });
-    load();
+    // CU-868kkgb3c: suspender una empresa le corta el acceso a su contabilidad. Que
+    // fallara en silencio dejaba al staff creyendo que la había suspendido.
+    if (!result.ok) {
+      setError('No se pudo cambiar el estado de la empresa.');
+      return;
+    }
+    reload();
   }
 
-  if (error) return <p className="text-body text-danger">{error}</p>;
+  if (state.status === 'loading') return null;
+  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  const companies = state.items;
 
   return (
     <div className="flex flex-col gap-4">
@@ -116,6 +124,9 @@ export function CompaniesPanel() {
         <Button size="sm" className="mt-3" onClick={createCompany} disabled={creating}>
           {creating ? 'Creando…' : 'Crear empresa (aprovisiona partición)'}
         </Button>
+        {/* CU-868kkgb3c: el error de alta/estado ya no reemplaza el panel entero — antes
+            un `return` temprano borraba la tabla y el formulario. */}
+        {error && <p className="mt-2 text-body text-danger">{error}</p>}
       </Card>
 
       <Card>
@@ -130,7 +141,7 @@ export function CompaniesPanel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {companies?.map((c) => (
+            {companies.map((c) => (
               <TableRow key={c.id}>
                 <TableCell>
                   <a href={`/admin/companies/${c.id}`} className="text-body underline">
@@ -153,14 +164,16 @@ export function CompaniesPanel() {
             ))}
           </TableBody>
         </Table>
-        {hasMore && (
+        {moreError && <AdminLoadError error={moreError} onRetry={loadMore} />}
+        {state.hasMore && !moreError && (
           <Button
             size="sm"
             variant="outline"
             className="mt-3"
-            onClick={() => load(companies?.length ?? 0)}
+            onClick={loadMore}
+            disabled={loadingMore}
           >
-            Cargar más
+            {loadingMore ? 'Cargando…' : 'Cargar más'}
           </Button>
         )}
       </Card>

@@ -15,20 +15,26 @@ export default function DashboardPage() {
       <p className="font-mono text-eyebrow uppercase text-faint">{t.dashboard.eyebrow}</p>
       <h1 className="mb-4 text-h1">{t.dashboard.title}</h1>
 
-      <DashboardClient labels={t.dashboard} topUpLabel={t.credits.topUpCta} />
+      <DashboardClient locale={locale} labels={t.dashboard} topUpLabel={t.credits.topUpCta} />
 
       <div className="mt-4">
-        <KpiRow locale={locale} labels={t.dashboard.kpi} />
+        <KpiRow locale={locale} labels={t.dashboard.kpi} common={t.common} />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 app:grid-cols-2">
-        <TrendChart locale={locale} title={t.dashboard.trendTitle} labels={t.dashboard} />
+        <TrendChart
+          locale={locale}
+          title={t.dashboard.trendTitle}
+          labels={t.dashboard}
+          common={t.common}
+        />
         <ArApChart
           locale={locale}
           title={t.dashboard.arApTitle}
           arLabel={t.dashboard.ar}
           apLabel={t.dashboard.ap}
           agingLabel={t.dashboard.chart.aging}
+          common={t.common}
         />
       </div>
     </main>
