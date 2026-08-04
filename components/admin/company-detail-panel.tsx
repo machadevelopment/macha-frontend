@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { CompanyCreditsCard } from '@/components/admin/company-credits-card';
 import { request, requestJson, type RequestError } from '@/lib/api/browser';
 import { RULE_UNIT, RULE_UNIT_LABEL_ES, isKnownRule } from '@/lib/alerts/rule-units';
 import {
@@ -176,6 +177,11 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
           </TableBody>
         </Table>
       </Card>
+
+      {/* CU-868kjc7g5: los créditos son por empresa y esta es la pantalla donde el staff
+          toca lo que es por empresa. Carga su propio dato y maneja su propio fallo, así
+          que un 403 de super_admin en el abono no tumba el resto del detalle. */}
+      <CompanyCreditsCard companyId={companyId} />
 
       <Card>
         <p className="mb-2 text-cardh2">Umbrales de alerta</p>
