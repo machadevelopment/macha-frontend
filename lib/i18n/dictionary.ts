@@ -43,6 +43,37 @@ export interface Dictionary {
       forbidden: string;
       retry: string;
     };
+    /**
+     * Boundaries de ruta (`error.tsx`, CU-868kkgb8f). Distinto de `common.error`, que es
+     * el `global-error` de último recurso y reemplaza la app entera: esto degrada un
+     * segmento dejando el shell en pie, así que puede ofrecer salidas de verdad.
+     */
+    routeError: {
+      title: string;
+      /**
+       * El backend no contestó (5xx, timeout, red). Reintentar sirve, así que el texto
+       * invita a hacerlo.
+       */
+      unavailable: string;
+      /**
+       * El backend contestó que no (403). Reintentar NO sirve — repetir el intento da el
+       * mismo 403 —, así que el texto no lo sugiere.
+       */
+      denied: string;
+      retry: string;
+      /** Salida al inicio, para no dejar la pantalla sin ninguna acción. */
+      home: string;
+    };
+    /**
+     * `not-found.tsx` (CU-868kkgb8f). Lo alcanza tanto una URL inexistente como el
+     * `notFound()` con el que `app/admin/layout.tsx` tapa el backoffice: el texto tiene
+     * que servir a los dos sin insinuar que /admin existe.
+     */
+    notFound: {
+      title: string;
+      body: string;
+      cta: string;
+    };
   };
   admin: {
     eyebrow: string;
