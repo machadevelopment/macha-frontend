@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { BarChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadError } from '@/components/ui/load-error';
+import { request } from '@/lib/api/browser';
+import { useResource } from '@/lib/api/use-resource';
 import { formatMoney, formatMoneyCompact } from '@/lib/format';
 import { makeChartTooltip } from '@/components/charts/chart-tooltip';
 import type { Locale } from '@/lib/i18n/config';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { ArApResponse } from '@/lib/api/dashboard';
 import { chartColors } from '@/components/charts/chart-theme';
 
@@ -17,6 +20,7 @@ export function ArApChart({
   arLabel,
   apLabel,
   agingLabel,
+  common,
 }: {
   locale: Locale;
   title: string;
@@ -24,16 +28,27 @@ export function ArApChart({
   apLabel: string;
   /** CU-868kh8rz8: cabecera de la tabla `sr-only`, hardcodeada en español por el PR #19. */
   agingLabel: string;
+  common: Dictionary['common'];
 }) {
-  const [data, setData] = useState<ArApResponse | null>(null);
+  const { state, reload } = useResource<ArApResponse>(() => request<ArApResponse>('/api/ar-ap'));
 
-  useEffect(() => {
-    fetch('/api/ar-ap')
-      .then((r) => r.json())
-      .then(setData);
-  }, []);
+  // CU-868kkgb3c: ver nota en trend-chart.tsx — la tarjeta no desaparece, falla adentro.
+  if (state.status !== 'ready') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        {state.status === 'error' ? (
+          <LoadError error={state.error} labels={common.loadError} onRetry={reload} />
+        ) : (
+          <div className="h-64" aria-busy="true" />
+        )}
+      </Card>
+    );
+  }
 
-  if (!data) return null;
+  const data = state.data;
   const currency = data.baseCurrency as 'GTQ' | 'USD';
 
   const chartData = BUCKET_ORDER.map((bucket) => ({

@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { Card } from '@/components/ui/card';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request } from '@/lib/api/browser';
+import { usePagedList } from '@/lib/api/use-paged-list';
 import {
   Table,
   TableBody,
@@ -29,20 +32,22 @@ const PAGE_SIZE = 50;
 
 // CU-868kfvag7 criterio 2: monitoreo de uploads/procesos, cross-company (staff ve todas).
 export function DocumentsPanel() {
-  const [docs, setDocs] = useState<DocumentRow[] | null>(null);
-  const [hasMore, setHasMore] = useState(false);
+  // CU-868kkgb3c: un fallo dejaba el panel de monitoreo en blanco, que en una pantalla
+  // cuyo trabajo es vigilar cargas se lee como "no hay cargas con problemas".
+  const { state, loadMore, loadingMore, moreError, reload } = usePagedList<DocumentRow>(
+    useCallback(async (offset) => {
+      const result = await request<{ rows: DocumentRow[]; hasMore: boolean }>(
+        `/api/admin/documents?limit=${PAGE_SIZE}&offset=${offset}`,
+      );
+      return result.ok
+        ? { ok: true as const, data: { items: result.data.rows, hasMore: result.data.hasMore } }
+        : result;
+    }, []),
+  );
 
-  function load(offset = 0) {
-    fetch(`/api/admin/documents?limit=${PAGE_SIZE}&offset=${offset}`)
-      .then((r) => r.json())
-      .then((data: { rows: DocumentRow[]; hasMore: boolean }) => {
-        setDocs((prev) => (offset === 0 ? data.rows : [...(prev ?? []), ...data.rows]));
-        setHasMore(data.hasMore);
-      });
-  }
-  useEffect(() => load(0), []);
-
-  if (!docs) return null;
+  if (state.status === 'loading') return null;
+  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  const docs = state.items;
 
   return (
     <Card>
@@ -81,9 +86,16 @@ export function DocumentsPanel() {
           ))}
         </TableBody>
       </Table>
-      {hasMore && (
-        <Button size="sm" variant="outline" className="mt-3" onClick={() => load(docs.length)}>
-          Cargar más
+      {moreError && <AdminLoadError error={moreError} onRetry={loadMore} />}
+      {state.hasMore && !moreError && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-3"
+          onClick={loadMore}
+          disabled={loadingMore}
+        >
+          {loadingMore ? 'Cargando…' : 'Cargar más'}
         </Button>
       )}
     </Card>

@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { AdminLoadError } from '@/components/admin/admin-load-error';
+import { request, requestJson } from '@/lib/api/browser';
+import { useResource } from '@/lib/api/use-resource';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/lib/format';
@@ -86,44 +89,77 @@ function rowsFor(key: string, draft: string): number {
 }
 
 export function ConfigPanel() {
-  const [settings, setSettings] = useState<Setting[] | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  /** Error por key: cada parámetro se guarda por separado. */
+  const [saveErrors, setSaveErrors] = useState<Record<string, string>>({});
 
-  function load() {
-    fetch('/api/admin/config')
-      .then((r) => r.json())
-      .then((data: Setting[]) => {
-        setSettings(data);
+  const { state, reload } = useResource<Setting[]>(
+    useCallback(async () => {
+      const result = await request<Setting[]>('/api/admin/config');
+      if (result.ok) {
         // Strings edit as plain text (no surrounding JSON quotes/escapes); numbers
         // and anything else fall back to their JSON form.
         setDrafts(
           Object.fromEntries(
-            data.map((s) => [
+            result.data.map((s) => [
               s.key,
               typeof s.value === 'string' ? s.value : JSON.stringify(s.value),
             ]),
           ),
         );
-      });
-  }
-  useEffect(load, []);
+      }
+      return result;
+    }, []),
+  );
 
+  const settings = state.status === 'ready' ? state.data : null;
+
+  /**
+   * CU-868kkgb3c: esto no miraba `res.ok`, así que un PATCH rechazado se veía igual que
+   * uno exitoso — el spinner paraba y el panel recargaba mostrando el valor VIEJO. Acá
+   * se editan cosas como el ratio de tokens por crédito y el precio de venta: creer que
+   * se guardó un cambio de precio que no se guardó es un problema de dinero.
+   *
+   * Además `JSON.parse` podía lanzar con un draft malformado y dejar el botón colgado en
+   * "Guardando…" para siempre; ahora se valida antes de salir a la red.
+   */
   async function save(key: string) {
+    const original = settings?.find((s) => s.key === key);
+    let value: unknown;
+    if (typeof original?.value === 'string') {
+      value = drafts[key];
+    } else {
+      try {
+        value = JSON.parse(drafts[key]!);
+      } catch {
+        setSaveErrors((prev) => ({ ...prev, [key]: 'El valor no es JSON válido.' }));
+        return;
+      }
+    }
+
     setSaving(key);
+    setSaveErrors((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     try {
-      const original = settings?.find((s) => s.key === key);
-      const value = typeof original?.value === 'string' ? drafts[key] : JSON.parse(drafts[key]!);
-      await fetch(`/api/admin/config/${key}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ value }),
-      });
-      load();
+      const result = await requestJson(`/api/admin/config/${key}`, 'PATCH', { value });
+      if (!result.ok) {
+        setSaveErrors((prev) => ({
+          ...prev,
+          [key]: 'No se pudo guardar. El valor sigue siendo el anterior.',
+        }));
+        return;
+      }
+      reload();
     } finally {
       setSaving(null);
     }
   }
 
+  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
   if (!settings) return null;
 
   return (
@@ -158,6 +194,8 @@ export function ConfigPanel() {
             >
               {saving === s.key ? 'Guardando…' : 'Guardar'}
             </Button>
+            {/* CU-868kkgb3c: el error va por parámetro, junto a su propio botón. */}
+            {saveErrors[s.key] && <p className="mt-1 text-body text-danger">{saveErrors[s.key]}</p>}
           </Card>
         );
       })}

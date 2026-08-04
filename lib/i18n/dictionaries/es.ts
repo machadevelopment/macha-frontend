@@ -14,6 +14,29 @@ export const es: Dictionary = {
       dark: 'Oscuro',
       system: 'Sistema',
     },
+    error: {
+      title: 'Algo se rompió',
+      body: 'El error se reportó al equipo. Puedes reintentar o volver más tarde.',
+      retry: 'Reintentar',
+    },
+    loadError: {
+      network: 'No pudimos conectar. Revisa tu conexión e intenta de nuevo.',
+      server: 'No pudimos cargar estos datos. Intenta de nuevo en un momento.',
+      forbidden: 'No tienes acceso a esta información.',
+      retry: 'Reintentar',
+    },
+    routeError: {
+      title: 'No pudimos mostrar esta pantalla',
+      unavailable: 'El servicio no está respondiendo. Suele ser pasajero: vuelve a intentar.',
+      denied: 'No tienes acceso a esta sección.',
+      retry: 'Reintentar',
+      home: 'Ir al inicio',
+    },
+    notFound: {
+      title: 'Esta página no existe',
+      body: 'Puede que el enlace esté mal o que la página se haya movido.',
+      cta: 'Ir al inicio',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',
@@ -107,6 +130,12 @@ export const es: Dictionary = {
     insightCta: 'Generar insight',
     insightLoading: 'Generando…',
     insightInsufficientCredits: 'Saldo de créditos insuficiente para generar un insight.',
+    insightError: {
+      insufficientDetail: 'Necesitas {required} créditos y tienes {balance}.',
+      rateLimited: 'Hay demasiadas solicitudes en curso. Intenta en un momento.',
+      failed: 'No pudimos generar el insight. Tu saldo no se vio afectado.',
+      retry: 'Reintentar',
+    },
     creditsLabel: 'créditos',
   },
   chat: {

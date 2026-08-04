@@ -16,6 +16,64 @@ export interface Dictionary {
       /** "Sistema" = seguir la preferencia del SO (`enableSystem` de next-themes). */
       system: string;
     };
+    /**
+     * Pantalla de último recurso cuando el árbol de React se cae entero
+     * (`app/global-error.tsx`, CU-868kjc99f). No promete que el dato esté a salvo —
+     * solo dice que el fallo se reportó y ofrece salir del paso.
+     */
+    error: {
+      title: string;
+      body: string;
+      retry: string;
+    };
+    /**
+     * Estados de fallo de una carga de datos del cliente (CU-868kkgb3c). Antes no
+     * existían: un fetch caído dejaba el mismo `null` que "todavía cargando", así que la
+     * pantalla se quedaba en blanco sin decir nada.
+     *
+     * Se distingue "no hubo respuesta" de "el servidor contestó que no" porque la acción
+     * del usuario es distinta: en el primer caso reintentar sirve, en el segundo no.
+     */
+    loadError: {
+      /** Fallo de red / sin respuesta. */
+      network: string;
+      /** El servidor respondió con error. */
+      server: string;
+      /** Sin permiso (403). */
+      forbidden: string;
+      retry: string;
+    };
+    /**
+     * Boundaries de ruta (`error.tsx`, CU-868kkgb8f). Distinto de `common.error`, que es
+     * el `global-error` de último recurso y reemplaza la app entera: esto degrada un
+     * segmento dejando el shell en pie, así que puede ofrecer salidas de verdad.
+     */
+    routeError: {
+      title: string;
+      /**
+       * El backend no contestó (5xx, timeout, red). Reintentar sirve, así que el texto
+       * invita a hacerlo.
+       */
+      unavailable: string;
+      /**
+       * El backend contestó que no (403). Reintentar NO sirve — repetir el intento da el
+       * mismo 403 —, así que el texto no lo sugiere.
+       */
+      denied: string;
+      retry: string;
+      /** Salida al inicio, para no dejar la pantalla sin ninguna acción. */
+      home: string;
+    };
+    /**
+     * `not-found.tsx` (CU-868kkgb8f). Lo alcanza tanto una URL inexistente como el
+     * `notFound()` con el que `app/admin/layout.tsx` tapa el backoffice: el texto tiene
+     * que servir a los dos sin insinuar que /admin existe.
+     */
+    notFound: {
+      title: string;
+      body: string;
+      cta: string;
+    };
   };
   admin: {
     eyebrow: string;
@@ -117,6 +175,20 @@ export interface Dictionary {
     insightCta: string;
     insightLoading: string;
     insightInsufficientCredits: string;
+    /**
+     * CU-868kkgav2: el panel colapsaba TODO fallo en "créditos insuficientes" — un 500,
+     * un 429 o un corte de red mandaban al usuario a comprar créditos que ya tenía.
+     * Cada motivo dice ahora lo suyo.
+     */
+    insightError: {
+      /** 402 con el detalle que ya manda el backend (`{required, balance}`). */
+      insufficientDetail: string;
+      /** 429: el gate de cola / rate limit por empresa. */
+      rateLimited: string;
+      /** 5xx o red: problema del sistema, no del saldo. */
+      failed: string;
+      retry: string;
+    };
     creditsLabel: string;
   };
   chat: {

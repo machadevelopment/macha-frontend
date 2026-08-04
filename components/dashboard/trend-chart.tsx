@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { AreaChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadError } from '@/components/ui/load-error';
+import { request } from '@/lib/api/browser';
+import { useResource } from '@/lib/api/use-resource';
 import { formatMoney, formatMoneyCompact } from '@/lib/format';
 import { makeChartTooltip } from '@/components/charts/chart-tooltip';
 import type { Locale } from '@/lib/i18n/config';
@@ -14,6 +16,7 @@ export function TrendChart({
   locale,
   title,
   labels,
+  common,
 }: {
   locale: Locale;
   title: string;
@@ -21,16 +24,31 @@ export function TrendChart({
    * PR #19 (a11y). Un lector de pantalla SÍ las lee, así que son texto de cara al
    * cliente y tienen que pasar por el diccionario como cualquier otro. */
   labels: Dictionary['dashboard'];
+  common: Dictionary['common'];
 }) {
-  const [data, setData] = useState<MetricsResponse | null>(null);
+  const { state, reload } = useResource<MetricsResponse>(() =>
+    request<MetricsResponse>('/api/metrics?months=12'),
+  );
 
-  useEffect(() => {
-    fetch('/api/metrics?months=12')
-      .then((r) => r.json())
-      .then(setData);
-  }, []);
+  // CU-868kkgb3c: `if (!data) return null` borraba la tarjeta entera del dashboard —
+  // ni el título quedaba. La tarjeta y su encabezado se mantienen siempre, y adentro va
+  // el estado que corresponda: así el usuario ve QUÉ no cargó, no un hueco.
+  if (state.status !== 'ready') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        {state.status === 'error' ? (
+          <LoadError error={state.error} labels={common.loadError} onRetry={reload} />
+        ) : (
+          <div className="h-64" aria-busy="true" />
+        )}
+      </Card>
+    );
+  }
 
-  if (!data) return null;
+  const data = state.data;
   const currency = data.baseCurrency as 'GTQ' | 'USD';
 
   return (

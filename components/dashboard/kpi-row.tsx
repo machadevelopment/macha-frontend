@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { KpiCard } from '@/components/charts/kpi-card';
+import { LoadError } from '@/components/ui/load-error';
+import { request } from '@/lib/api/browser';
+import { useResource } from '@/lib/api/use-resource';
 import { formatMoney } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -10,19 +12,18 @@ import type { MetricsResponse } from '@/lib/api/dashboard';
 export function KpiRow({
   locale,
   labels,
+  common,
 }: {
   locale: Locale;
   labels: Dictionary['dashboard']['kpi'];
+  /** CU-868kkgb3c:  y los textos del estado de fallo, para no dejar la fila en blanco. */
+  common: Dictionary['common'];
 }) {
-  const [data, setData] = useState<MetricsResponse | null>(null);
+  const { state, reload } = useResource<MetricsResponse>(() =>
+    request<MetricsResponse>('/api/metrics?months=2'),
+  );
 
-  useEffect(() => {
-    fetch('/api/metrics?months=2')
-      .then((r) => r.json())
-      .then(setData);
-  }, []);
-
-  if (!data) {
+  if (state.status === 'loading') {
     return (
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3">
         <KpiCard label={labels.revenue} value="" loading />
@@ -32,6 +33,14 @@ export function KpiRow({
     );
   }
 
+  // CU-868kkgb3c: antes este caso era indistinguible del anterior — un `null` que dejaba
+  // las tres tarjetas en "cargando" para siempre. Y tres KPIs vacíos en un dashboard
+  // financiero no se leen como un vacío, se leen como "no hubo ingresos".
+  if (state.status === 'error') {
+    return <LoadError error={state.error} labels={common.loadError} onRetry={reload} />;
+  }
+
+  const data = state.data;
   const currency = data.baseCurrency as 'GTQ' | 'USD';
   const latest = data.months[data.months.length - 1];
   const previous = data.months[data.months.length - 2];

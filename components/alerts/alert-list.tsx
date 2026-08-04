@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import Link from 'next/link';
 import {
   Table,
@@ -11,6 +11,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { LoadError } from '@/components/ui/load-error';
+import { request } from '@/lib/api/browser';
+import { usePagedList } from '@/lib/api/use-paged-list';
 import { formatDate } from '@/lib/format';
 import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -36,24 +39,40 @@ interface AlertRow {
 
 const PAGE_SIZE = 50;
 
-export function AlertList({ locale, labels }: { locale: Locale; labels: Dictionary['alerts'] }) {
-  const [alerts, setAlerts] = useState<AlertRow[] | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-
+export function AlertList({
+  locale,
+  labels,
+  common,
+}: {
+  locale: Locale;
+  labels: Dictionary['alerts'];
+  common: Dictionary['common'];
+}) {
   // Mismo patrón "cargar más" (limit+1 del backend) que reportes y documentos: el tick
   // diario del motor de alertas hace que esta lista crezca sin techo.
-  function load(offset = 0) {
-    fetch(`/api/alerts?limit=${PAGE_SIZE}&offset=${offset}`)
-      .then((r) => r.json())
-      .then((data: { items: AlertRow[]; hasMore: boolean }) => {
-        setAlerts((prev) => (offset === 0 ? data.items : [...(prev ?? []), ...data.items]));
-        setHasMore(data.hasMore);
-      });
+  //
+  // CU-868kkgb3c: un fallo dejaba `alerts` en `null` y la pantalla mostraba lo mismo que
+  // "no se ha disparado ninguna alerta". En un histórico de alertas financieras decirle a
+  // alguien que no tiene ninguna cuando en realidad no se pudieron cargar es el peor de
+  // los dos errores posibles.
+  const { state, loadMore, loadingMore, moreError, reload } = usePagedList<AlertRow>(
+    useCallback(
+      (offset) =>
+        request<{ items: AlertRow[]; hasMore: boolean }>(
+          `/api/alerts?limit=${PAGE_SIZE}&offset=${offset}`,
+        ),
+      [],
+    ),
+  );
+
+  if (state.status === 'loading') {
+    return <p className="text-body text-muted-foreground">{common.loading}</p>;
+  }
+  if (state.status === 'error') {
+    return <LoadError error={state.error} labels={common.loadError} onRetry={reload} />;
   }
 
-  useEffect(() => load(0), []);
-
-  if (!alerts) return null;
+  const alerts = state.items;
   if (alerts.length === 0) return <p className="text-body text-muted-foreground">{labels.empty}</p>;
 
   return (
@@ -97,9 +116,17 @@ export function AlertList({ locale, labels }: { locale: Locale; labels: Dictiona
           })}
         </TableBody>
       </Table>
-      {hasMore && (
-        <Button size="sm" variant="outline" className="mt-3" onClick={() => load(alerts.length)}>
-          {labels.loadMore}
+      {/* El fallo de una página siguiente no borra lo ya cargado (ver `usePagedList`). */}
+      {moreError && <LoadError error={moreError} labels={common.loadError} onRetry={loadMore} />}
+      {state.hasMore && !moreError && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-3"
+          onClick={loadMore}
+          disabled={loadingMore}
+        >
+          {loadingMore ? common.loading : labels.loadMore}
         </Button>
       )}
     </>

@@ -12,7 +12,7 @@ export default function AlertsPage() {
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <p className="font-mono text-eyebrow uppercase text-faint">{t.alerts.historyEyebrow}</p>
       <h1 className="mb-4 text-h1">{t.alerts.historyTitle}</h1>
-      <AlertList locale={locale} labels={t.alerts} />
+      <AlertList locale={locale} labels={t.alerts} common={t.common} />
     </main>
   );
 }

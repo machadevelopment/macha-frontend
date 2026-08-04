@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { setActiveCompany } from '@/app/actions/set-active-company';
+import { request } from '@/lib/api/browser';
 import type { Membership } from '@/app/api/memberships/route';
 
 /**
@@ -60,20 +61,43 @@ export function OrgSwitcher({
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/memberships')
-      .then((r) => r.json())
-      .then((data: { memberships: Membership[]; staffTier: string | null }) => {
-        if (cancelled) return;
-        setMemberships(data.memberships);
-        setStaffTier(data.staffTier);
-        if (!initialCompanyId && data.memberships.length === 1) {
-          const onlyCompanyId = data.memberships[0].companyId;
-          setSelected(onlyCompanyId);
+    // CU-868kkgb3c: antes era `.then(r => r.json())` sin manejo de fallo. Un backend
+    // caído dejaba `memberships` en `null` y, con el `return null` de abajo, el orgbar
+    // desaparecía del sidebar entero.
+    void request<{ memberships: Membership[]; staffTier: string | null }>('/api/memberships').then(
+      (result) => {
+        if (cancelled || !result.ok) return;
+        const { memberships: list, staffTier: tier } = result.data;
+        setMemberships(list);
+        setStaffTier(tier);
+
+        /**
+         * CU-868kkgbgq: se reconcilia la cookie con las membresías REALES.
+         *
+         * Antes solo se auto-seleccionaba cuando no había cookie. Si la cookie apuntaba a
+         * una empresa de la que el usuario ya no es miembro (lo sacaron, se desactivó la
+         * empresa, o la cookie sobrevivió a un cambio de cuenta), `selected` se quedaba con
+         * ese id mientras la etiqueta caía a `memberships[0].companyName`: el sidebar decía
+         * una empresa y cada request mandaba el `X-Company-Id` de otra.
+         *
+         * No hay fuga —`tenant.derive.ts` valida el header contra las membresías reales y
+         * rechaza el que no corresponda—, pero la pantalla afirmaba algo falso.
+         */
+        const stillAMember = list.some((m) => m.companyId === initialCompanyId);
+        const target = stillAMember ? undefined : list[0]?.companyId;
+        if (target) {
+          setSelected(target);
           startTransition(() => {
-            void setActiveCompany(onlyCompanyId).then(() => router.refresh());
+            void setActiveCompany(target).then(() => router.refresh());
           });
+        } else if (!stillAMember) {
+          // Cero membresías con cookie vieja: no hay a qué reconciliar. Se limpia la
+          // selección para que la etiqueta caiga a "selecciona una empresa" en vez de
+          // mostrar el nombre de una empresa ajena.
+          setSelected(undefined);
         }
-      });
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -89,8 +113,12 @@ export function OrgSwitcher({
     });
   }
 
+  // CU-868kkgbgq: sin el `?? memberships[0]?.companyName` de antes. Ese fallback era
+  // justamente lo que hacía que la etiqueta mostrara una empresa distinta de la que
+  // viaja en la cookie. Si no se puede resolver, se dice que no hay empresa elegida —
+  // nunca el nombre de otra.
   const current = memberships.find((m) => m.companyId === selected);
-  const name = current?.companyName ?? memberships[0]?.companyName ?? labels.selectCompany;
+  const name = current?.companyName ?? labels.selectCompany;
   const initial = name.slice(0, 1).toUpperCase();
 
   // Nothing to switch between: exactly one membership and not staff.

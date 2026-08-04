@@ -2,14 +2,11 @@ import 'server-only';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+// Definidos en `api-error.ts` (sin `server-only`) para poder probarlos; se reexportan acá
+// porque este sigue siendo el punto de entrada del cliente de API del servidor.
+export { ApiError, classifyApiFailure } from '@/lib/api/api-error';
+
+import { ApiError } from '@/lib/api/api-error';
 
 /**
  * Wrapper de fetch hacia macha-backend. `companyId` es únicamente la preferencia

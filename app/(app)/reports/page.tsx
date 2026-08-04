@@ -10,7 +10,7 @@ export default function ReportsPage() {
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <p className="font-mono text-eyebrow uppercase text-faint">{t.reports.eyebrow}</p>
       <h1 className="mb-4 text-h1">{t.reports.title}</h1>
-      <ReportList locale={locale} labels={t.reports} />
+      <ReportList locale={locale} labels={t.reports} common={t.common} />
     </main>
   );
 }
