@@ -25,6 +25,18 @@ export const en: Dictionary = {
       forbidden: "You don't have access to this information.",
       retry: 'Try again',
     },
+    routeError: {
+      title: "We couldn't load this screen",
+      unavailable: "The service isn't responding. This is usually temporary — please retry.",
+      denied: "You don't have access to this section.",
+      retry: 'Retry',
+      home: 'Go to home',
+    },
+    notFound: {
+      title: "This page doesn't exist",
+      body: 'The link may be wrong, or the page may have moved.',
+      cta: 'Go to home',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',

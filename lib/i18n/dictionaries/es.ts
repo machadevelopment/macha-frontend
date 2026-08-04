@@ -25,6 +25,18 @@ export const es: Dictionary = {
       forbidden: 'No tienes acceso a esta información.',
       retry: 'Reintentar',
     },
+    routeError: {
+      title: 'No pudimos mostrar esta pantalla',
+      unavailable: 'El servicio no está respondiendo. Suele ser pasajero: vuelve a intentar.',
+      denied: 'No tienes acceso a esta sección.',
+      retry: 'Reintentar',
+      home: 'Ir al inicio',
+    },
+    notFound: {
+      title: 'Esta página no existe',
+      body: 'Puede que el enlace esté mal o que la página se haya movido.',
+      cta: 'Ir al inicio',
+    },
   },
   admin: {
     eyebrow: 'ADMIN',
