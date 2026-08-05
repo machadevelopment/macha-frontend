@@ -106,6 +106,7 @@ export interface Dictionary {
       reports: string;
       chat: string;
       credits: string;
+      members: string;
     };
     /** Ítems del backoffice — antes hardcodeados en español en components/admin/admin-nav.tsx. */
     adminNav: {
@@ -311,5 +312,38 @@ export interface Dictionary {
     error: string;
     notOwner: string;
     topUpCta: string;
+  };
+
+  /** CU-868kh8pwv: gestión de miembros autoservicio. */
+  members: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    inviteTitle: string;
+    inviteHint: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    roleLabel: string;
+    inviteAction: string;
+    inviteSent: string;
+    membersTitle: string;
+    pendingTitle: string;
+    pendingEmpty: string;
+    colPerson: string;
+    colRole: string;
+    colStatus: string;
+    removeAction: string;
+    revokeAction: string;
+    genericError: string;
+    role: { owner: string; admin: string; member: string };
+    status: { active: string; invited: string; revoked: string };
+    accept: {
+      title: string;
+      subtitle: string;
+      action: string;
+      accepted: string;
+      missingToken: string;
+      genericError: string;
+    };
   };
 }
