@@ -3,10 +3,14 @@ import { authkitProxy } from '@workos-inc/authkit-nextjs';
 // CU-868kfva59: sesión requerida en todo excepto la hosted UI de login (`/`) y el
 // callback de intercambio código→sesión. authkitProxy solo exige sesión — el rol
 // (staff/company role) se resuelve server-side en macha-backend, no aquí.
+//
+// `/login` es la tercera pública y tiene que serlo: es el Route Handler que arma la URL
+// de la hosted UI y escribe la cookie PKCE (app/login/route.ts). Exigirle sesión a la
+// puerta de entrada dejaría a quien no ha entrado sin forma de entrar.
 export default authkitProxy({
   middlewareAuth: {
     enabled: true,
-    unauthenticatedPaths: ['/', '/callback'],
+    unauthenticatedPaths: ['/', '/login', '/callback'],
   },
 });
 
