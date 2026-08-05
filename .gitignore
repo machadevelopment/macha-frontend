@@ -8,3 +8,9 @@ out
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+.vercel
+# `.env.example` SÍ se versiona (no lleva valores reales): es la lista anotada de
+# variables que el runbook de despliegue manda a llenar. El `.gitignore` que escribe
+# `vercel link` pone un `.env*` a secas y se la lleva por delante.
+.env*
+!.env.example
