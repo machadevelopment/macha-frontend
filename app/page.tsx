@@ -29,10 +29,13 @@ import type { Membership } from '@/app/api/memberships/route';
  *   - con sesión pero sin ninguna empresa → CTA de registro (CU-868kfvae1). Mandar a
  *     `/dashboard` a alguien sin empresa activa es mandarlo a una pantalla vacía.
  */
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams?: { auth_error?: string } }) {
   const { user, accessToken } = await getOptionalSession();
   const locale = getLocale();
   const t = getDictionary(locale);
+  // CU-868kmr0j5: `/callback` redirige aquí cuando el intercambio código→sesión falla,
+  // en vez del 500 crudo que devolvía antes. Ver app/callback/route.ts.
+  const authError = searchParams?.auth_error === '1';
 
   if (user && accessToken) {
     /**
@@ -84,6 +87,15 @@ export default async function Home() {
       </div>
       <h1 className="text-h1">{t.home.title}</h1>
       <p className="mb-3 text-body text-muted-foreground">{t.home.subtitle}</p>
+      {authError && (
+        // Color como señal de estado, con texto+fondo+borde juntos (design guide).
+        <p
+          role="alert"
+          className="mb-3 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-body text-danger"
+        >
+          {t.home.authError}
+        </p>
+      )}
       {/*
         `/login` en vez de `await getSignInUrl()`: esa función escribe la cookie PKCE
         (getAuthURLAndSetPKCECookie), y Next.js solo permite mutar cookies en Server

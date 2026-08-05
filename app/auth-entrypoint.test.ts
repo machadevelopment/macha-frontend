@@ -40,6 +40,20 @@ describe('entrada al login', () => {
     expect(existsSync(join(appDir, 'login', 'route.ts'))).toBe(true);
   });
 
+  /**
+   * CU-868kmr0j5: sin `onError`, `handleAuth` responde 500 ante CUALQUIER login que no
+   * termine bien — incluido cancelar el acceso, que redirige aquí con
+   * `?error=access_denied`. Verificado contra producción en los tres caminos.
+   * El fallo no se ve en ningún test de render: `/callback` es un Route Handler y solo
+   * falla con una petición real, así que se fija sobre el fuente.
+   */
+  test('/callback maneja el error en vez de devolver 500', () => {
+    const src = readFileSync(join(appDir, 'callback', 'route.ts'), 'utf8');
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(code).toMatch(/onError\s*:/);
+    expect(code).toMatch(/auth_error/);
+  });
+
   test('/login es público en el middleware — si no, quien no ha entrado no puede entrar', () => {
     const mw = readFileSync(join(appDir, '..', 'middleware.ts'), 'utf8');
     const paths = mw.match(/unauthenticatedPaths:\s*\[([^\]]*)\]/)?.[1] ?? '';

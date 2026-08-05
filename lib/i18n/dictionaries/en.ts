@@ -77,6 +77,7 @@ export const en: Dictionary = {
     title: 'Your CFO layer',
     subtitle:
       'Upload your books, understand your numbers, and decide with a financial assistant that knows your business.',
+    authError: "We couldn't complete your sign-in. Please try again.",
   },
   upload: {
     eyebrow: 'INGESTION',

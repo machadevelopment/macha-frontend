@@ -122,6 +122,13 @@ export interface Dictionary {
     eyebrow: string;
     title: string;
     subtitle: string;
+    /**
+     * CU-868kmr0j5: el intercambio código→sesión falló y `/callback` devuelve aquí.
+     * Lo alcanza quien CANCELA el login, quien tarda hasta que expira el código y quien
+     * perdió la cookie PKCE (otro navegador, incógnito, cookies limpiadas a medias) —
+     * no es un caso raro. Antes de esto, todos esos caminos terminaban en un 500 crudo.
+     */
+    authError: string;
   };
   upload: {
     eyebrow: string;
