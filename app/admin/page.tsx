@@ -9,7 +9,7 @@ export default function AdminHome() {
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.eyebrow}</p>
       <h1 className="mb-4 text-h1">{t.admin.title}</h1>
-      <CompaniesPanel />
+      <CompaniesPanel labels={t.admin.companies} common={t.admin.common} />
     </>
   );
 }

@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { formatMoney, formatNumber } from '@/lib/format';
 import {
   Table,
@@ -26,13 +27,20 @@ interface CostRow {
 
 // CU-868kfvag7 criterio 3: costo real en USD/tokens SOLO aquí (staff/super_admin) —
 // el cliente nunca ve esta pantalla ni estos números, solo su saldo en créditos.
-export function AiCostPanel() {
+export function AiCostPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['aiCost'];
+  common: Dictionary['admin']['common'];
+}) {
   // CU-868kkgb3c: antes un 403 (o cualquier fallo) dejaba `rows` en `null` y el panel
   // renderizaba la nada — sin decir que hacía falta rol staff.
   const { state, reload } = useResource<CostRow[]>(() => request<CostRow[]>('/api/admin/ai-cost'));
 
   if (state.status === 'loading') return null;
-  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  if (state.status === 'error')
+    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
   const rows = state.data;
 
   return (
@@ -40,11 +48,11 @@ export function AiCostPanel() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Costo</TableHead>
-            <TableHead>Tokens in/out</TableHead>
-            <TableHead>Llamadas</TableHead>
+            <TableHead>{labels.colCompany}</TableHead>
+            <TableHead>{labels.colKind}</TableHead>
+            <TableHead>{labels.colCost}</TableHead>
+            <TableHead>{labels.colTokens}</TableHead>
+            <TableHead>{labels.colCalls}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

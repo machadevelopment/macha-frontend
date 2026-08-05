@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
@@ -48,7 +49,18 @@ interface AlertRuleRow {
   notifyImmediately: boolean;
 }
 
-export function CompanyDetailPanel({ companyId }: { companyId: string }) {
+export function CompanyDetailPanel({
+  companyId,
+  labels,
+  creditsLabels,
+  common,
+}: {
+  companyId: string;
+  labels: Dictionary['admin']['companyDetail'];
+  /** Se recibe y se reenvía: la tarjeta de créditos es hija de esta pantalla. */
+  creditsLabels: Dictionary['admin']['credits'];
+  common: Dictionary['admin']['common'];
+}) {
   const [company, setCompany] = useState<CompanySummary | null>(null);
   const [users, setUsers] = useState<CompanyUserRow[] | null>(null);
   const [alertRules, setAlertRules] = useState<AlertRuleRow[] | null>(null);
@@ -95,7 +107,7 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
       role,
     });
     if (!result.ok) {
-      setActionError('No se pudo cambiar el rol de este usuario.');
+      setActionError(labels.roleError);
       return;
     }
     loadUsers();
@@ -109,13 +121,20 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
       { threshold },
     );
     if (!result.ok) {
-      setActionError('No se pudo actualizar este umbral.');
+      setActionError(labels.thresholdError);
       return;
     }
     loadAlertRules();
   }
 
-  if (loadError) return <AdminLoadError error={loadError} onRetry={() => location.reload()} />;
+  if (loadError)
+    return (
+      <AdminLoadError
+        error={loadError}
+        labels={common.loadError}
+        onRetry={() => location.reload()}
+      />
+    );
 
   return (
     <div className="flex flex-col gap-4">
@@ -125,7 +144,7 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
           umbrales y los montos de abajo. `locale` se muestra porque decide el idioma de
           los emails que recibe esa empresa, y no se ve en ninguna otra pantalla. */}
       <div>
-        <p className="font-mono text-eyebrow uppercase text-faint">EMPRESA</p>
+        <p className="font-mono text-eyebrow uppercase text-faint">{labels.eyebrow}</p>
         <h1 className="text-h1">{company?.name ?? '—'}</h1>
         {company && (
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -144,13 +163,13 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
       </div>
 
       <Card>
-        <p className="mb-2 text-cardh2">Usuarios</p>
+        <p className="mb-2 text-cardh2">{labels.usersTitle}</p>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>{labels.colEmail}</TableHead>
+              <TableHead>{labels.colRole}</TableHead>
+              <TableHead>{labels.colStatus}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -181,16 +200,16 @@ export function CompanyDetailPanel({ companyId }: { companyId: string }) {
       {/* CU-868kjc7g5: los créditos son por empresa y esta es la pantalla donde el staff
           toca lo que es por empresa. Carga su propio dato y maneja su propio fallo, así
           que un 403 de super_admin en el abono no tumba el resto del detalle. */}
-      <CompanyCreditsCard companyId={companyId} />
+      <CompanyCreditsCard companyId={companyId} labels={creditsLabels} common={common} />
 
       <Card>
-        <p className="mb-2 text-cardh2">Umbrales de alerta</p>
+        <p className="mb-2 text-cardh2">{labels.alertRulesTitle}</p>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Regla</TableHead>
-              <TableHead>Umbral</TableHead>
-              <TableHead>Notifica de inmediato</TableHead>
+              <TableHead>{labels.colRule}</TableHead>
+              <TableHead>{labels.colThreshold}</TableHead>
+              <TableHead>{labels.colNotifyNow}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

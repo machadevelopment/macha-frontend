@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,7 +58,15 @@ const REASON_LABEL: Record<CreditMovement['reason'], string> = {
   consumption: 'consumo',
 };
 
-export function CompanyCreditsCard({ companyId }: { companyId: string }) {
+export function CompanyCreditsCard({
+  companyId,
+  labels,
+  common,
+}: {
+  companyId: string;
+  labels: Dictionary['admin']['credits'];
+  common: Dictionary['admin']['common'];
+}) {
   const { state, reload } = useResource<CreditsResponse>(
     () => request<CreditsResponse>(`/api/admin/companies/${companyId}/credits`),
     [companyId],
@@ -74,13 +83,13 @@ export function CompanyCreditsCard({ companyId }: { companyId: string }) {
 
     const amount = Number(delta);
     if (!Number.isInteger(amount) || amount === 0) {
-      setFormError('El movimiento debe ser un número entero distinto de 0.');
+      setFormError(labels.amountInvalid);
       return;
     }
     // El backend también lo exige (es la garantía real); acá se adelanta para no gastar
     // un round-trip en el error más probable.
     if (note.trim().length < 3) {
-      setFormError('Escribe la razón del movimiento.');
+      setFormError(labels.reasonRequired);
       return;
     }
 
@@ -94,7 +103,7 @@ export function CompanyCreditsCard({ companyId }: { companyId: string }) {
     if (!result.ok) {
       // El mensaje del backend se muestra tal cual cuando lo hay: dice exactamente qué
       // corregir (razón vacía, movimiento en 0) o que falta rol super_admin.
-      setFormError(errorMessage(result.error) ?? 'No se pudo registrar el movimiento.');
+      setFormError(errorMessage(result.error) ?? labels.submitError);
       return;
     }
 
@@ -104,21 +113,22 @@ export function CompanyCreditsCard({ companyId }: { companyId: string }) {
   }
 
   if (state.status === 'loading') return null;
-  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  if (state.status === 'error')
+    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
 
   const { balance, movements } = state.data;
 
   return (
     <Card>
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-cardh2">Créditos</p>
+        <p className="text-cardh2">{labels.title}</p>
         <div className="flex items-baseline gap-2">
-          <span className="font-mono text-eyebrow uppercase text-faint">SALDO</span>
+          <span className="font-mono text-eyebrow uppercase text-faint">{labels.balanceLabel}</span>
           {/* Créditos no son dinero: no llevan código de moneda (no son GTQ ni USD).
               Sí son un número que se lee, así que pasa por el formateo centralizado y
               por la regla mono, como el resto de las cifras. */}
           <span className="font-mono tabular-nums text-h2">{formatNumber(balance)}</span>
-          {balance <= 0 && <Badge variant="danger">sin saldo</Badge>}
+          {balance <= 0 && <Badge variant="danger">{labels.noBalance}</Badge>}
         </div>
       </div>
 
@@ -145,12 +155,12 @@ export function CompanyCreditsCard({ companyId }: { companyId: string }) {
             id="credit-note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Compensación por carga fallida del 3 de agosto"
+            placeholder={labels.reasonPlaceholder}
             maxLength={500}
           />
         </div>
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Registrando…' : 'Registrar'}
+          {submitting ? labels.submitting : labels.submit}
         </Button>
       </form>
 
@@ -166,10 +176,10 @@ export function CompanyCreditsCard({ companyId }: { companyId: string }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Movimiento</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Razón</TableHead>
+            <TableHead>{labels.colDate}</TableHead>
+            <TableHead>{labels.colAmount}</TableHead>
+            <TableHead>{labels.colKind}</TableHead>
+            <TableHead>{labels.colReason}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
