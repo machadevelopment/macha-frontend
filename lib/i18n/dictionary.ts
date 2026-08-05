@@ -75,9 +75,138 @@ export interface Dictionary {
       cta: string;
     };
   };
+  /**
+   * CU-868kh8zvt — el backoffice es bilingüe ES/EN por decisión de Jose (2026-07-28).
+   *
+   * La razón NO es operativa (el equipo de Macha trabaja en español) sino de negocio:
+   * el panel admin es donde se demuestra la maquinaria del producto —revisión de filas,
+   * gestión de empresas, costo de IA, control de créditos— ante inversionistas de habla
+   * inglesa en una ronda. Mostrarlo a medias resta en el peor momento posible.
+   *
+   * Se hizo ahora y no después porque el panel de cliente nació con diccionario y por
+   * eso soportar inglés ahí fue trivial, mientras que el admin nació con texto quemado y
+   * por eso costó este ticket. Cada pantalla nueva del admin nace con sus textos acá.
+   */
   admin: {
     eyebrow: string;
     title: string;
+    /** Textos compartidos por los ocho paneles — no se repiten en cada bloque. */
+    common: {
+      loadError: { network: string; server: string; forbidden: string; retry: string };
+      loading: string;
+      loadMore: string;
+      saving: string;
+      save: string;
+    };
+    aiCost: {
+      eyebrow: string;
+      title: string;
+      colCompany: string;
+      colKind: string;
+      colCost: string;
+      colTokens: string;
+      colCalls: string;
+    };
+    companies: {
+      createTitle: string;
+      nameLabel: string;
+      industryLabel: string;
+      currencyLabel: string;
+      localeLabel: string;
+      createAction: string;
+      creating: string;
+      createError: string;
+      statusError: string;
+      colCompany: string;
+      colIndustry: string;
+      colCurrency: string;
+      colStatus: string;
+      suspend: string;
+      activate: string;
+    };
+    companyDetail: {
+      eyebrow: string;
+      usersTitle: string;
+      colEmail: string;
+      colRole: string;
+      colStatus: string;
+      roleError: string;
+      alertRulesTitle: string;
+      colRule: string;
+      colThreshold: string;
+      colNotifyNow: string;
+      thresholdError: string;
+    };
+    credits: {
+      title: string;
+      balanceLabel: string;
+      noBalance: string;
+      amountLabel: string;
+      reasonLabel: string;
+      reasonPlaceholder: string;
+      submit: string;
+      submitting: string;
+      amountInvalid: string;
+      reasonRequired: string;
+      submitError: string;
+      colDate: string;
+      colAmount: string;
+      colKind: string;
+      colReason: string;
+    };
+    config: {
+      eyebrow: string;
+      title: string;
+      invalidJson: string;
+      saveError: string;
+      /** Prefijo de la marca de tiempo bajo cada parámetro. */
+      updatedAt: string;
+      /**
+       * Etiqueta y descripción de cada `platform_settings.key` editable. Las claves son
+       * los identificadores REALES del backend, no se traducen — se muestran tal cual
+       * bajo el label, porque es con ellos que se opera.
+       */
+      settings: Record<string, { label: string; description: string }>;
+    };
+    creditRules: {
+      eyebrow: string;
+      title: string;
+      newVersionTitle: string;
+      actionLabel: string;
+      typeLabel: string;
+      perUnitLabel: string;
+      publishAction: string;
+      colAction: string;
+      colType: string;
+      colPerUnit: string;
+      colVersion: string;
+      colStatus: string;
+    };
+    documents: {
+      eyebrow: string;
+      title: string;
+      colCompany: string;
+      colFile: string;
+      colStatus: string;
+      colRows: string;
+      /** `{n}` se sustituye por el conteo — no concatenar, el orden cambia en inglés. */
+      flaggedSuffix: string;
+    };
+    industryTemplates: {
+      eyebrow: string;
+      title: string;
+      colVersion: string;
+      colCreated: string;
+    };
+    stagingRows: {
+      eyebrow: string;
+      title: string;
+      empty: string;
+      companyEyebrow: string;
+      invalidJson: string;
+      saveError: string;
+      reextractError: string;
+    };
   };
   /**
    * Shell de navegación (CU-868khvynk, design guide.md §7). El wordmark "Macha" NO
@@ -106,6 +235,7 @@ export interface Dictionary {
       reports: string;
       chat: string;
       credits: string;
+      members: string;
     };
     /** Ítems del backoffice — antes hardcodeados en español en components/admin/admin-nav.tsx. */
     adminNav: {
@@ -169,6 +299,8 @@ export interface Dictionary {
       revenue: string;
       cogs: string;
       margin: string;
+      /** CU-868kh8y58: explicación del margen bruto en lenguaje de dueño, no contable. */
+      marginHint: string;
     };
     trendTitle: string;
     arApTitle: string;
@@ -309,5 +441,38 @@ export interface Dictionary {
     error: string;
     notOwner: string;
     topUpCta: string;
+  };
+
+  /** CU-868kh8pwv: gestión de miembros autoservicio. */
+  members: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    inviteTitle: string;
+    inviteHint: string;
+    emailLabel: string;
+    emailPlaceholder: string;
+    roleLabel: string;
+    inviteAction: string;
+    inviteSent: string;
+    membersTitle: string;
+    pendingTitle: string;
+    pendingEmpty: string;
+    colPerson: string;
+    colRole: string;
+    colStatus: string;
+    removeAction: string;
+    revokeAction: string;
+    genericError: string;
+    role: { owner: string; admin: string; member: string };
+    status: { active: string; invited: string; revoked: string };
+    accept: {
+      title: string;
+      subtitle: string;
+      action: string;
+      accepted: string;
+      missingToken: string;
+      genericError: string;
+    };
   };
 }

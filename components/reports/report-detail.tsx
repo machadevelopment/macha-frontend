@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadError } from '@/components/ui/load-error';
 import { errorMessage, request, requestJson, type RequestError } from '@/lib/api/browser';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatDate, formatMoney, formatPct } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -32,6 +32,14 @@ interface ReportData {
   metrics: {
     revenue: number;
     cogs: number;
+    /**
+     * CU-868kh8y58 — opcionales a propósito, no por descuido: `report_versions.metrics`
+     * es un jsonb append-only y las versiones emitidas antes de la decisión de margen
+     * bruto no los tienen ni los van a tener nunca.
+     */
+    grossProfit?: number;
+    grossMarginPct?: number | null;
+    /** @deprecated Forma anterior; único campo presente en versiones ya emitidas. */
     margin: number;
     accountsReceivableOpen: number;
     accountsPayableOpen: number;
@@ -201,8 +209,18 @@ export function ReportDetail({
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.margin}</p>
           <p className="mt-1 font-mono text-kpi tabular-nums">
-            {formatMoney(report.metrics.margin, currency, locale)}
+            {/* CU-868kh8y58: `report_versions.metrics` es un jsonb en un ledger
+                append-only, así que las versiones emitidas ANTES de esta decisión
+                conservan `margin` para siempre y no hay migración que las alcance.
+                El `??` no es defensivo por si acaso: es la única forma de leer un
+                reporte viejo. */}
+            {formatMoney(report.metrics.grossProfit ?? report.metrics.margin, currency, locale)}
           </p>
+          {report.metrics.grossMarginPct != null && (
+            <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">
+              {formatPct(report.metrics.grossMarginPct / 100, locale)}
+            </p>
+          )}
         </Card>
       </div>
 

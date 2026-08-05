@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request, type RequestError } from '@/lib/api/browser';
 import { formatDate } from '@/lib/format';
@@ -27,7 +28,13 @@ interface Version {
   createdAt: string;
 }
 
-export function IndustryTemplatesPanel() {
+export function IndustryTemplatesPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['industryTemplates'];
+  common: Dictionary['admin']['common'];
+}) {
   const [templates, setTemplates] = useState<Template[] | null>(null);
   const [versions, setVersions] = useState<Record<string, Version[]>>({});
 
@@ -53,7 +60,14 @@ export function IndustryTemplatesPanel() {
     });
   }, []);
 
-  if (loadError) return <AdminLoadError error={loadError} onRetry={() => location.reload()} />;
+  if (loadError)
+    return (
+      <AdminLoadError
+        error={loadError}
+        labels={common.loadError}
+        onRetry={() => location.reload()}
+      />
+    );
   if (!templates) return null;
 
   return (
@@ -67,8 +81,8 @@ export function IndustryTemplatesPanel() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Versión</TableHead>
-                <TableHead>Creada</TableHead>
+                <TableHead>{labels.colVersion}</TableHead>
+                <TableHead>{labels.colCreated}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

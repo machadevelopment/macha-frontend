@@ -4,7 +4,7 @@ import { KpiCard } from '@/components/charts/kpi-card';
 import { LoadError } from '@/components/ui/load-error';
 import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatPct } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import type { MetricsResponse } from '@/lib/api/dashboard';
@@ -65,10 +65,23 @@ export function KpiRow({
         invertDelta
         locale={locale}
       />
+      {/* CU-868kh8y58 — el par que tiene que cuadrar. La cifra grande es la UTILIDAD
+          BRUTA (ingresos − costo directo) y el porcentaje sale de esos mismos dos
+          números, los dos calculados en el backend por la misma función. El bug del
+          ticket era exactamente esto al revés: una ganancia que restaba gastos junto a
+          un margen que no, contradiciéndose en la misma pantalla. */}
       <KpiCard
         label={labels.margin}
-        value={formatMoney(latest?.margin ?? 0, currency, locale)}
-        delta={delta(latest?.margin ?? 0, previous?.margin)}
+        value={formatMoney(latest?.grossProfit ?? 0, currency, locale)}
+        secondary={
+          // `null` = período sin ventas. No hay margen que mostrar, y un "0.0%" ahí
+          // se leería como "vendiste sin ganar" en vez de "no vendiste".
+          latest?.grossMarginPct == null
+            ? undefined
+            : formatPct(latest.grossMarginPct / 100, locale)
+        }
+        hint={labels.marginHint}
+        delta={delta(latest?.grossProfit ?? 0, previous?.grossProfit)}
         locale={locale}
       />
     </div>

@@ -61,6 +61,9 @@ describe('paridad de diccionarios ES/EN', () => {
     'upload.dropzoneHint', // ".xlsx, .xls o .csv" — extensiones
     'upload.status.failed', // "Error" — misma palabra en ambos idiomas
     'alerts.unit.percent', // "%"
+    // CU-868kh8zvt — el backoffice pasa a ser bilingüe; estas dos coinciden de verdad.
+    'admin.aiCost.colTokens', // "Tokens in/out" — la abreviatura es la misma en ambos
+    'admin.companyDetail.colEmail', // "Email"
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {

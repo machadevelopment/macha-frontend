@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
@@ -28,7 +29,13 @@ interface CompanyRow {
 
 const PAGE_SIZE = 50;
 
-export function CompaniesPanel() {
+export function CompaniesPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['companies'];
+  common: Dictionary['admin']['common'];
+}) {
   const [form, setForm] = useState({
     workosOrgId: '',
     name: '',
@@ -63,7 +70,7 @@ export function CompaniesPanel() {
     try {
       const result = await requestJson('/api/admin/companies', 'POST', form);
       if (!result.ok) {
-        setError('No se pudo crear la empresa.');
+        setError(labels.createError);
         return;
       }
       setForm({ workosOrgId: '', name: '', industry: '', baseCurrency: 'GTQ', locale: 'es' });
@@ -81,20 +88,21 @@ export function CompaniesPanel() {
     // CU-868kkgb3c: suspender una empresa le corta el acceso a su contabilidad. Que
     // fallara en silencio dejaba al staff creyendo que la había suspendido.
     if (!result.ok) {
-      setError('No se pudo cambiar el estado de la empresa.');
+      setError(labels.statusError);
       return;
     }
     reload();
   }
 
   if (state.status === 'loading') return null;
-  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  if (state.status === 'error')
+    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
   const companies = state.items;
 
   return (
     <div className="flex flex-col gap-4">
       <Card>
-        <p className="mb-2 text-cardh2">Alta manual de empresa</p>
+        <p className="mb-2 text-cardh2">{labels.createTitle}</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field
             id="workosOrgId"
@@ -122,7 +130,7 @@ export function CompaniesPanel() {
           />
         </div>
         <Button size="sm" className="mt-3" onClick={createCompany} disabled={creating}>
-          {creating ? 'Creando…' : 'Crear empresa (aprovisiona partición)'}
+          {creating ? labels.creating : labels.createAction}
         </Button>
         {/* CU-868kkgb3c: el error de alta/estado ya no reemplaza el panel entero — antes
             un `return` temprano borraba la tabla y el formulario. */}
@@ -133,10 +141,10 @@ export function CompaniesPanel() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Empresa</TableHead>
-              <TableHead>Industria</TableHead>
-              <TableHead>Moneda</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>{labels.colCompany}</TableHead>
+              <TableHead>{labels.colIndustry}</TableHead>
+              <TableHead>{labels.colCurrency}</TableHead>
+              <TableHead>{labels.colStatus}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -157,14 +165,16 @@ export function CompaniesPanel() {
                 </TableCell>
                 <TableCell>
                   <Button size="sm" variant="outline" onClick={() => toggleStatus(c)}>
-                    {c.status === 'active' ? 'Suspender' : 'Activar'}
+                    {c.status === 'active' ? labels.suspend : labels.activate}
                   </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        {moreError && <AdminLoadError error={moreError} onRetry={loadMore} />}
+        {moreError && (
+          <AdminLoadError error={moreError} labels={common.loadError} onRetry={loadMore} />
+        )}
         {state.hasMore && !moreError && (
           <Button
             size="sm"
@@ -173,7 +183,7 @@ export function CompaniesPanel() {
             onClick={loadMore}
             disabled={loadingMore}
           >
-            {loadingMore ? 'Cargando…' : 'Cargar más'}
+            {loadingMore ? common.loading : common.loadMore}
           </Button>
         )}
       </Card>

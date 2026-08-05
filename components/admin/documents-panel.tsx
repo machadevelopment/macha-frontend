@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
@@ -31,7 +32,13 @@ interface DocumentRow {
 const PAGE_SIZE = 50;
 
 // CU-868kfvag7 criterio 2: monitoreo de uploads/procesos, cross-company (staff ve todas).
-export function DocumentsPanel() {
+export function DocumentsPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['documents'];
+  common: Dictionary['admin']['common'];
+}) {
   // CU-868kkgb3c: un fallo dejaba el panel de monitoreo en blanco, que en una pantalla
   // cuyo trabajo es vigilar cargas se lee como "no hay cargas con problemas".
   const { state, loadMore, loadingMore, moreError, reload } = usePagedList<DocumentRow>(
@@ -46,7 +53,8 @@ export function DocumentsPanel() {
   );
 
   if (state.status === 'loading') return null;
-  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  if (state.status === 'error')
+    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
   const docs = state.items;
 
   return (
@@ -54,10 +62,10 @@ export function DocumentsPanel() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Archivo</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Filas</TableHead>
+            <TableHead>{labels.colCompany}</TableHead>
+            <TableHead>{labels.colFile}</TableHead>
+            <TableHead>{labels.colStatus}</TableHead>
+            <TableHead>{labels.colRows}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -80,13 +88,16 @@ export function DocumentsPanel() {
                 {d.errorReason && <p className="mt-1 text-body text-danger">{d.errorReason}</p>}
               </TableCell>
               <TableCell className="font-mono tabular-nums">
-                {d.rowCount ?? '—'} {d.flaggedCount ? `(${d.flaggedCount} marcadas)` : ''}
+                {d.rowCount ?? '—'}{' '}
+                {d.flaggedCount ? labels.flaggedSuffix.replace('{n}', String(d.flaggedCount)) : ''}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {moreError && <AdminLoadError error={moreError} onRetry={loadMore} />}
+      {moreError && (
+        <AdminLoadError error={moreError} labels={common.loadError} onRetry={loadMore} />
+      )}
       {state.hasMore && !moreError && (
         <Button
           size="sm"
@@ -95,7 +106,7 @@ export function DocumentsPanel() {
           onClick={loadMore}
           disabled={loadingMore}
         >
-          {loadingMore ? 'Cargando…' : 'Cargar más'}
+          {loadingMore ? common.loading : common.loadMore}
         </Button>
       )}
     </Card>

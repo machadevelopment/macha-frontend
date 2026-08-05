@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request, requestJson, type RequestError } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
@@ -27,7 +28,13 @@ interface CreditRule {
   active: boolean;
 }
 
-export function CreditRulesPanel() {
+export function CreditRulesPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['creditRules'];
+  common: Dictionary['admin']['common'];
+}) {
   const [form, setForm] = useState({
     actionKind: 'insight',
     ruleType: 'fixed',
@@ -64,7 +71,7 @@ export function CreditRulesPanel() {
   return (
     <div className="flex flex-col gap-4">
       <Card>
-        <p className="mb-2 text-cardh2">Nueva versión (desactiva la anterior de la misma acción)</p>
+        <p className="mb-2 text-cardh2">{labels.newVersionTitle}</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="creditRuleActionKind" className="text-body font-medium">
@@ -105,23 +112,23 @@ export function CreditRulesPanel() {
           />
         </div>
         <Button size="sm" className="mt-3" onClick={createRule} disabled={saving}>
-          {saving ? 'Guardando…' : 'Publicar nueva versión'}
+          {saving ? common.saving : labels.publishAction}
         </Button>
-        {saveError && <AdminLoadError error={saveError} />}
+        {saveError && <AdminLoadError error={saveError} labels={common.loadError} />}
       </Card>
 
       <Card>
         {state.status === 'error' ? (
-          <AdminLoadError error={state.error} onRetry={reload} />
+          <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Acción</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Créditos/unidad</TableHead>
-                <TableHead>Versión</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>{labels.colAction}</TableHead>
+                <TableHead>{labels.colType}</TableHead>
+                <TableHead>{labels.colPerUnit}</TableHead>
+                <TableHead>{labels.colVersion}</TableHead>
+                <TableHead>{labels.colStatus}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

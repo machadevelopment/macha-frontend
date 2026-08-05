@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request, requestJson } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
@@ -15,13 +16,6 @@ interface Setting {
   updatedAt: string;
 }
 
-interface SettingMeta {
-  label: string;
-  description: string;
-  /** Alto del editor. Se omite para los parámetros de una sola línea. */
-  rows?: number;
-}
-
 /**
  * CU-868khw0ng: el panel se alimenta de lo que devuelva el backend
  * (`platform_settings` completa), así que cualquier parámetro sin entrada acá salía
@@ -30,45 +24,17 @@ interface SettingMeta {
  * en vez de a `intake_max_rows_per_file`. La key real siempre se muestra debajo del
  * label: es el identificador con el que se opera el backend.
  */
-const SETTINGS_META: Record<string, SettingMeta> = {
-  credit_to_tokens_ratio: {
-    label: 'Tokens por crédito (uso interno, no visible al cliente)',
-    description:
-      'Cuántos tokens de Claude representa un crédito al debitar consumo de IA. El cliente solo ve créditos, nunca tokens.',
-  },
-  credit_monthly_allotment: {
-    label: 'Asignación mensual de créditos',
-    description: 'Créditos que se acreditan a cada empresa al inicio de su ciclo mensual.',
-  },
-  credit_price_usd_cents: {
-    label: 'Precio de venta del crédito (centavos de USD)',
-    description:
-      'Precio de un crédito en centavos de dólar. Valor provisional de F0: falta confirmarlo con el dueño del negocio.',
-  },
-  insight_prompt_template: {
-    label: 'Prompt de insight (catálogo de prompts)',
-    description:
-      'Este texto es el prompt que se envía a Claude en cada insight. Al generarse un insight queda congelado en insight_requests.prompt_snapshot, así que editarlo afecta únicamente a los insights futuros: los ya emitidos conservan el prompt con el que se produjeron.',
-    rows: 14,
-  },
-  intake_max_file_size_mb: {
-    label: 'Tamaño máximo de archivo de ingesta (MB)',
-    description:
-      'Peso máximo aceptado por el Excel que sube el cliente. Arriba de esto se rechaza.',
-  },
-  intake_max_rows_per_file: {
-    label: 'Filas máximas por archivo de ingesta',
-    description: 'Tope de filas parseadas por documento antes de rechazar la ingesta.',
-  },
-  rate_limit_ai_rpm: {
-    label: 'Llamadas de IA por minuto (por empresa)',
-    description: 'Capacidad del token-bucket por empresa que limita las llamadas a Claude.',
-  },
-  anthropic_model: {
-    label: 'Modelo de Claude',
-    description:
-      'Modelo usado en todas las llamadas de IA. Ante cualquier cambio hay que re-verificar la elegibilidad ZDR del modelo.',
-  },
+/**
+ * CU-868kh8zvt: los textos salían de un mapa en español acá. Ahora vienen del
+ * diccionario (`t.admin.config.settings`), con paridad ES/EN. Lo que NO se traduce es
+ * la key (`credit_to_tokens_ratio`): es el identificador real con el que se opera el
+ * backend y se sigue mostrando cruda bajo el label.
+ *
+ * `rows` no es texto y por eso se queda acá: el prompt de insight necesita un textarea
+ * alto y eso no cambia con el idioma.
+ */
+const SETTINGS_ROWS: Record<string, number> = {
+  insight_prompt_template: 14,
 };
 
 /** Fallback para keys sin entrada en SETTINGS_META: `rate_limit_ai_rpm` → `Rate limit ai rpm`. */
@@ -82,13 +48,19 @@ function humanizeSettingKey(key: string): string {
  * caer en un editor de una línea solo por no estar en el diccionario todavía.
  */
 function rowsFor(key: string, draft: string): number {
-  const explicit = SETTINGS_META[key]?.rows;
+  const explicit = SETTINGS_ROWS[key];
   if (explicit) return explicit;
   if (draft.includes('\n') || draft.length > 120) return 8;
   return 1;
 }
 
-export function ConfigPanel() {
+export function ConfigPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['config'];
+  common: Dictionary['admin']['common'];
+}) {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
   /** Error por key: cada parámetro se guarda por separado. */
@@ -133,7 +105,7 @@ export function ConfigPanel() {
       try {
         value = JSON.parse(drafts[key]!);
       } catch {
-        setSaveErrors((prev) => ({ ...prev, [key]: 'El valor no es JSON válido.' }));
+        setSaveErrors((prev) => ({ ...prev, [key]: labels.invalidJson }));
         return;
       }
     }
@@ -149,7 +121,7 @@ export function ConfigPanel() {
       if (!result.ok) {
         setSaveErrors((prev) => ({
           ...prev,
-          [key]: 'No se pudo guardar. El valor sigue siendo el anterior.',
+          [key]: labels.saveError,
         }));
         return;
       }
@@ -159,13 +131,14 @@ export function ConfigPanel() {
     }
   }
 
-  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  if (state.status === 'error')
+    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
   if (!settings) return null;
 
   return (
     <div className="flex flex-col gap-3">
       {settings.map((s) => {
-        const meta = SETTINGS_META[s.key];
+        const meta = labels.settings[s.key];
         const draft = drafts[s.key] ?? '';
         return (
           <Card key={s.key}>
@@ -183,7 +156,7 @@ export function ConfigPanel() {
             />
             {s.updatedAt && (
               <p className="mt-1 font-mono text-eyebrow uppercase text-faint">
-                Actualizado {formatDate(s.updatedAt)}
+                {labels.updatedAt} {formatDate(s.updatedAt)}
               </p>
             )}
             <Button
@@ -192,7 +165,7 @@ export function ConfigPanel() {
               onClick={() => save(s.key)}
               disabled={saving === s.key}
             >
-              {saving === s.key ? 'Guardando…' : 'Guardar'}
+              {saving === s.key ? common.saving : common.save}
             </Button>
             {/* CU-868kkgb3c: el error va por parámetro, junto a su propio botón. */}
             {saveErrors[s.key] && <p className="mt-1 text-body text-danger">{saveErrors[s.key]}</p>}

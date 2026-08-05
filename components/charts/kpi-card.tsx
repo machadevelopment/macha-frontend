@@ -18,6 +18,18 @@ export interface KpiCardProps {
   delta?: number;
   /** For cost-type metrics where an increase is bad (e.g. cogs) — flips green/red. */
   invertDelta?: boolean;
+  /**
+   * CU-868kh8y58: segunda cifra del MISMO dato, no un dato distinto — el par
+   * "utilidad bruta Q35,700 · margen bruto 35.7%". Mono y tabular como el valor
+   * principal, porque es un número (design guide §"regla mono").
+   */
+  secondary?: string;
+  /**
+   * CU-868kh8y58: explicación en lenguaje de dueño, no contable ("De cada Q100 de
+   * venta, esto te queda antes de gastos fijos"). Es prosa, así que va en `font-ui`
+   * — la regla mono aplica a cifras y eyebrows, no a una frase.
+   */
+  hint?: string;
   locale?: Locale;
   loading?: boolean;
   className?: string;
@@ -28,6 +40,8 @@ export function KpiCard({
   value,
   delta,
   invertDelta = false,
+  secondary,
+  hint,
   locale = 'es',
   loading,
   className,
@@ -47,6 +61,10 @@ export function KpiCard({
     <Card className={className}>
       <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
       <p className="mt-1 font-mono text-kpi tabular-nums">{value}</p>
+      {secondary !== undefined && (
+        <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">{secondary}</p>
+      )}
+      {hint !== undefined && <p className="mt-1 font-ui text-body text-faint">{hint}</p>}
       {delta !== undefined && (
         <Badge variant={isGood ? 'success' : 'danger'} className="mt-2 gap-1 normal-case">
           {delta >= 0 ? (
