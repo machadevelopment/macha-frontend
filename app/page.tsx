@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import { getSignInUrl } from '@workos-inc/authkit-nextjs';
 import { getOptionalSession } from '@/lib/auth/session';
 import { apiFetch, classifyApiFailure } from '@/lib/api/client';
 import { LocaleSwitcher } from '@/components/locale-switcher';
@@ -85,7 +84,13 @@ export default async function Home() {
       </div>
       <h1 className="text-h1">{t.home.title}</h1>
       <p className="mb-3 text-body text-muted-foreground">{t.home.subtitle}</p>
-      <a href={await getSignInUrl()} className="text-body underline">
+      {/*
+        `/login` en vez de `await getSignInUrl()`: esa función escribe la cookie PKCE
+        (getAuthURLAndSetPKCECookie), y Next.js solo permite mutar cookies en Server
+        Actions y Route Handlers — desde aquí lanzaba y `/` devolvía 500. Ver
+        app/login/route.ts.
+      */}
+      <a href="/login" className="text-body underline">
         {t.common.signIn}
       </a>
     </main>
