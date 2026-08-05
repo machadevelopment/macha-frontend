@@ -117,8 +117,9 @@ export const en: Dictionary = {
     title: 'Financial overview',
     kpi: {
       revenue: 'Revenue',
-      cogs: 'Cost of sales',
-      margin: 'Margin',
+      cogs: 'Direct cost of sales',
+      margin: 'Gross margin',
+      marginHint: 'What you keep from each sale before fixed expenses.',
     },
     trendTitle: 'Monthly trend',
     arApTitle: 'Accounts receivable / payable',
@@ -162,8 +163,8 @@ export const en: Dictionary = {
     loadMore: 'Load more',
     kpi: {
       revenue: 'Revenue',
-      cogs: 'Cost of sales',
-      margin: 'Margin',
+      cogs: 'Direct cost of sales',
+      margin: 'Gross margin',
       arOpen: 'Open receivable',
       apOpen: 'Open payable',
     },
