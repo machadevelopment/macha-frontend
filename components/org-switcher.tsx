@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { setActiveCompany } from '@/app/actions/set-active-company';
 import { request } from '@/lib/api/browser';
+import { resolveActiveCompany } from '@/lib/auth/resolve-active-company';
 import type { Membership } from '@/app/api/memberships/route';
 
 /**
@@ -82,19 +83,17 @@ export function OrgSwitcher({
          *
          * No hay fuga —`tenant.derive.ts` valida el header contra las membresías reales y
          * rechaza el que no corresponda—, pero la pantalla afirmaba algo falso.
+         *
+         * La regla vive en `resolveActiveCompany` y no aquí (criterio 4): inline dentro
+         * del efecto solo se podía fijar montando el componente, y el frontend no tiene
+         * librería de testing de componentes (CU-868kjbxwa).
          */
-        const stillAMember = list.some((m) => m.companyId === initialCompanyId);
-        const target = stillAMember ? undefined : list[0]?.companyId;
-        if (target) {
-          setSelected(target);
+        const { selected: target, needsWrite } = resolveActiveCompany(initialCompanyId, list);
+        setSelected(target);
+        if (needsWrite && target) {
           startTransition(() => {
             void setActiveCompany(target).then(() => router.refresh());
           });
-        } else if (!stillAMember) {
-          // Cero membresías con cookie vieja: no hay a qué reconciliar. Se limpia la
-          // selección para que la etiqueta caiga a "selecciona una empresa" en vez de
-          // mostrar el nombre de una empresa ajena.
-          setSelected(undefined);
         }
       },
     );
