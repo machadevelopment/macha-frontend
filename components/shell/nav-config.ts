@@ -9,6 +9,7 @@ import {
   Settings,
   Sparkles,
   UploadCloud,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -82,7 +83,11 @@ export function appNav(t: Dictionary['shell']): NavSection[] {
     },
     {
       label: t.section.account,
-      items: [{ href: '/credits', icon: CreditCard, label: t.nav.credits }],
+      items: [
+        // CU-868kh8pwv: el equipo deja de gestionarse escribiéndole a Macha.
+        { href: '/members', icon: Users, label: t.nav.members },
+        { href: '/credits', icon: CreditCard, label: t.nav.credits },
+      ],
     },
   ];
 }

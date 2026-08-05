@@ -43,15 +43,18 @@ describe('isNavItemActive', () => {
 });
 
 describe('modelo de navegación', () => {
-  it('cubre las seis pantallas raíz de cliente', () => {
+  it('cubre las siete pantallas raíz de cliente', () => {
     // `/alerts` entra en CU-868kj0tdq: antes solo existía `/alerts/[id]` (deep-link del
     // email) y colgaba de `/dashboard` por `matchAlso`. Ahora hay histórico y es sección.
+    // `/members` entra en CU-868kh8pwv: el equipo deja de gestionarse escribiéndole a
+    // Macha, así que necesita puerta propia y no solo una URL que alguien recuerde.
     const hrefs = appNav(t).flatMap((s) => s.items.map((i) => i.href));
     expect(hrefs.sort()).toEqual([
       '/alerts',
       '/chat',
       '/credits',
       '/dashboard',
+      '/members',
       '/reports',
       '/upload',
     ]);
