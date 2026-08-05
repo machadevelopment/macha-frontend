@@ -169,6 +169,8 @@ export interface Dictionary {
       revenue: string;
       cogs: string;
       margin: string;
+      /** CU-868kh8y58: explicación del margen bruto en lenguaje de dueño, no contable. */
+      marginHint: string;
     };
     trendTitle: string;
     arApTitle: string;

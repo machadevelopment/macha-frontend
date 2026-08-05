@@ -117,8 +117,12 @@ export const es: Dictionary = {
     title: 'Panorama financiero',
     kpi: {
       revenue: 'Ingresos',
-      cogs: 'Costo de ventas',
-      margin: 'Margen',
+      // CU-868kh8y58: "directo" no es adorno — la decisión de Jose define `cogs` como
+      // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
+      // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
+      cogs: 'Costo directo de ventas',
+      margin: 'Margen bruto',
+      marginHint: 'Lo que te queda de cada venta antes de los gastos fijos.',
     },
     trendTitle: 'Tendencia mensual',
     arApTitle: 'Cuentas por cobrar / pagar',
@@ -162,8 +166,8 @@ export const es: Dictionary = {
     loadMore: 'Cargar más',
     kpi: {
       revenue: 'Ingresos',
-      cogs: 'Costo de ventas',
-      margin: 'Margen',
+      cogs: 'Costo directo de ventas',
+      margin: 'Margen bruto',
       arOpen: 'Por cobrar abierto',
       apOpen: 'Por pagar abierto',
     },
