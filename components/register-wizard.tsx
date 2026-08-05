@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { requestJson } from '@/lib/api/browser';
+import { requestJson, errorMessage } from '@/lib/api/browser';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Label } from '@/components/ui/label';
@@ -23,19 +23,26 @@ export function RegisterWizard({ labels }: { labels: Dictionary['register'] }) {
     locale: 'es',
   });
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    setError(false);
+    setError(null);
     try {
       const result = await requestJson<RegisterResponse>('/api/register', 'POST', form);
       if (!result.ok) {
-        setError(true);
+        // CU-868kmxu41: el mensaje del backend, cuando lo hay, explica QUÉ pasa — p. ej.
+        // que el registro no está disponible en este entorno. El genérico decía "intenta
+        // de nuevo", que ante un fallo de configuración es una instrucción falsa: la
+        // persona reintenta contra un muro. Se guarda el texto, no un booleano.
+        setError(errorMessage(result.error) ?? labels.error);
         return;
       }
-      window.location.href = result.data.checkoutUrl;
+      // CU-868kmxu41: sin proveedor de pagos configurado no hay checkout al que ir. La
+      // empresa YA quedó creada, así que se entra a la app; redirigir a `null` dejaba al
+      // usuario en una URL rota justo después de un alta exitosa.
+      window.location.href = result.data.checkoutUrl ?? '/dashboard';
     } finally {
       setSubmitting(false);
     }
@@ -89,7 +96,7 @@ export function RegisterWizard({ labels }: { labels: Dictionary['register'] }) {
           </select>
         </div>
 
-        {error && <p className="text-body text-danger">{labels.error}</p>}
+        {error && <p className="text-body text-danger">{error}</p>}
 
         <Button type="submit" disabled={submitting}>
           {submitting ? labels.submitting : labels.submit}
