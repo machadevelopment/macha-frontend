@@ -77,6 +77,7 @@ export const es: Dictionary = {
     title: 'Tu capa de CFO',
     subtitle:
       'Sube tu contabilidad, entiende tus números y decide con un asistente financiero que conoce tu empresa.',
+    authError: 'No se pudo completar el inicio de sesión. Vuelve a intentarlo.',
   },
   upload: {
     eyebrow: 'INGESTA',
