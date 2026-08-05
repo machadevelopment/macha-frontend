@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,13 @@ interface StagingRow {
 
 const PAGE_SIZE = 50;
 
-export function StagingRowsPanel() {
+export function StagingRowsPanel({
+  labels,
+  common,
+}: {
+  labels: Dictionary['admin']['stagingRows'];
+  common: Dictionary['admin']['common'];
+}) {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   /** Error por fila: cada una se aprueba/rechaza por separado. */
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
@@ -71,7 +78,7 @@ export function StagingRowsPanel() {
     try {
       payload = JSON.parse(drafts[id] ?? '{}');
     } catch {
-      setRowError(id, 'El payload no es JSON válido.');
+      setRowError(id, labels.invalidJson);
       return;
     }
     setRowError(id, null);
@@ -80,7 +87,7 @@ export function StagingRowsPanel() {
       reviewStatus: reject ? 'rejected' : 'approved',
     });
     if (!result.ok) {
-      setRowError(id, 'No se pudo guardar la revisión de esta fila.');
+      setRowError(id, labels.saveError);
       return;
     }
     reload();
@@ -90,18 +97,18 @@ export function StagingRowsPanel() {
     setRowError(id, null);
     const result = await requestJson(`/api/admin/staging-rows/${id}/reextract`, 'POST');
     if (!result.ok) {
-      setRowError(id, 'No se pudo re-extraer esta fila.');
+      setRowError(id, labels.reextractError);
       return;
     }
     reload();
   }
 
   if (state.status === 'loading') return null;
-  if (state.status === 'error') return <AdminLoadError error={state.error} onRetry={reload} />;
+  if (state.status === 'error')
+    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
 
   const rows = state.items;
-  if (rows.length === 0)
-    return <p className="text-body text-muted-foreground">Sin filas pendientes de revisión.</p>;
+  if (rows.length === 0) return <p className="text-body text-muted-foreground">{labels.empty}</p>;
 
   return (
     <div className="flex flex-col gap-3">
@@ -113,7 +120,7 @@ export function StagingRowsPanel() {
               apruebe acá se promueve a la contabilidad de ese cliente. */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-mono text-eyebrow uppercase text-faint">EMPRESA</p>
+              <p className="font-mono text-eyebrow uppercase text-faint">{labels.companyEyebrow}</p>
               <p className="truncate text-cardh2">{row.companyName}</p>
             </div>
             <Badge variant="warning">{row.targetEntity}</Badge>
@@ -139,10 +146,12 @@ export function StagingRowsPanel() {
           {rowErrors[row.id] && <p className="mt-2 text-body text-danger">{rowErrors[row.id]}</p>}
         </Card>
       ))}
-      {moreError && <AdminLoadError error={moreError} onRetry={loadMore} />}
+      {moreError && (
+        <AdminLoadError error={moreError} labels={common.loadError} onRetry={loadMore} />
+      )}
       {state.hasMore && !moreError && (
         <Button size="sm" variant="outline" onClick={loadMore} disabled={loadingMore}>
-          {loadingMore ? 'Cargando…' : 'Cargar más'}
+          {loadingMore ? common.loading : common.loadMore}
         </Button>
       )}
     </div>
