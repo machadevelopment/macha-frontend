@@ -55,6 +55,7 @@ export function DocumentList({
   canRevert: boolean;
 }) {
   const [reverting, setReverting] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState<string | null>(null);
 
   // CU-868kh913c: el backend truncaba a 50 en silencio y el documento 51 era inalcanzable.
   // CU-868kkgb3c: antes ni la carga inicial ni el polling miraban `res.ok`.
@@ -115,6 +116,27 @@ export function DocumentList({
     }
   }
 
+  /**
+   * Reintento de una carga fallida: el archivo original sigue en S3 y el worker es
+   * reanudable por lote, así que no hace falta volver a subirlo (backend
+   * `POST /documents/:id/retry`). Sin confirmación previa —a diferencia de revertir—
+   * porque no destruye nada: reintentar en el peor caso vuelve a fallar igual.
+   */
+  async function retry(id: string) {
+    setRetrying(id);
+    try {
+      const result = await requestJson(`/api/documents/${id}/retry`, 'POST');
+      if (!result.ok) {
+        toast.error(errorMessage(result.error) ?? common.loadError.server);
+        return;
+      }
+      // El documento vuelve a `queued`, así que esto también reactiva el polling.
+      refresh();
+    } finally {
+      setRetrying(null);
+    }
+  }
+
   // Poll only while at least one upload is still in flight — no point hammering the
   // backend once everything is a terminal status (promoted/reverted/failed).
   const hasInFlight =
@@ -149,7 +171,9 @@ export function DocumentList({
             <TableHead>{labels.table.file}</TableHead>
             <TableHead>{labels.table.status}</TableHead>
             <TableHead>{labels.table.date}</TableHead>
-            {canRevert && <TableHead />}
+            {/* La columna de acciones ya no depende solo de `canRevert`: reintentar es
+              `upload_excel`, que tienen los tres roles de cliente. */}
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -179,22 +203,30 @@ export function DocumentList({
               <TableCell className="font-mono tabular-nums text-muted-foreground">
                 {formatDate(doc.createdAt, locale)}
               </TableCell>
-              {canRevert && (
-                <TableCell>
-                  {/* Solo un documento promovido tiene filas que deshacer — el backend
-                    responde 409 en cualquier otro estado. */}
-                  {doc.status === 'promoted' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => revert(doc.id)}
-                      disabled={reverting === doc.id}
-                    >
-                      {reverting === doc.id ? labels.reverting : labels.revert}
-                    </Button>
-                  )}
-                </TableCell>
-              )}
+              <TableCell>
+                {/* Solo un documento promovido tiene filas que deshacer — el backend
+                  responde 409 en cualquier otro estado. */}
+                {canRevert && doc.status === 'promoted' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => revert(doc.id)}
+                    disabled={reverting === doc.id}
+                  >
+                    {reverting === doc.id ? labels.reverting : labels.revert}
+                  </Button>
+                )}
+                {doc.status === 'failed' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => retry(doc.id)}
+                    disabled={retrying === doc.id}
+                  >
+                    {retrying === doc.id ? labels.retrying : labels.retry}
+                  </Button>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

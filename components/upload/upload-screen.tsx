@@ -29,12 +29,15 @@ export function UploadScreen({
         common={common}
         onUploaded={() => setRefreshToken((n) => n + 1)}
       />
-      <a href="/api/industry-templates/download" className="self-start">
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
-          {labels.downloadTemplate}
-        </Button>
-      </a>
+      <div className="flex flex-col gap-1.5">
+        <a href="/api/industry-templates/download" className="self-start">
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+            {labels.downloadTemplate}
+          </Button>
+        </a>
+        <p className="text-body text-muted-foreground">{labels.downloadTemplateHint}</p>
+      </div>
       <Card>
         <DocumentList
           locale={locale}

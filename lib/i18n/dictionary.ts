@@ -267,10 +267,13 @@ export interface Dictionary {
     dropzoneCta: string;
     dropzoneHint: string;
     downloadTemplate: string;
+    downloadTemplateHint: string;
     empty: string;
     revert: string;
     reverting: string;
     revertConfirm: string;
+    retry: string;
+    retrying: string;
     loadMore: string;
     table: {
       file: string;
