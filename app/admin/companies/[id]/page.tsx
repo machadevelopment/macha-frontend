@@ -12,6 +12,7 @@ export default function AdminCompanyDetailPage({ params }: { params: { id: strin
       companyId={params.id}
       labels={t.admin.companyDetail}
       creditsLabels={t.admin.credits}
+      fxRatesLabels={t.admin.fxRates}
       common={t.admin.common}
     />
   );

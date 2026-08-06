@@ -90,6 +90,26 @@ export const en: Dictionary = {
       colNotifyNow: 'Notifies immediately',
       thresholdError: 'This threshold could not be updated.',
     },
+    fxRates: {
+      title: 'Exchange rates',
+      emptyBadge: 'no rate',
+      emptyWarning:
+        'With no rate on file, every {quote} row of every upload is flagged for manual review and the upload cannot be promoted. A single rate effective before the earliest date in the book unblocks all of them.',
+      rateLabel: 'RATE ({pair})',
+      dateLabel: 'EFFECTIVE FROM',
+      submit: 'Record rate',
+      submitting: 'Recording…',
+      rateInvalid: 'The rate must be a number greater than 0.',
+      dateInvalid: 'Pick the date the rate takes effect from.',
+      submitError: 'The rate could not be recorded.',
+      resolutionHint:
+        'Each row uses the most recent rate that is not later than its own date, so recording an older rate covers everything that comes after it.',
+      retroactiveHint:
+        'Recording a rate does not recalculate what has already been promoted: every row froze its own when it was promoted. Fixing a conversion already written means reverting the upload and promoting it again.',
+      colEffectiveDate: 'Effective from',
+      colRate: 'Rate',
+      colCreatedAt: 'Recorded',
+    },
     credits: {
       title: 'Credits',
       balanceLabel: 'BALANCE',
