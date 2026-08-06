@@ -2,7 +2,7 @@ import { Wallet } from 'lucide-react';
 
 // CU-868kfvabk criterio 2 (no negociable): muestra el saldo en CRÉDITOS, nunca
 // tokens ni USD — puramente presentacional, el fetch/estado vive en
-// dashboard-client.tsx (compartido con InsightPanel para que el débito post-insight
+// advice-rail.tsx (compartido con InsightPanel para que el débito post-insight
 // se refleje sin un refetch).
 export function CreditsBadge({ balance, label }: { balance: number | null; label: string }) {
   if (balance === null) return null;

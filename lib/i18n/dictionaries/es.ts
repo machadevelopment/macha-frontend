@@ -370,6 +370,13 @@ export const es: Dictionary = {
       retry: 'Reintentar',
     },
     creditsLabel: 'créditos',
+    keyAlerts: {
+      title: 'ALERTAS ACTIVAS',
+      triggered: 'Llegó a {value} {unit}, con el umbral en {threshold}.',
+      empty: 'Ninguna alerta activa por ahora.',
+      loadFailed: 'No pudimos cargar tus alertas. Esto no significa que no tengas ninguna.',
+      seeAll: 'Ver el histórico completo',
+    },
   },
   chat: {
     eyebrow: 'ASISTENTE CFO',

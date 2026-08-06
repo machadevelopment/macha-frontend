@@ -407,6 +407,15 @@ export interface Dictionary {
       retry: string;
     };
     creditsLabel: string;
+    /** Bloque de alertas activas del rail derecho del dashboard. */
+    keyAlerts: {
+      title: string;
+      /** Lleva `{value}`, `{threshold}` y `{unit}`. */
+      triggered: string;
+      empty: string;
+      loadFailed: string;
+      seeAll: string;
+    };
   };
   chat: {
     eyebrow: string;

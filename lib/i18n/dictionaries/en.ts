@@ -358,6 +358,13 @@ export const en: Dictionary = {
       retry: 'Try again',
     },
     creditsLabel: 'credits',
+    keyAlerts: {
+      title: 'ACTIVE ALERTS',
+      triggered: 'Reached {value} {unit}, against a {threshold} threshold.',
+      empty: 'No active alerts right now.',
+      loadFailed: "We couldn't load your alerts. That doesn't mean you have none.",
+      seeAll: 'See the full history',
+    },
   },
   chat: {
     eyebrow: 'CFO ASSISTANT',
