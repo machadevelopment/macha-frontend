@@ -1,10 +1,11 @@
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
-import { KpiRow } from '@/components/dashboard/kpi-row';
+import { PeriodKpis } from '@/components/dashboard/period-kpis';
 import { TrendChart } from '@/components/dashboard/trend-chart';
 import { ArApChart } from '@/components/dashboard/ar-ap-chart';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { IngestStatusBanner } from '@/components/dashboard/ingest-status-banner';
+import { DashboardGreeting } from '@/components/dashboard/dashboard-greeting';
 
 // CU-868kfvabe/868kfvabk: dashboard ejecutivo. middleware.ts ya exige sesión.
 export default function DashboardPage() {
@@ -13,8 +14,9 @@ export default function DashboardPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.dashboard.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.dashboard.title}</h1>
+      <div className="mb-4">
+        <DashboardGreeting locale={locale} labels={t.dashboard} />
+      </div>
 
       {/* Antes de los KPIs a propósito: si los números están en cero porque una carga
           está en revisión, el motivo tiene que leerse antes que los ceros. */}
@@ -25,7 +27,7 @@ export default function DashboardPage() {
       <DashboardClient locale={locale} labels={t.dashboard} topUpLabel={t.credits.topUpCta} />
 
       <div className="mt-4">
-        <KpiRow locale={locale} labels={t.dashboard.kpi} common={t.common} />
+        <PeriodKpis locale={locale} labels={t.dashboard} common={t.common} />
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 app:grid-cols-2">

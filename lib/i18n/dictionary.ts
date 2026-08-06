@@ -302,12 +302,49 @@ export interface Dictionary {
   dashboard: {
     eyebrow: string;
     title: string;
+    /** Saludo por hora del USUARIO (se calcula en cliente; ver dashboard-greeting.tsx). */
+    greetingMorning: string;
+    greetingAfternoon: string;
+    greetingEvening: string;
+    greetingSubtitle: string;
+    importCta: string;
+    /** Filtro de período. "Personalizado" aún no existe: ver period-filter.tsx. */
+    period: {
+      label: string;
+      today: string;
+      week: string;
+      month: string;
+      year: string;
+      showing: string;
+      vsPrevious: string;
+    };
+    /** El vacío distingue "no hubo ventas" de "hubo ventas sin producto identificado". */
+    topProduct: {
+      title: string;
+      emptyNoSales: string;
+      emptyUnattributed: string;
+    };
     kpi: {
       revenue: string;
+      revenueHint: string;
       cogs: string;
+      /** Costo directo + gasto operativo: "lo que me costó operar" en lenguaje de dueño. */
+      expenses: string;
+      expensesHint: string;
+      grossProfit: string;
+      grossProfitHint: string;
+      /**
+       * Ventas menos TODOS los gastos. Distinto del margen bruto, que por decisión de
+       * Jose (CU-868kh8y58) no resta opex. Se muestran los dos porque responden
+       * preguntas distintas y cada tarjeta dice de dónde sale su número.
+       */
+      cashFlow: string;
+      cashFlowHint: string;
       margin: string;
       /** CU-868kh8y58: explicación del margen bruto en lenguaje de dueño, no contable. */
       marginHint: string;
+      /** Pie del delta: sin esto un porcentaje no dice contra qué se compara. */
+      vsPrevious: string;
     };
     /** CU-868kn5hqu: por qué el dashboard puede estar en cero tras subir un Excel. */
     ingest: {
