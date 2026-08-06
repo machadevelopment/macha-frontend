@@ -54,3 +54,41 @@ export interface InsufficientCreditsResponse {
   required: number;
   balance: number;
 }
+
+/** Totales de un rango arbitrario + la ventana anterior del mismo tamaño (backend
+ * `GET /metrics/period`). Alimenta el filtro de período del dashboard. */
+export interface PeriodTotals {
+  revenue: number;
+  cogs: number;
+  opex: number;
+  other: number;
+}
+
+export interface PeriodPoint extends PeriodTotals {
+  date: string;
+}
+
+export interface PeriodMetricsResponse {
+  baseCurrency: string;
+  from: string;
+  to: string;
+  current: PeriodTotals;
+  /** Mismo tamaño de ventana, justo antes. Es contra esto que se calcula cada delta. */
+  previous: PeriodTotals;
+  series: PeriodPoint[];
+}
+
+/** `GET /metrics/products` — ingresos por producto en un rango. */
+export interface ProductRevenue {
+  productId: string;
+  name: string;
+  revenue: number;
+  transactionCount: number;
+}
+
+export interface ProductRevenueResponse {
+  baseCurrency: string;
+  /** Vacío cuando ninguna transacción del rango tiene producto asociado — lo normal en
+   * documentos ingeridos antes de que la IA extrajera el campo. NO es "no hubo ventas". */
+  items: ProductRevenue[];
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Table,
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LoadError } from '@/components/ui/load-error';
 import { DocumentPipeline, type DocumentStatus } from '@/components/upload/pipeline';
+import { cn } from '@/lib/cn';
 import { errorMessage, request, requestJson } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
 import { formatDate } from '@/lib/format';
@@ -55,6 +57,7 @@ export function DocumentList({
   canRevert: boolean;
 }) {
   const [reverting, setReverting] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState<string | null>(null);
 
   // CU-868kh913c: el backend truncaba a 50 en silencio y el documento 51 era inalcanzable.
   // CU-868kkgb3c: antes ni la carga inicial ni el polling miraban `res.ok`.
@@ -115,6 +118,27 @@ export function DocumentList({
     }
   }
 
+  /**
+   * Reintento de una carga fallida: el archivo original sigue en S3 y el worker es
+   * reanudable por lote, así que no hace falta volver a subirlo (backend
+   * `POST /documents/:id/retry`). Sin confirmación previa —a diferencia de revertir—
+   * porque no destruye nada: reintentar en el peor caso vuelve a fallar igual.
+   */
+  async function retry(id: string) {
+    setRetrying(id);
+    try {
+      const result = await requestJson(`/api/documents/${id}/retry`, 'POST');
+      if (!result.ok) {
+        toast.error(errorMessage(result.error) ?? common.loadError.server);
+        return;
+      }
+      // El documento vuelve a `queued`, así que esto también reactiva el polling.
+      refresh();
+    } finally {
+      setRetrying(null);
+    }
+  }
+
   // Poll only while at least one upload is still in flight — no point hammering the
   // backend once everything is a terminal status (promoted/reverted/failed).
   const hasInFlight =
@@ -149,7 +173,9 @@ export function DocumentList({
             <TableHead>{labels.table.file}</TableHead>
             <TableHead>{labels.table.status}</TableHead>
             <TableHead>{labels.table.date}</TableHead>
-            {canRevert && <TableHead />}
+            {/* La columna de acciones ya no depende solo de `canRevert`: reintentar es
+              `upload_excel`, que tienen los tres roles de cliente. */}
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -164,37 +190,67 @@ export function DocumentList({
                     variant={
                       doc.status === 'failed'
                         ? 'danger'
-                        : doc.status === 'reverted'
-                          ? 'neutral'
-                          : 'success'
+                        : // `unsupported` es ámbar, no rojo: no se rompió nada, el
+                          // archivo simplemente no era legible y hay una acción clara.
+                          doc.status === 'unsupported'
+                          ? 'warning'
+                          : doc.status === 'reverted'
+                            ? 'neutral'
+                            : 'success'
                     }
                   >
                     {labels.status[doc.status]}
                   </Badge>
                 )}
-                {doc.status === 'failed' && doc.errorReason && (
-                  <p className="mt-1 text-body text-danger">{doc.errorReason}</p>
+                {(doc.status === 'failed' || doc.status === 'unsupported') && doc.errorReason && (
+                  <p
+                    className={cn(
+                      'mt-1 text-body',
+                      doc.status === 'unsupported' ? 'text-warning' : 'text-danger',
+                    )}
+                  >
+                    {doc.errorReason}
+                  </p>
                 )}
               </TableCell>
               <TableCell className="font-mono tabular-nums text-muted-foreground">
                 {formatDate(doc.createdAt, locale)}
               </TableCell>
-              {canRevert && (
-                <TableCell>
-                  {/* Solo un documento promovido tiene filas que deshacer — el backend
-                    responde 409 en cualquier otro estado. */}
-                  {doc.status === 'promoted' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => revert(doc.id)}
-                      disabled={reverting === doc.id}
-                    >
-                      {reverting === doc.id ? labels.reverting : labels.revert}
+              <TableCell>
+                {/* Solo un documento promovido tiene filas que deshacer — el backend
+                  responde 409 en cualquier otro estado. */}
+                {canRevert && doc.status === 'promoted' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => revert(doc.id)}
+                    disabled={reverting === doc.id}
+                  >
+                    {reverting === doc.id ? labels.reverting : labels.revert}
+                  </Button>
+                )}
+                {doc.status === 'failed' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => retry(doc.id)}
+                    disabled={retrying === doc.id}
+                  >
+                    {retrying === doc.id ? labels.retrying : labels.retry}
+                  </Button>
+                )}
+                {/* Un `unsupported` NO ofrece reintentar: el mismo archivo daría el
+                  mismo resultado (el backend lo rechaza con 409). La única acción que
+                  avanza es partir de la plantilla, así que es la que se ofrece. */}
+                {doc.status === 'unsupported' && (
+                  <a href="/api/industry-templates/download">
+                    <Button size="sm" variant="outline" className="gap-1.5">
+                      <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+                      {labels.unsupportedCta}
                     </Button>
-                  )}
-                </TableCell>
-              )}
+                  </a>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -239,9 +239,17 @@ export const es: Dictionary = {
     dropzoneCta: 'Arrastra tu archivo aquí o haz clic para buscarlo',
     dropzoneHint: '.xlsx, .xls o .csv',
     downloadTemplate: 'Descargar plantilla',
+    // La plantilla es OPCIONAL: el motor clasifica el archivo que tengas, con el orden
+    // que tenga. Se dice explícito porque un botón de "descargar plantilla" junto a un
+    // dropzone se lee como "primero llena esto", que es justo lo que no queremos.
+    downloadTemplateHint:
+      'Opcional: sube tu archivo tal como lo llevas. La plantilla es solo un punto de partida si no llevas un orden definido.',
     empty: 'Todavía no has subido ningún archivo.',
     revert: 'Revertir',
     reverting: 'Revirtiendo…',
+    retry: 'Reintentar',
+    retrying: 'Reintentando…',
+    unsupportedCta: 'Usar la plantilla',
     revertConfirm:
       '¿Revertir esta carga? Se eliminarán todos los movimientos, facturas y cuentas por pagar que generó. La acción queda registrada y no se puede deshacer desde la aplicación.',
     loadMore: 'Cargar más',
@@ -263,13 +271,45 @@ export const es: Dictionary = {
       promoted: 'Listo',
       reverted: 'Revertido',
       failed: 'Error',
+      // No dice "Error": el archivo no está roto, simplemente no es un libro que se
+      // pueda leer. Culpar al archivo del cliente por algo que no es una falla suya
+      // invita a reintentar, que es justo lo que no sirve acá.
+      unsupported: 'No legible',
     },
   },
   dashboard: {
     eyebrow: 'DASHBOARD',
     title: 'Panorama financiero',
+    greetingMorning: 'Buenos días',
+    greetingAfternoon: 'Buenas tardes',
+    greetingEvening: 'Buenas noches',
+    greetingSubtitle: 'Así va tu negocio este mes.',
+    importCta: 'Importar Excel',
+    period: {
+      label: 'Período',
+      today: 'Hoy',
+      week: 'Esta semana',
+      month: 'Este mes',
+      year: 'Este año',
+      showing: 'Mostrando',
+      vsPrevious: 'vs. período anterior',
+    },
+    topProduct: {
+      title: 'Producto que más vendió',
+      emptyNoSales: 'No hubo ventas en este período.',
+      emptyUnattributed:
+        'Hubo ventas, pero ninguna quedó asociada a un producto. Las cargas anteriores a la última actualización no traen ese dato.',
+    },
     kpi: {
       revenue: 'Ingresos',
+      revenueHint: 'Ingresos facturados del período.',
+      expenses: 'Gastos',
+      expensesHint: 'Costo directo más gastos de operación.',
+      grossProfit: 'Utilidad bruta',
+      grossProfitHint: 'Ventas menos costo directo.',
+      cashFlow: 'Resultado del período',
+      cashFlowHint: 'Ventas menos todos los gastos.',
+      vsPrevious: 'vs. mes anterior',
       // CU-868kh8y58: "directo" no es adorno — la decisión de Jose define `cogs` como
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
