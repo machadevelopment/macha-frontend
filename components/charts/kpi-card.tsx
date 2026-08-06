@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatPct } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
 import { cn } from '@/lib/cn';
+import { Sparkline } from '@/components/charts/sparkline';
 
 // design guide.md §5 "KPI card" (`.kpi`) — Tremor Raw was the spec, but F1 shipped
 // @tremor/react instead (see CLAUDE.md "Known deviation"). Its own color system
@@ -30,6 +31,12 @@ export interface KpiCardProps {
    * — la regla mono aplica a cifras y eyebrows, no a una frase.
    */
   hint?: string;
+  /**
+   * Serie para el sparkline del prototipo "MVP Macha". Son los MISMOS valores mensuales
+   * que ya devuelve `/api/metrics`, no un adorno: si no hay serie, no se dibuja nada en
+   * vez de inventar una.
+   */
+  spark?: number[];
   locale?: Locale;
   loading?: boolean;
   className?: string;
@@ -42,6 +49,7 @@ export function KpiCard({
   invertDelta = false,
   secondary,
   hint,
+  spark,
   locale = 'es',
   loading,
   className,
@@ -58,9 +66,17 @@ export function KpiCard({
   const isGood = invertDelta ? (delta ?? 0) <= 0 : (delta ?? 0) >= 0;
 
   return (
-    <Card className={className}>
+    // La elevación al pasar el cursor viene del prototipo. Con transform+transition de
+    // CSS y no con framer-motion: es una dependencia entera para un desplazamiento de
+    // 2px, y CLAUDE.md pide verificar compatibilidad con Bun antes de sumar librerías.
+    <Card
+      className={cn('transition-transform duration-200 ease-out hover:-translate-y-0.5', className)}
+    >
       <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
-      <p className="mt-1 font-mono text-kpi tabular-nums">{value}</p>
+      <div className="flex items-end justify-between gap-4">
+        <p className="mt-1 font-mono text-kpi tabular-nums">{value}</p>
+        {spark && <Sparkline data={spark} className="shrink-0 text-foreground" />}
+      </div>
       {secondary !== undefined && (
         <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">{secondary}</p>
       )}
