@@ -20,7 +20,7 @@ export function KpiRow({
   common: Dictionary['common'];
 }) {
   const { state, reload } = useResource<MetricsResponse>(() =>
-    request<MetricsResponse>('/api/metrics?months=2'),
+    request<MetricsResponse>('/api/metrics?months=12'),
   );
 
   if (state.status === 'loading') {
@@ -50,18 +50,27 @@ export function KpiRow({
     return (current - prior) / Math.abs(prior);
   }
 
+  /**
+   * Serie para el sparkline. Son los mismos meses que ya venían en la respuesta — antes
+   * se pedían 2 (solo para el delta) y ahora 12, que es lo que hace falta para que la
+   * línea tenga forma. No es un dato nuevo ni una llamada extra.
+   */
+  const serie = (campo: 'revenue' | 'cogs' | 'grossProfit') => data.months.map((m) => m[campo]);
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3">
       <KpiCard
         label={labels.revenue}
         value={formatMoney(latest?.revenue ?? 0, currency, locale)}
         delta={delta(latest?.revenue ?? 0, previous?.revenue)}
+        spark={serie('revenue')}
         locale={locale}
       />
       <KpiCard
         label={labels.cogs}
         value={formatMoney(latest?.cogs ?? 0, currency, locale)}
         delta={delta(latest?.cogs ?? 0, previous?.cogs)}
+        spark={serie('cogs')}
         invertDelta
         locale={locale}
       />
@@ -82,6 +91,7 @@ export function KpiRow({
         }
         hint={labels.marginHint}
         delta={delta(latest?.grossProfit ?? 0, previous?.grossProfit)}
+        spark={serie('grossProfit')}
         locale={locale}
       />
     </div>
