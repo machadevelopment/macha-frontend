@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { CompanyCreditsCard } from '@/components/admin/company-credits-card';
+import { CompanyFxRatesCard } from '@/components/admin/company-fx-rates-card';
 import { request, requestJson, type RequestError } from '@/lib/api/browser';
 import { RULE_UNIT, RULE_UNIT_LABEL_ES, isKnownRule } from '@/lib/alerts/rule-units';
 import {
@@ -53,12 +54,15 @@ export function CompanyDetailPanel({
   companyId,
   labels,
   creditsLabels,
+  fxRatesLabels,
   common,
 }: {
   companyId: string;
   labels: Dictionary['admin']['companyDetail'];
   /** Se recibe y se reenvía: la tarjeta de créditos es hija de esta pantalla. */
   creditsLabels: Dictionary['admin']['credits'];
+  /** Idem para las tasas de cambio, que también son por empresa. */
+  fxRatesLabels: Dictionary['admin']['fxRates'];
   common: Dictionary['admin']['common'];
 }) {
   const [company, setCompany] = useState<CompanySummary | null>(null);
@@ -201,6 +205,11 @@ export function CompanyDetailPanel({
           toca lo que es por empresa. Carga su propio dato y maneja su propio fallo, así
           que un 403 de super_admin en el abono no tumba el resto del detalle. */}
       <CompanyCreditsCard companyId={companyId} labels={creditsLabels} common={common} />
+
+      {/* Va pegada a los créditos porque las dos son "lo que el staff le configura a una
+          empresa para que pueda operar", y porque el caso que las junta es el mismo: una
+          carga trabada por falta de tasa termina en un reintento que sí gasta créditos. */}
+      <CompanyFxRatesCard companyId={companyId} labels={fxRatesLabels} common={common} />
 
       <Card>
         <p className="mb-2 text-cardh2">{labels.alertRulesTitle}</p>

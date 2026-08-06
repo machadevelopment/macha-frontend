@@ -90,6 +90,26 @@ export const es: Dictionary = {
       colNotifyNow: 'Notifica de inmediato',
       thresholdError: 'No se pudo actualizar este umbral.',
     },
+    fxRates: {
+      title: 'Tasas de cambio',
+      emptyBadge: 'sin tasa',
+      emptyWarning:
+        'Sin ninguna tasa registrada, cada fila en {quote} de cada carga se marca para revisión manual y la carga no se puede promover. Una sola tasa con fecha de vigencia anterior a la más antigua del libro las desbloquea todas.',
+      rateLabel: 'TASA ({pair})',
+      dateLabel: 'VIGENTE DESDE',
+      submit: 'Registrar tasa',
+      submitting: 'Registrando…',
+      rateInvalid: 'La tasa debe ser un número mayor que 0.',
+      dateInvalid: 'Elige la fecha desde la que rige la tasa.',
+      submitError: 'No se pudo registrar la tasa.',
+      resolutionHint:
+        'Cada fila usa la tasa más reciente que no sea posterior a su propia fecha, así que registrar una tasa vieja cubre todo lo que venga después de ella.',
+      retroactiveHint:
+        'Registrar una tasa no recalcula lo ya promovido: cada fila congeló la suya al promoverse. Para corregir una conversión ya escrita hay que revertir la carga y volver a promoverla.',
+      colEffectiveDate: 'Vigente desde',
+      colRate: 'Tasa',
+      colCreatedAt: 'Registrada',
+    },
     credits: {
       title: 'Créditos',
       balanceLabel: 'SALDO',
@@ -350,6 +370,13 @@ export const es: Dictionary = {
       retry: 'Reintentar',
     },
     creditsLabel: 'créditos',
+    keyAlerts: {
+      title: 'ALERTAS ACTIVAS',
+      triggered: 'Llegó a {value} {unit}, con el umbral en {threshold}.',
+      empty: 'Ninguna alerta activa por ahora.',
+      loadFailed: 'No pudimos cargar tus alertas. Esto no significa que no tengas ninguna.',
+      seeAll: 'Ver el histórico completo',
+    },
   },
   chat: {
     eyebrow: 'ASISTENTE CFO',

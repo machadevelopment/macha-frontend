@@ -137,6 +137,28 @@ export interface Dictionary {
       colNotifyNow: string;
       thresholdError: string;
     };
+    fxRates: {
+      title: string;
+      /** Se muestra cuando la empresa no tiene ni una tasa registrada. */
+      emptyBadge: string;
+      /** Lleva `{quote}` — se sustituye por la moneda del par (USD/GTQ). */
+      emptyWarning: string;
+      /** Lleva `{pair}` — se sustituye por "1 USD = GTQ", que es el sentido de la tasa. */
+      rateLabel: string;
+      dateLabel: string;
+      submit: string;
+      submitting: string;
+      rateInvalid: string;
+      dateInvalid: string;
+      submitError: string;
+      /** Cómo se elige la tasa de cada fila al promover. */
+      resolutionHint: string;
+      /** Que registrar una tasa no recalcula lo ya promovido. */
+      retroactiveHint: string;
+      colEffectiveDate: string;
+      colRate: string;
+      colCreatedAt: string;
+    };
     credits: {
       title: string;
       balanceLabel: string;
@@ -385,6 +407,15 @@ export interface Dictionary {
       retry: string;
     };
     creditsLabel: string;
+    /** Bloque de alertas activas del rail derecho del dashboard. */
+    keyAlerts: {
+      title: string;
+      /** Lleva `{value}`, `{threshold}` y `{unit}`. */
+      triggered: string;
+      empty: string;
+      loadFailed: string;
+      seeAll: string;
+    };
   };
   chat: {
     eyebrow: string;

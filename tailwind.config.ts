@@ -79,7 +79,26 @@ export default {
         chip: ['9.5px', { lineHeight: '1', letterSpacing: '0.09em', fontWeight: '600' }],
       },
       boxShadow: { tab: '0 1px 2px rgba(0,0,0,.06)' },
-      maxWidth: { app: '1320px' },
+      /**
+       * Ancho máximo del shell (design guide.md §4.4).
+       *
+       * Era 1320px y se subió a 1920 porque en un monitor normal de trabajo (~1500px de
+       * viewport) el tope dejaba franjas de fondo a los lados y metía TODO el contenido en
+       * ~1100px útiles: 1320 menos los 212 del sidebar. Con cinco tarjetas de KPI en fila
+       * más dos charts lado a lado, eso se lee apretado y chico — que fue exactamente el
+       * reporte.
+       *
+       * Sigue habiendo tope, y no es indecisión: sin ninguno, en un ultrawide de 2560px las
+       * tablas y los charts se estiran hasta que la vista tiene que barrer la pantalla
+       * completa para cruzar una fila. 1920 cubre a pantalla llena los tamaños reales de
+       * laptop y monitor sin llegar a eso.
+       *
+       * OJO AL APLICARLO: `max-w-app` está puesto en el shell Y otra vez en el `<main>` de
+       * cada página. Anidado era inofensivo (el interior nunca podía superar al padre), pero
+       * significa que este número manda en los dos niveles a la vez — subirlo solo en el
+       * shell no habría hecho nada, porque cada `<main>` habría vuelto a cortar en 1320.
+       */
+      maxWidth: { app: '1920px' },
     },
   },
   plugins: [],
