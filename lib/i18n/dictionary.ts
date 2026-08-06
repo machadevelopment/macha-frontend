@@ -302,6 +302,15 @@ export interface Dictionary {
       /** CU-868kh8y58: explicación del margen bruto en lenguaje de dueño, no contable. */
       marginHint: string;
     };
+    /** CU-868kn5hqu: por qué el dashboard puede estar en cero tras subir un Excel. */
+    ingest: {
+      eyebrow: string;
+      processing: string;
+      inReview: string;
+      inReviewWithRows: string;
+      explainer: string;
+      cta: string;
+    };
     trendTitle: string;
     arApTitle: string;
     ar: string;

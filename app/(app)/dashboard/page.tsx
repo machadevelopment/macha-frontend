@@ -4,6 +4,7 @@ import { KpiRow } from '@/components/dashboard/kpi-row';
 import { TrendChart } from '@/components/dashboard/trend-chart';
 import { ArApChart } from '@/components/dashboard/ar-ap-chart';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
+import { IngestStatusBanner } from '@/components/dashboard/ingest-status-banner';
 
 // CU-868kfvabe/868kfvabk: dashboard ejecutivo. middleware.ts ya exige sesión.
 export default function DashboardPage() {
@@ -14,6 +15,12 @@ export default function DashboardPage() {
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <p className="font-mono text-eyebrow uppercase text-faint">{t.dashboard.eyebrow}</p>
       <h1 className="mb-4 text-h1">{t.dashboard.title}</h1>
+
+      {/* Antes de los KPIs a propósito: si los números están en cero porque una carga
+          está en revisión, el motivo tiene que leerse antes que los ceros. */}
+      <div className="mb-4">
+        <IngestStatusBanner labels={t.dashboard.ingest} />
+      </div>
 
       <DashboardClient locale={locale} labels={t.dashboard} topUpLabel={t.credits.topUpCta} />
 

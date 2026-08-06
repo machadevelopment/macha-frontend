@@ -278,6 +278,16 @@ export const es: Dictionary = {
       marginHint: 'Lo que te queda de cada venta antes de los gastos fijos.',
     },
     trendTitle: 'Tendencia mensual',
+    ingest: {
+      eyebrow: 'CARGA EN PROCESO',
+      processing: 'Estamos procesando {docs} archivo(s). Tus números aparecen cuando termine.',
+      inReview: 'Tienes {docs} carga(s) en revisión. Sus datos todavía no entran a tus números.',
+      inReviewWithRows:
+        'Tienes {docs} carga(s) en revisión: {rows} filas necesitan que las revisemos antes de entrar a tus números.',
+      explainer:
+        'Nada entra a tus reportes hasta que la carga completa esté revisada, para que no se mezclen datos dudosos con los buenos.',
+      cta: 'Ver mis cargas',
+    },
     arApTitle: 'Cuentas por cobrar / pagar',
     ar: 'Por cobrar',
     ap: 'Por pagar',

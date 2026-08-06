@@ -274,6 +274,16 @@ export const en: Dictionary = {
       marginHint: 'What you keep from each sale before fixed expenses.',
     },
     trendTitle: 'Monthly trend',
+    ingest: {
+      eyebrow: 'UPLOAD IN PROGRESS',
+      processing: "We're processing {docs} file(s). Your numbers appear once it finishes.",
+      inReview: "You have {docs} upload(s) under review. Their data isn't in your numbers yet.",
+      inReviewWithRows:
+        'You have {docs} upload(s) under review: {rows} rows need checking before they can join your numbers.',
+      explainer:
+        'Nothing reaches your reports until the whole upload is reviewed, so questionable data never mixes with good data.',
+      cta: 'See my uploads',
+    },
     arApTitle: 'Accounts receivable / payable',
     ar: 'Receivable',
     ap: 'Payable',
