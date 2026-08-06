@@ -77,3 +77,18 @@ export interface PeriodMetricsResponse {
   previous: PeriodTotals;
   series: PeriodPoint[];
 }
+
+/** `GET /metrics/products` — ingresos por producto en un rango. */
+export interface ProductRevenue {
+  productId: string;
+  name: string;
+  revenue: number;
+  transactionCount: number;
+}
+
+export interface ProductRevenueResponse {
+  baseCurrency: string;
+  /** Vacío cuando ninguna transacción del rango tiene producto asociado — lo normal en
+   * documentos ingeridos antes de que la IA extrajera el campo. NO es "no hubo ventas". */
+  items: ProductRevenue[];
+}

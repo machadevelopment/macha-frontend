@@ -282,6 +282,12 @@ export const es: Dictionary = {
       showing: 'Mostrando',
       vsPrevious: 'vs. período anterior',
     },
+    topProduct: {
+      title: 'Producto que más vendió',
+      emptyNoSales: 'No hubo ventas en este período.',
+      emptyUnattributed:
+        'Hubo ventas, pero ninguna quedó asociada a un producto. Las cargas anteriores a la última actualización no traen ese dato.',
+    },
     kpi: {
       revenue: 'Ingresos',
       revenueHint: 'Ingresos facturados del período.',

@@ -10,7 +10,12 @@ import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
 import { formatMoney, formatPct } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
-import type { PeriodMetricsResponse, PeriodTotals } from '@/lib/api/dashboard';
+import { TopProductCard } from '@/components/dashboard/top-product-card';
+import type {
+  PeriodMetricsResponse,
+  PeriodTotals,
+  ProductRevenueResponse,
+} from '@/lib/api/dashboard';
 
 /**
  * Filtro de período + las cinco tarjetas, sobre el rango elegido.
@@ -37,18 +42,26 @@ export function PeriodKpis({
   const [periodo, setPeriodo] = useState<PeriodKey>('month');
   const [rango, setRango] = useState<DateRange>(() => computeRange('month', new Date()));
   const [data, setData] = useState<PeriodMetricsResponse | null>(null);
+  const [productos, setProductos] = useState<ProductRevenueResponse | null>(null);
   const [error, setError] = useState<RequestError | null>(null);
 
   const cargar = useCallback(async (r: DateRange) => {
     setError(null);
-    const res = await request<PeriodMetricsResponse>(
-      `/api/metrics-period?from=${r.from}&to=${r.to}`,
-    );
-    if (!res.ok) {
-      setError(res.error);
+    // Las dos llamadas van en paralelo y comparten el MISMO rango: si el ranking de
+    // productos pidiera el suyo por separado, las píldoras dirían "hoy" y la tarjeta
+    // seguiría mostrando el mes.
+    const [metricas, prods] = await Promise.all([
+      request<PeriodMetricsResponse>(`/api/metrics-period?from=${r.from}&to=${r.to}`),
+      request<ProductRevenueResponse>(`/api/metrics-products?from=${r.from}&to=${r.to}&limit=5`),
+    ]);
+    if (!metricas.ok) {
+      setError(metricas.error);
       return;
     }
-    setData(res.data);
+    setData(metricas.data);
+    // El ranking es secundario: si falla, la pantalla sigue sirviendo sus KPIs en vez
+    // de caerse entera por una tarjeta lateral.
+    setProductos(prods.ok ? prods.data : null);
   }, []);
 
   useEffect(() => {
@@ -161,6 +174,12 @@ export function PeriodKpis({
           locale={locale}
         />
       </div>
+      <TopProductCard
+        data={productos}
+        hayVentas={data.current.revenue > 0}
+        locale={locale}
+        labels={labels.topProduct}
+      />
     </div>
   );
 }

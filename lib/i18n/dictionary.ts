@@ -311,6 +311,12 @@ export interface Dictionary {
       showing: string;
       vsPrevious: string;
     };
+    /** El vacío distingue "no hubo ventas" de "hubo ventas sin producto identificado". */
+    topProduct: {
+      title: string;
+      emptyNoSales: string;
+      emptyUnattributed: string;
+    };
     kpi: {
       revenue: string;
       revenueHint: string;
