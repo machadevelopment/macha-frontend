@@ -1,12 +1,15 @@
 import {
   AlertTriangle,
+  BarChart3,
   Bot,
+  Boxes,
   Building2,
   CreditCard,
   FileText,
   LayoutGrid,
   Package,
   Settings,
+  ShoppingCart,
   Sparkles,
   UploadCloud,
   Users,
@@ -24,7 +27,9 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  *
  * Los íconos salen del mapeo de design guide.md §6 (`grid→LayoutGrid`, `doc→FileText`,
  * `bot→Bot`, `up→UploadCloud`, `card→CreditCard`, `bldg→Building2`, `alert→AlertTriangle`,
- * `box→Package`, `gear→Settings`, `spark→Sparkles`).
+ * `box→Package`, `gear→Settings`, `spark→Sparkles`). Los tres de las pantallas nuevas
+ * (`BarChart3`, `ShoppingCart`, `Boxes`) se toman tal cual del prototipo MVP Macha: son
+ * los que el dueño ya vio en la maqueta, y cambiarlos por otros del mapeo no ganaría nada.
  */
 export interface NavItem {
   href: string;
@@ -61,13 +66,19 @@ export interface NavSection {
   items: NavItem[];
 }
 
-/** Nav de la app de cliente: las cinco pantallas raíz de `app/(app)/`. */
+/** Nav de la app de cliente: las pantallas raíz de `app/(app)/`. */
 export function appNav(t: Dictionary['shell']): NavSection[] {
   return [
     {
       label: t.section.analysis,
       items: [
         { href: '/dashboard', icon: LayoutGrid, label: t.nav.dashboard },
+        // Las tres del prototipo MVP Macha que no existían todavía. El orden es el suyo
+        // (panorama → analítica → producto → inventario): va de lo más agregado a lo más
+        // granular, que es como se baja a buscar el porqué de un número del panorama.
+        { href: '/analytics', icon: BarChart3, label: t.nav.analytics },
+        { href: '/product-sales', icon: ShoppingCart, label: t.nav.productSales },
+        { href: '/inventory', icon: Boxes, label: t.nav.inventory },
         // CU-868kj0tdq criterio 5: las alertas dejan de colgar del panorama y tienen
         // ítem propio. Antes `/alerts` era solo `matchAlso` de `/dashboard`, porque la
         // única alerta alcanzable era `/alerts/[id]` por deep-link del email; ahora

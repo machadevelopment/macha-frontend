@@ -78,12 +78,34 @@ export interface PeriodMetricsResponse {
   series: PeriodPoint[];
 }
 
-/** `GET /metrics/products` — ingresos por producto en un rango. */
+/** `GET /metrics/products` — desempeño por producto en un rango. */
 export interface ProductRevenue {
   productId: string;
   name: string;
+  /** Familia comercial; `null` mientras la ingesta no la haya podido deducir. */
+  category: string | null;
   revenue: number;
+  cogs: number;
+  /** CU-868kh8y58: utilidad bruta = ingreso − costo directo. Viene calculada del backend
+   *  por la misma razón que en `MonthlyMetric`: para que la UI no la recomponga distinto. */
+  grossProfit: number;
+  /** 0-100, o `null` en un producto sin ventas en el rango. */
+  grossMarginPct: number | null;
+  /**
+   * Unidades vendidas, o `null` si NINGUNA fila de venta del producto trajo cantidad.
+   *
+   * `null` y 0 significan cosas distintas y la UI tiene que distinguirlas: muchos libros
+   * de PYME no traen columna de unidades, y mostrar "0 unidades" en un producto que
+   * facturó miles es sencillamente falso. Donde no se sabe, se dice que no se sabe.
+   */
+  units: number | null;
+  /** Ingreso solo de las filas que traen unidades — el denominador honesto del ticket
+   *  promedio. Ver la nota del backend en `modules/metrics/products.ts`. */
+  revenueWithUnits: number;
   transactionCount: number;
+  revenueSharePct: number;
+  previousRevenue: number;
+  trend: 'up' | 'down' | 'flat';
 }
 
 export interface ProductRevenueResponse {
@@ -91,4 +113,67 @@ export interface ProductRevenueResponse {
   /** Vacío cuando ninguna transacción del rango tiene producto asociado — lo normal en
    * documentos ingeridos antes de que la IA extrajera el campo. NO es "no hubo ventas". */
   items: ProductRevenue[];
+}
+
+/** `GET /metrics/categories` — desglose por categoría CONTABLE (el movimiento), que no es
+ *  lo mismo que `ProductRevenue.category` (la familia comercial del producto). */
+export interface CategoryBreakdownRow {
+  category: string;
+  type: 'revenue' | 'cogs' | 'opex' | 'other';
+  total: number;
+  transactionCount: number;
+  /** Participación dentro de su propio `type`, no del total general: ese total mezcla
+   *  ingreso con costo y un porcentaje sobre él no significa nada. */
+  sharePct: number;
+}
+
+export interface CategoryBreakdownResponse {
+  baseCurrency: string;
+  rows: CategoryBreakdownRow[];
+}
+
+/** `GET /inventory` — existencias por SKU. */
+export interface InventoryItem {
+  id: string;
+  sku: string;
+  name: string;
+  productId: string | null;
+  productName: string | null;
+  location: string | null;
+  quantityOnHand: number;
+  reorderPoint: number;
+  unitCostOriginal: number;
+  unitCostCurrency: string;
+  unitCostBase: number;
+  /** Existencia × costo unitario, en moneda base. Lo calcula el backend para que el valor
+   *  del inventario sea el mismo número en pantalla, en un reporte y en el chat. */
+  stockValueBase: number;
+  supplier: string | null;
+  lastRestockDate: string | null;
+  belowReorderPoint: boolean;
+}
+
+export interface InventoryResponse {
+  baseCurrency: string;
+  items: InventoryItem[];
+  totalStockValueBase: number;
+  belowReorderCount: number;
+}
+
+export type MovementType = 'in' | 'out' | 'adjustment';
+
+export interface InventoryMovement {
+  id: string;
+  itemId: string;
+  itemName: string;
+  movementType: MovementType;
+  quantity: number;
+  /** Existencia resultante tras el movimiento: deja leer el historial sin re-sumarlo. */
+  quantityAfter: number;
+  reason: string | null;
+  occurredAt: string;
+}
+
+export interface InventoryMovementsResponse {
+  movements: InventoryMovement[];
 }
