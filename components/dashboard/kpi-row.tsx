@@ -1,5 +1,6 @@
 'use client';
 
+import { DollarSign, Receipt, PiggyBank, Percent, Wallet } from 'lucide-react';
 import { KpiCard } from '@/components/charts/kpi-card';
 import { LoadError } from '@/components/ui/load-error';
 import { request } from '@/lib/api/browser';
@@ -23,12 +24,15 @@ export function KpiRow({
     request<MetricsResponse>('/api/metrics?months=12'),
   );
 
+  // Cinco tarjetas como el prototipo: ventas, gastos, utilidad, margen y flujo.
+  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3 xl:grid-cols-5';
+
   if (state.status === 'loading') {
     return (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3">
-        <KpiCard label={labels.revenue} value="" loading />
-        <KpiCard label={labels.cogs} value="" loading />
-        <KpiCard label={labels.margin} value="" loading />
+      <div className={GRID}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <KpiCard key={i} label="" value="" loading />
+        ))}
       </div>
     );
   }
@@ -57,20 +61,45 @@ export function KpiRow({
    */
   const serie = (campo: 'revenue' | 'cogs' | 'grossProfit') => data.months.map((m) => m[campo]);
 
+  /**
+   * "Gastos" del prototipo = costo directo + gasto operativo. Es la cifra que un dueño
+   * entiende por "lo que me costó operar", y sale de dos campos que ya vienen separados
+   * en la respuesta — no es un dato nuevo.
+   */
+  const gastos = (m?: { cogs: number; opex: number }) => (m ? m.cogs + m.opex : 0);
+  const serieGastos = data.months.map((m) => m.cogs + m.opex);
+
+  /**
+   * Flujo del período = ingresos − gastos totales. NO es lo mismo que la utilidad bruta
+   * que manda el KPI de margen (CU-868kh8y58, decisión de Jose: el margen del producto
+   * es BRUTO, sin restar opex). Se muestran los dos porque responden preguntas
+   * distintas —"cuánto me deja cada venta" vs "cuánto me quedó en el bolsillo"— y cada
+   * tarjeta dice de dónde sale su número para que no se confundan.
+   */
+  const flujo = (m?: { revenue: number; cogs: number; opex: number }) =>
+    m ? m.revenue - (m.cogs + m.opex) : 0;
+  const serieFlujo = data.months.map((m) => m.revenue - (m.cogs + m.opex));
+
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3">
+    <div className={GRID}>
       <KpiCard
         label={labels.revenue}
+        icon={<DollarSign className="h-4 w-4" strokeWidth={1.7} />}
         value={formatMoney(latest?.revenue ?? 0, currency, locale)}
+        hint={labels.revenueHint}
         delta={delta(latest?.revenue ?? 0, previous?.revenue)}
+        deltaCaption={labels.vsPrevious}
         spark={serie('revenue')}
         locale={locale}
       />
       <KpiCard
-        label={labels.cogs}
-        value={formatMoney(latest?.cogs ?? 0, currency, locale)}
-        delta={delta(latest?.cogs ?? 0, previous?.cogs)}
-        spark={serie('cogs')}
+        label={labels.expenses}
+        icon={<Receipt className="h-4 w-4" strokeWidth={1.7} />}
+        value={formatMoney(gastos(latest), currency, locale)}
+        hint={labels.expensesHint}
+        delta={delta(gastos(latest), previous ? gastos(previous) : undefined)}
+        deltaCaption={labels.vsPrevious}
+        spark={serieGastos}
         invertDelta
         locale={locale}
       />
@@ -80,18 +109,35 @@ export function KpiRow({
           ticket era exactamente esto al revés: una ganancia que restaba gastos junto a
           un margen que no, contradiciéndose en la misma pantalla. */}
       <KpiCard
-        label={labels.margin}
+        label={labels.grossProfit}
+        icon={<PiggyBank className="h-4 w-4" strokeWidth={1.7} />}
         value={formatMoney(latest?.grossProfit ?? 0, currency, locale)}
-        secondary={
-          // `null` = período sin ventas. No hay margen que mostrar, y un "0.0%" ahí
-          // se leería como "vendiste sin ganar" en vez de "no vendiste".
-          latest?.grossMarginPct == null
-            ? undefined
-            : formatPct(latest.grossMarginPct / 100, locale)
+        hint={labels.grossProfitHint}
+        delta={delta(latest?.grossProfit ?? 0, previous?.grossProfit)}
+        deltaCaption={labels.vsPrevious}
+        spark={serie('grossProfit')}
+        locale={locale}
+      />
+      <KpiCard
+        label={labels.margin}
+        icon={<Percent className="h-4 w-4" strokeWidth={1.7} />}
+        // `null` = período sin ventas. No hay margen que mostrar, y un "0.0%" ahí se
+        // leería como "vendiste sin ganar" en vez de "no vendiste".
+        value={
+          latest?.grossMarginPct == null ? '—' : formatPct(latest.grossMarginPct / 100, locale)
         }
         hint={labels.marginHint}
-        delta={delta(latest?.grossProfit ?? 0, previous?.grossProfit)}
-        spark={serie('grossProfit')}
+        deltaCaption={labels.vsPrevious}
+        locale={locale}
+      />
+      <KpiCard
+        label={labels.cashFlow}
+        icon={<Wallet className="h-4 w-4" strokeWidth={1.7} />}
+        value={formatMoney(flujo(latest), currency, locale)}
+        hint={labels.cashFlowHint}
+        delta={delta(flujo(latest), previous ? flujo(previous) : undefined)}
+        deltaCaption={labels.vsPrevious}
+        spark={serieFlujo}
         locale={locale}
       />
     </div>

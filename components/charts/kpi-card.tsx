@@ -32,6 +32,17 @@ export interface KpiCardProps {
    */
   hint?: string;
   /**
+   * Cifra exacta bajo el valor abreviado, siguiendo el prototipo: arriba "Q1.29M" para
+   * leer de un vistazo, debajo "Q 1,290,000" para el número real. En un producto
+   * financiero abreviar y NO ofrecer el exacto obliga a salir de la pantalla a
+   * verificar; mostrarlo cuesta una línea.
+   */
+  exact?: string;
+  /** Ícono a la derecha de la etiqueta, como en el prototipo. */
+  icon?: React.ReactNode;
+  /** Texto bajo el delta: "vs mes anterior". Sin esto un porcentaje no dice contra qué. */
+  deltaCaption?: string;
+  /**
    * Serie para el sparkline del prototipo "MVP Macha". Son los MISMOS valores mensuales
    * que ya devuelve `/api/metrics`, no un adorno: si no hay serie, no se dibuja nada en
    * vez de inventar una.
@@ -49,6 +60,9 @@ export function KpiCard({
   invertDelta = false,
   secondary,
   hint,
+  exact,
+  icon,
+  deltaCaption,
   spark,
   locale = 'es',
   loading,
@@ -72,11 +86,17 @@ export function KpiCard({
     <Card
       className={cn('transition-transform duration-200 ease-out hover:-translate-y-0.5', className)}
     >
-      <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
+        {icon && <span className="shrink-0 text-faint">{icon}</span>}
+      </div>
       <div className="flex items-end justify-between gap-4">
         <p className="mt-1 font-mono text-kpi tabular-nums">{value}</p>
         {spark && <Sparkline data={spark} className="shrink-0 text-foreground" />}
       </div>
+      {exact !== undefined && (
+        <p className="mt-1 font-mono text-body tabular-nums text-muted-foreground">{exact}</p>
+      )}
       {secondary !== undefined && (
         <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">{secondary}</p>
       )}
@@ -90,6 +110,9 @@ export function KpiCard({
           )}
           {formatPct(Math.abs(delta), locale)}
         </Badge>
+      )}
+      {delta !== undefined && deltaCaption && (
+        <p className="mt-1 font-ui text-body text-faint">{deltaCaption}</p>
       )}
     </Card>
   );

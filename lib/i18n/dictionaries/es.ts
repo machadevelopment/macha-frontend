@@ -268,8 +268,21 @@ export const es: Dictionary = {
   dashboard: {
     eyebrow: 'DASHBOARD',
     title: 'Panorama financiero',
+    greetingMorning: 'Buenos días',
+    greetingAfternoon: 'Buenas tardes',
+    greetingEvening: 'Buenas noches',
+    greetingSubtitle: 'Así va tu negocio este mes.',
+    importCta: 'Importar Excel',
     kpi: {
       revenue: 'Ingresos',
+      revenueHint: 'Ingresos facturados del período.',
+      expenses: 'Gastos',
+      expensesHint: 'Costo directo más gastos de operación.',
+      grossProfit: 'Utilidad bruta',
+      grossProfitHint: 'Ventas menos costo directo.',
+      cashFlow: 'Resultado del período',
+      cashFlowHint: 'Ventas menos todos los gastos.',
+      vsPrevious: 'vs. mes anterior',
       // CU-868kh8y58: "directo" no es adorno — la decisión de Jose define `cogs` como
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
