@@ -64,6 +64,10 @@ describe('paridad de diccionarios ES/EN', () => {
     // CU-868kh8zvt — el backoffice pasa a ser bilingüe; estas dos coinciden de verdad.
     'admin.aiCost.colTokens', // "Tokens in/out" — la abreviatura es la misma en ambos
     'admin.companyDetail.colEmail', // "Email"
+    // Pantallas nuevas del prototipo MVP Macha.
+    'analytics.colTotal', // "Total" — misma palabra en los dos idiomas
+    'inventory.colSku', // "SKU" — sigla internacional, no se traduce
+    'inventory.fieldSku', // idem
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {

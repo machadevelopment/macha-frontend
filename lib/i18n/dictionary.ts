@@ -230,6 +230,9 @@ export interface Dictionary {
     /** Etiquetas cortas de los ítems de nav: los títulos de pantalla no caben en 212px. */
     nav: {
       dashboard: string;
+      analytics: string;
+      productSales: string;
+      inventory: string;
       alerts: string;
       upload: string;
       reports: string;
@@ -527,5 +530,106 @@ export interface Dictionary {
       missingToken: string;
       genericError: string;
     };
+  };
+  /** Analítica (pantalla del prototipo MVP Macha): las series y desgloses del período. */
+  analytics: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    revenueTrend: string;
+    cashFlow: string;
+    costByCategory: string;
+    revenueByProduct: string;
+    inflow: string;
+    outflow: string;
+    net: string;
+    colCategory: string;
+    colType: string;
+    colTotal: string;
+    colShare: string;
+    colMovements: string;
+    empty: string;
+    emptyHint: string;
+    type: { revenue: string; cogs: string; opex: string; other: string };
+  };
+  /** Ventas por producto. */
+  productSales: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    topProduct: string;
+    unitsSold: string;
+    avgTicket: string;
+    bestCategory: string;
+    slowMover: string;
+    allProducts: string;
+    revenuePerUnit: string;
+    performance: string;
+    salesByCategory: string;
+    colProduct: string;
+    colCategory: string;
+    colUnits: string;
+    colRevenue: string;
+    colCogs: string;
+    colMargin: string;
+    colShare: string;
+    colTrend: string;
+    uncategorized: string;
+    /** Lo que se muestra donde el archivo del cliente no trae unidades. NO es "0". */
+    noUnits: string;
+    noUnitsHint: string;
+    empty: string;
+    emptyHint: string;
+    trend: { up: string; down: string; flat: string };
+  };
+  /** Inventario. */
+  inventory: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    stockValue: string;
+    skuCount: string;
+    belowReorder: string;
+    itemsTitle: string;
+    movementsTitle: string;
+    addItem: string;
+    editItem: string;
+    recordMovement: string;
+    colSku: string;
+    colName: string;
+    colLocation: string;
+    colOnHand: string;
+    colReorder: string;
+    colUnitCost: string;
+    colValue: string;
+    colSupplier: string;
+    colLastRestock: string;
+    colActions: string;
+    colWhen: string;
+    colItem: string;
+    colMovement: string;
+    colQuantity: string;
+    colAfter: string;
+    colReason: string;
+    fieldSku: string;
+    fieldName: string;
+    fieldLocation: string;
+    fieldInitialStock: string;
+    fieldReorderPoint: string;
+    fieldUnitCost: string;
+    fieldCurrency: string;
+    fieldSupplier: string;
+    fieldMovementType: string;
+    fieldQuantity: string;
+    fieldReason: string;
+    stockIsLedger: string;
+    save: string;
+    discontinue: string;
+    discontinueConfirm: string;
+    empty: string;
+    emptyHint: string;
+    movementsEmpty: string;
+    genericError: string;
+    movement: { in: string; out: string; adjustment: string };
   };
 }
