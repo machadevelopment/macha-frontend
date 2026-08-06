@@ -249,6 +249,7 @@ export const es: Dictionary = {
     reverting: 'Revirtiendo…',
     retry: 'Reintentar',
     retrying: 'Reintentando…',
+    unsupportedCta: 'Usar la plantilla',
     revertConfirm:
       '¿Revertir esta carga? Se eliminarán todos los movimientos, facturas y cuentas por pagar que generó. La acción queda registrada y no se puede deshacer desde la aplicación.',
     loadMore: 'Cargar más',
@@ -270,6 +271,10 @@ export const es: Dictionary = {
       promoted: 'Listo',
       reverted: 'Revertido',
       failed: 'Error',
+      // No dice "Error": el archivo no está roto, simplemente no es un libro que se
+      // pueda leer. Culpar al archivo del cliente por algo que no es una falla suya
+      // invita a reintentar, que es justo lo que no sirve acá.
+      unsupported: 'No legible',
     },
   },
   dashboard: {

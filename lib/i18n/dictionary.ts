@@ -293,7 +293,11 @@ export interface Dictionary {
       promoted: string;
       reverted: string;
       failed: string;
+      /** Terminal: el archivo no se pudo leer. No es reintentable — ver `unsupportedCta`. */
+      unsupported: string;
     };
+    /** CTA que reemplaza a "Reintentar" en un documento `unsupported`. */
+    unsupportedCta: string;
   };
   dashboard: {
     eyebrow: string;

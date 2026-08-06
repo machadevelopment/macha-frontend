@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Table,
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LoadError } from '@/components/ui/load-error';
 import { DocumentPipeline, type DocumentStatus } from '@/components/upload/pipeline';
+import { cn } from '@/lib/cn';
 import { errorMessage, request, requestJson } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
 import { formatDate } from '@/lib/format';
@@ -188,16 +190,27 @@ export function DocumentList({
                     variant={
                       doc.status === 'failed'
                         ? 'danger'
-                        : doc.status === 'reverted'
-                          ? 'neutral'
-                          : 'success'
+                        : // `unsupported` es ámbar, no rojo: no se rompió nada, el
+                          // archivo simplemente no era legible y hay una acción clara.
+                          doc.status === 'unsupported'
+                          ? 'warning'
+                          : doc.status === 'reverted'
+                            ? 'neutral'
+                            : 'success'
                     }
                   >
                     {labels.status[doc.status]}
                   </Badge>
                 )}
-                {doc.status === 'failed' && doc.errorReason && (
-                  <p className="mt-1 text-body text-danger">{doc.errorReason}</p>
+                {(doc.status === 'failed' || doc.status === 'unsupported') && doc.errorReason && (
+                  <p
+                    className={cn(
+                      'mt-1 text-body',
+                      doc.status === 'unsupported' ? 'text-warning' : 'text-danger',
+                    )}
+                  >
+                    {doc.errorReason}
+                  </p>
                 )}
               </TableCell>
               <TableCell className="font-mono tabular-nums text-muted-foreground">
@@ -225,6 +238,17 @@ export function DocumentList({
                   >
                     {retrying === doc.id ? labels.retrying : labels.retry}
                   </Button>
+                )}
+                {/* Un `unsupported` NO ofrece reintentar: el mismo archivo daría el
+                  mismo resultado (el backend lo rechaza con 409). La única acción que
+                  avanza es partir de la plantilla, así que es la que se ofrece. */}
+                {doc.status === 'unsupported' && (
+                  <a href="/api/industry-templates/download">
+                    <Button size="sm" variant="outline" className="gap-1.5">
+                      <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+                      {labels.unsupportedCta}
+                    </Button>
+                  </a>
                 )}
               </TableCell>
             </TableRow>

@@ -245,6 +245,7 @@ export const en: Dictionary = {
     reverting: 'Reverting…',
     retry: 'Retry',
     retrying: 'Retrying…',
+    unsupportedCta: 'Use the template',
     revertConfirm:
       'Revert this upload? Every transaction, invoice and bill it created will be removed. The action is recorded and cannot be undone from the app.',
     loadMore: 'Load more',
@@ -266,6 +267,7 @@ export const en: Dictionary = {
       promoted: 'Done',
       reverted: 'Reverted',
       failed: 'Error',
+      unsupported: 'Unreadable',
     },
   },
   dashboard: {

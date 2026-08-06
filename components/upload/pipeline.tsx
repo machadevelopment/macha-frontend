@@ -2,7 +2,14 @@ import { cn } from '@/lib/cn';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 export type DocumentStatus =
-  'queued' | 'processing' | 'review' | 'promoted' | 'reverted' | 'failed';
+  | 'queued'
+  | 'processing'
+  | 'review'
+  | 'promoted'
+  | 'reverted'
+  | 'failed'
+  /** Terminal: el archivo no traía movimientos legibles. Reintentarlo da lo mismo. */
+  | 'unsupported';
 
 const STEP_ORDER = ['queued', 'processing', 'review', 'promoted'] as const;
 type StepState = 'done' | 'now' | 'wait' | 'failed';
@@ -17,7 +24,9 @@ type StepState = 'done' | 'now' | 'wait' | 'failed';
  * not a 5th pipeline step.
  */
 function getStepStates(status: DocumentStatus): StepState[] {
-  if (status === 'failed') return ['done', 'failed', 'wait', 'wait'];
+  // `unsupported` se atribuye al mismo paso que `failed`: el archivo se recibió y se
+  // procesó, y fue ahí donde se determinó que no había nada legible.
+  if (status === 'failed' || status === 'unsupported') return ['done', 'failed', 'wait', 'wait'];
   if (status === 'reverted') return ['done', 'done', 'done', 'done'];
   const idx = STEP_ORDER.indexOf(status as (typeof STEP_ORDER)[number]);
   return STEP_ORDER.map((_, i) => (i < idx ? 'done' : i === idx ? 'now' : 'wait'));
