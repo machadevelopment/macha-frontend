@@ -239,9 +239,17 @@ export const es: Dictionary = {
     dropzoneCta: 'Arrastra tu archivo aquí o haz clic para buscarlo',
     dropzoneHint: '.xlsx, .xls o .csv',
     downloadTemplate: 'Descargar plantilla',
+    // La plantilla es OPCIONAL: el motor clasifica el archivo que tengas, con el orden
+    // que tenga. Se dice explícito porque un botón de "descargar plantilla" junto a un
+    // dropzone se lee como "primero llena esto", que es justo lo que no queremos.
+    downloadTemplateHint:
+      'Opcional: sube tu archivo tal como lo llevas. La plantilla es solo un punto de partida si no llevas un orden definido.',
     empty: 'Todavía no has subido ningún archivo.',
     revert: 'Revertir',
     reverting: 'Revirtiendo…',
+    retry: 'Reintentar',
+    retrying: 'Reintentando…',
+    unsupportedCta: 'Usar la plantilla',
     revertConfirm:
       '¿Revertir esta carga? Se eliminarán todos los movimientos, facturas y cuentas por pagar que generó. La acción queda registrada y no se puede deshacer desde la aplicación.',
     loadMore: 'Cargar más',
@@ -263,6 +271,10 @@ export const es: Dictionary = {
       promoted: 'Listo',
       reverted: 'Revertido',
       failed: 'Error',
+      // No dice "Error": el archivo no está roto, simplemente no es un libro que se
+      // pueda leer. Culpar al archivo del cliente por algo que no es una falla suya
+      // invita a reintentar, que es justo lo que no sirve acá.
+      unsupported: 'No legible',
     },
   },
   dashboard: {
