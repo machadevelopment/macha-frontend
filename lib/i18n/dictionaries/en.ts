@@ -272,6 +272,15 @@ export const en: Dictionary = {
     greetingEvening: 'Good evening',
     greetingSubtitle: "Here's how your business is doing this month.",
     importCta: 'Import Excel',
+    period: {
+      label: 'Period',
+      today: 'Today',
+      week: 'This week',
+      month: 'This month',
+      year: 'This year',
+      showing: 'Showing',
+      vsPrevious: 'vs. previous period',
+    },
     kpi: {
       revenue: 'Revenue',
       revenueHint: 'Revenue invoiced this period.',

@@ -301,6 +301,16 @@ export interface Dictionary {
     greetingEvening: string;
     greetingSubtitle: string;
     importCta: string;
+    /** Filtro de período. "Personalizado" aún no existe: ver period-filter.tsx. */
+    period: {
+      label: string;
+      today: string;
+      week: string;
+      month: string;
+      year: string;
+      showing: string;
+      vsPrevious: string;
+    };
     kpi: {
       revenue: string;
       revenueHint: string;

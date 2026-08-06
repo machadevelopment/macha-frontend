@@ -54,3 +54,26 @@ export interface InsufficientCreditsResponse {
   required: number;
   balance: number;
 }
+
+/** Totales de un rango arbitrario + la ventana anterior del mismo tamaño (backend
+ * `GET /metrics/period`). Alimenta el filtro de período del dashboard. */
+export interface PeriodTotals {
+  revenue: number;
+  cogs: number;
+  opex: number;
+  other: number;
+}
+
+export interface PeriodPoint extends PeriodTotals {
+  date: string;
+}
+
+export interface PeriodMetricsResponse {
+  baseCurrency: string;
+  from: string;
+  to: string;
+  current: PeriodTotals;
+  /** Mismo tamaño de ventana, justo antes. Es contra esto que se calcula cada delta. */
+  previous: PeriodTotals;
+  series: PeriodPoint[];
+}
