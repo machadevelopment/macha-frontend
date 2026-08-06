@@ -43,18 +43,24 @@ describe('isNavItemActive', () => {
 });
 
 describe('modelo de navegación', () => {
-  it('cubre las siete pantallas raíz de cliente', () => {
+  it('cubre las diez pantallas raíz de cliente', () => {
     // `/alerts` entra en CU-868kj0tdq: antes solo existía `/alerts/[id]` (deep-link del
     // email) y colgaba de `/dashboard` por `matchAlso`. Ahora hay histórico y es sección.
     // `/members` entra en CU-868kh8pwv: el equipo deja de gestionarse escribiéndole a
     // Macha, así que necesita puerta propia y no solo una URL que alguien recuerde.
+    // `/analytics`, `/product-sales` e `/inventory` son las tres del prototipo MVP Macha
+    // que no se habían construido: sin ítem de nav, una pantalla nueva solo existe para
+    // quien se sepa la URL, que es como se quedan sin usar.
     const hrefs = appNav(t).flatMap((s) => s.items.map((i) => i.href));
     expect(hrefs.sort()).toEqual([
       '/alerts',
+      '/analytics',
       '/chat',
       '/credits',
       '/dashboard',
+      '/inventory',
       '/members',
+      '/product-sales',
       '/reports',
       '/upload',
     ]);
