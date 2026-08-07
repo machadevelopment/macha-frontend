@@ -7,7 +7,7 @@ import { LoadError } from '@/components/ui/load-error';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
 import { request, type RequestError } from '@/lib/api/browser';
 import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
-import { formatMoney, formatPct } from '@/lib/format';
+import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import { TopProductCard } from '@/components/dashboard/top-product-card';
@@ -68,7 +68,18 @@ export function PeriodKpis({
     void cargar(rango);
   }, [cargar, rango]);
 
-  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3 xl:grid-cols-5';
+  /**
+   * Cinco columnas SOLO desde 1536px, no desde 1280.
+   *
+   * El rail derecho del dashboard son 348px fijos, así que la columna de los KPIs es mucho más
+   * angosta que el viewport: a 1280px quedan ~616px para las tarjetas, y cinco ahí son 110px
+   * útiles cada una — no cabe ni un monto abreviado. El escalón nuevo (2→3→5) mantiene las
+   * tarjetas sobre ~170px útiles en todo el rango.
+   *
+   * Son breakpoints de viewport y no container queries porque Tailwind 3.4 no las trae en el
+   * core; el ancho del rail es fijo, así que la cuenta desde el viewport es determinista.
+   */
+  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5';
 
   const filtro = (
     <PeriodFilter
@@ -125,10 +136,19 @@ export function PeriodKpis({
     <div className="flex flex-col gap-3">
       {filtro}
       <div className={GRID}>
+        {/*
+          Valor ABREVIADO arriba y cifra EXACTA debajo, que es para lo que existe `exact` y lo
+          que hace el prototipo. No es una preferencia estética: `formatMoney` produce
+          `GTQ 480,663.00` (~192px a 24px en JetBrains Mono) y la tarjeta tiene ~170px útiles,
+          así que el monto completo NO cabe y con datos reales se desbordaba sobre la tarjeta
+          vecina. La notación compacta corta en ~9 caracteres y no vuelve a crecer aunque el
+          número gane dígitos.
+        */}
         <KpiCard
           label={labels.kpi.revenue}
           icon={<DollarSign className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoney(data.current.revenue, moneda, locale)}
+          value={formatMoneyCompact(data.current.revenue, moneda, locale)}
+          exact={formatMoney(data.current.revenue, moneda, locale)}
           hint={labels.kpi.revenueHint}
           delta={delta(data.current.revenue, data.previous.revenue)}
           deltaCaption={labels.kpi.vsPrevious}
@@ -138,7 +158,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.expenses}
           icon={<Receipt className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoney(gastos(data.current), moneda, locale)}
+          value={formatMoneyCompact(gastos(data.current), moneda, locale)}
+          exact={formatMoney(gastos(data.current), moneda, locale)}
           hint={labels.kpi.expensesHint}
           delta={delta(gastos(data.current), gastos(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}
@@ -149,7 +170,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.grossProfit}
           icon={<PiggyBank className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoney(utilidadBruta(data.current), moneda, locale)}
+          value={formatMoneyCompact(utilidadBruta(data.current), moneda, locale)}
+          exact={formatMoney(utilidadBruta(data.current), moneda, locale)}
           hint={labels.kpi.grossProfitHint}
           delta={delta(utilidadBruta(data.current), utilidadBruta(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}
@@ -166,7 +188,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.cashFlow}
           icon={<Wallet className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoney(resultado(data.current), moneda, locale)}
+          value={formatMoneyCompact(resultado(data.current), moneda, locale)}
+          exact={formatMoney(resultado(data.current), moneda, locale)}
           hint={labels.kpi.cashFlowHint}
           delta={delta(resultado(data.current), resultado(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}
