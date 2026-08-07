@@ -64,9 +64,22 @@ export function formatNumber(
  * izquierda y quedaban en `000.00`: los dos charts del dashboard perdían la escala por
  * completo. Esto devuelve `GTQ 145 k`.
  *
- * **Solo para ejes.** Todo lo que el usuario lea como dato — tooltips, KPIs, tablas,
- * reportes — sigue usando `formatMoney` con el monto exacto: la regla de mostrar la
- * cifra completa con su código de moneda no se negocia por espacio.
+ * **DÓNDE SE PUEDE USAR, corregido el 2026-08-07.** Antes esta nota decía "solo para ejes" y
+ * prohibía explícitamente los KPIs. La regla de fondo —que el usuario nunca tenga que salir de
+ * la pantalla para ver la cifra completa con su código de moneda— no cambia; lo que cambia es
+ * que abreviar y mostrar el exacto no son excluyentes:
+ *
+ *  · Ejes de charts: abreviado, y el exacto lo da el tooltip.
+ *  · Tarjetas de KPI: abreviado como valor principal **siempre acompañado de la cifra exacta**
+ *    en la línea de abajo (la prop `exact` de `KpiCard` existe para eso). Sin el exacto al
+ *    lado, sigue prohibido.
+ *  · Tablas y reportes: `formatMoney`, el monto completo. Ahí hay ancho y la comparación
+ *    columna a columna necesita todos los dígitos.
+ *
+ * Lo que forzó la corrección: con datos reales, `GTQ 480,663.00` a 24px en JetBrains Mono mide
+ * ~192px y la tarjeta de KPI tiene ~170px útiles (el rail derecho del dashboard se lleva 348).
+ * El monto no cabía y se desbordaba PINTÁNDOSE sobre la tarjeta vecina, así que la regla vieja
+ * no estaba protegiendo la cifra completa: estaba produciendo dos cifras ilegibles.
  */
 export function formatMoneyCompact(
   amount: number | string,

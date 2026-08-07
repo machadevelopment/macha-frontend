@@ -90,16 +90,27 @@ export function KpiCard({
         <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
         {icon && <span className="shrink-0 text-faint">{icon}</span>}
       </div>
-      <div className="flex items-end justify-between gap-4">
-        <p className="mt-1 font-mono text-kpi tabular-nums">{value}</p>
-        {spark && <Sparkline data={spark} className="shrink-0 text-foreground" />}
-      </div>
+      {/*
+        El valor manda y el sparkline va DEBAJO, no al lado.
+        Antes eran hermanos en un flex con el sparkline en `shrink-0`, y con datos reales eso
+        se rompía: de ~148px útiles el sparkline se llevaba 96 (80 + gap) y al número le
+        quedaban 52 para escribir `GTQ 480,663.00`. No se recortaba — se DESBORDABA y se
+        pintaba sobre la tarjeta vecina. Debajo, el número tiene todo el ancho y el sparkline
+        se estira al que sobre (ver `Sparkline`, que ahora usa viewBox).
+
+        `min-w-0` + `truncate` es el tope duro: aunque el número creciera hasta no caber, se
+        recorta DENTRO de su tarjeta. Que un dato financiero se corte es malo; que se pinte
+        encima del de al lado y los dos queden ilegibles es peor, y la cifra completa está una
+        línea más abajo en `exact`.
+      */}
+      <p className="mt-1 min-w-0 truncate font-mono text-kpi tabular-nums">{value}</p>
       {exact !== undefined && (
         <p className="mt-1 font-mono text-body tabular-nums text-muted-foreground">{exact}</p>
       )}
       {secondary !== undefined && (
         <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">{secondary}</p>
       )}
+      {spark && <Sparkline data={spark} height={28} className="mt-2 w-full text-foreground" />}
       {hint !== undefined && <p className="mt-1 font-ui text-body text-faint">{hint}</p>}
       {delta !== undefined && (
         <Badge variant={isGood ? 'success' : 'danger'} className="mt-2 gap-1 normal-case">
