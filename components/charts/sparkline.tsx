@@ -13,6 +13,7 @@
  */
 export function Sparkline({
   data,
+  /** Sistema de coordenadas del viewBox, NO píxeles: el ancho real lo decide el CSS. */
   width = 80,
   height = 32,
   className,
@@ -36,13 +37,38 @@ export function Sparkline({
     .join(' ');
 
   return (
-    <svg width={width} height={height} className={className} aria-hidden="true">
+    // `viewBox` + `preserveAspectRatio="none"` en vez de `width`/`height` fijos: así el
+    // sparkline OCUPA el ancho que le den en vez de exigir 80px.
+    //
+    // El ancho fijo tenía un efecto que no se veía hasta que llegaron datos reales: dentro de
+    // la tarjeta de KPI el sparkline era `shrink-0` al lado del valor, así que de un ancho de
+    // ~148px útiles se llevaba 96 (80 + el gap) y al número le quedaban 52 para escribir
+    // `GTQ 480,663.00`, que necesita ~192. El texto no se recortaba: se DESBORDABA y se
+    // pintaba encima de la tarjeta vecina — el `86.1%` del margen quedaba tapado por el valor
+    // de utilidad bruta. Visto en producción el 2026-08-07 con el filtro "Este año".
+    //
+    // Sin ancho por clase el SVG toma el del contenedor, que es el comportamiento que se
+    // quiere: la tarjeta decide, no el componente.
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      // El tamaño lo pone el CSS, no atributos: quien lo usa le da el ancho con una clase
+      // (`w-full` en la tarjeta de KPI) y `height` queda como alto fijo. `width` sobrevive solo
+      // como sistema de coordenadas del viewBox — la relación entre puntos, no píxeles.
+      height={height}
+      className={className}
+      aria-hidden="true"
+    >
       <polyline
         points={points}
         fill="none"
         stroke="currentColor"
         strokeOpacity="0.55"
         strokeWidth="1.25"
+        // Obligatorio junto con `preserveAspectRatio="none"`: al estirar el viewBox de 80 a
+        // ~240px el trazo se escalaría con él y la línea saldría gruesa en horizontal y fina
+        // en vertical. Con esto mantiene 1.25px reales en cualquier ancho.
+        vectorEffect="non-scaling-stroke"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
