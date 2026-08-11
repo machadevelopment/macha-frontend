@@ -197,6 +197,33 @@ export interface Dictionary {
        */
       settings: Record<string, { label: string; description: string }>;
     };
+    /**
+     * Catálogo de planes (ticket B3). Vive junto a `creditRules` y `config` porque los
+     * tres son la configuración económica, con un reparto deliberado: reglas = cuántos
+     * créditos cuesta cada acción; parámetros = equivalencia y precio del crédito;
+     * planes = qué incluye cada plan y cuánto vale.
+     */
+    plans: {
+      eyebrow: string;
+      title: string;
+      readOnlyNote: string;
+      createTitle: string;
+      /** El código es permanente: viaja a `subscriptions.plan_code`. Se avisa de entrada. */
+      codeHint: string;
+      codeLabel: string;
+      nameLabel: string;
+      priceLabel: string;
+      creditsLabel: string;
+      createAction: string;
+      createError: string;
+      saveError: string;
+      invalidNumber: string;
+      active: string;
+      /** La baja es lógica, nunca un DELETE: hay empresas suscritas a planes retirados. */
+      inactive: string;
+      activate: string;
+      deactivate: string;
+    };
     creditRules: {
       eyebrow: string;
       title: string;
@@ -323,6 +350,8 @@ export interface Dictionary {
       companies: string;
       stagingRows: string;
       templates: string;
+      /** Catálogo de planes (ticket B3). Va junto a la demás configuración económica. */
+      plans: string;
       creditRules: string;
       config: string;
       aiCost: string;
@@ -625,6 +654,8 @@ export interface Dictionary {
     eyebrow: string;
     title: string;
     subtitle: string;
+    /** Encabezado de la sección de recarga, ahora que la pantalla ya no es solo eso. */
+    topUpTitle: string;
     currentBalance: string;
     creditsLabel: string;
     quantity: string;
@@ -634,6 +665,27 @@ export interface Dictionary {
     error: string;
     notOwner: string;
     topUpCta: string;
+    /**
+     * Gestión de plan (ticket B3). La pantalla pasó de "Comprar créditos" a "Plan y
+     * créditos": el plan es lo primero y la recarga individual queda debajo, conservada.
+     */
+    plan: {
+      title: string;
+      subtitle: string;
+      readOnly: string;
+      currentEyebrow: string;
+      currentBadge: string;
+      /** `{n}` = créditos incluidos en el plan. */
+      includedCredits: string;
+      free: string;
+      perMonth: string;
+      choose: string;
+      changing: string;
+      changeFailed: string;
+      /** El upgrade no pasa por cobro en esta etapa; callarlo confundiría al owner. */
+      noChargeNote: string;
+      loadError: { network: string; server: string; forbidden: string; retry: string };
+    };
   };
 
   /** CU-868kh8pwv: gestión de miembros autoservicio. */

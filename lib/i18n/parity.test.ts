@@ -68,6 +68,9 @@ describe('paridad de diccionarios ES/EN', () => {
     'analytics.colTotal', // "Total" — misma palabra en los dos idiomas
     'inventory.colSku', // "SKU" — sigla internacional, no se traduce
     'inventory.fieldSku', // idem
+    // Ticket B3: la pantalla de créditos pasó a ser gestión de plan y su eyebrow es
+    // "PLAN", que se escribe igual en español y en inglés.
+    'credits.eyebrow',
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {
