@@ -421,10 +421,23 @@ export interface Dictionary {
     eyebrow: string;
     title: string;
     newChat: string;
-    empty: string;
     placeholder: string;
     send: string;
     sending: string;
+    /**
+     * Estado vacío del asesor (CU-868knx189). Sustituye a la antigua `chat.empty`, que era
+     * una sola línea gris — se borra en vez de dejarla huérfana en el diccionario.
+     */
+    welcome: {
+      title: string;
+      subtitle: string;
+      quickLabel: string;
+      /** Las cuatro preguntas rápidas, una por eje: caja, margen, gasto y cobros. */
+      q1: string;
+      q2: string;
+      q3: string;
+      q4: string;
+    };
   };
   reports: {
     eyebrow: string;
