@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LoadError } from '@/components/ui/load-error';
+import { MarkdownMessage } from '@/components/chat/markdown-message';
 import { request, requestJson, type RequestError } from '@/lib/api/browser';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import { formatDate } from '@/lib/format';
@@ -168,13 +169,24 @@ export function ChatClient({
           {messages.map((m, i) => (
             <div
               key={i}
-              className={`max-w-[80%] rounded-md px-3 py-2 text-body ${
+              className={
                 m.role === 'user'
-                  ? 'self-end bg-primary text-primary-foreground'
-                  : 'self-start bg-muted'
-              }`}
+                  ? 'max-w-[80%] self-end rounded-md bg-primary px-3 py-2 text-body text-primary-foreground'
+                  : // La burbuja del asesor va más ancha que la del usuario (90% vs 80%)
+                    // porque su contenido ya no es una línea de texto: lleva listas y
+                    // tablas, y a 80% una tabla de cuatro columnas entra directo en
+                    // scroll horizontal aunque hubiera espacio de sobra al lado.
+                    'max-w-[90%] self-start rounded-md bg-muted px-3 py-2 text-body'
+              }
             >
-              {m.content}
+              {/*
+                CU-868knx181: solo el asesor se renderiza como Markdown. Lo que escribe el
+                usuario se pinta tal cual — si alguien pregunta por un SKU llamado `*ABC*`
+                no hay razón para que la app se lo coma y le muestre `ABC` en cursiva.
+                `role === 'tool'` (que el esquema admite aunque hoy no se persista) tampoco
+                pasa por Markdown: es salida de herramienta, no prosa.
+              */}
+              {m.role === 'assistant' ? <MarkdownMessage content={m.content} /> : m.content}
             </div>
           ))}
         </div>
