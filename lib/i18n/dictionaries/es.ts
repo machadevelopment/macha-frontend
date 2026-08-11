@@ -628,6 +628,8 @@ export const es: Dictionary = {
     inflow: 'Entradas',
     outflow: 'Salidas',
     net: 'Neto',
+    periodTotal: 'TOTAL DEL PERÍODO',
+    shareOfRevenue: 'Participación en el ingreso',
     colCategory: 'Categoría',
     colType: 'Tipo',
     colTotal: 'Total',
