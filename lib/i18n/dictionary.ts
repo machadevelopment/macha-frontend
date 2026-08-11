@@ -180,7 +180,14 @@ export interface Dictionary {
       eyebrow: string;
       title: string;
       invalidJson: string;
+      /** Error del editor numérico — no todo parámetro se teclea como JSON. */
+      invalidNumber: string;
       saveError: string;
+      /**
+       * Aviso para quien no es `super_admin`: ve los valores, no los edita. El gate
+       * real es del backend (`edit_credits_to_tokens_param`); esto solo lo explica.
+       */
+      readOnlyNote: string;
       /** Prefijo de la marca de tiempo bajo cada parámetro. */
       updatedAt: string;
       /**

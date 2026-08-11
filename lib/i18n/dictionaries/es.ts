@@ -131,6 +131,9 @@ export const es: Dictionary = {
       eyebrow: 'CONFIGURACIÓN',
       title: 'Parámetros de negocio',
       invalidJson: 'El valor no es JSON válido.',
+      invalidNumber: 'Escribe un número válido.',
+      readOnlyNote:
+        'Estos parámetros solo los edita un super_admin. Aquí se muestran en modo lectura.',
       updatedAt: 'Actualizado',
       saveError: 'No se pudo guardar. El valor sigue siendo el anterior.',
       settings: {
@@ -142,6 +145,11 @@ export const es: Dictionary = {
         credit_monthly_allotment: {
           label: 'Asignación mensual de créditos',
           description: 'Créditos que se acreditan a cada empresa al inicio de su ciclo mensual.',
+        },
+        credit_initial_grant: {
+          label: 'Créditos iniciales de una empresa nueva',
+          description:
+            'Créditos con los que arranca una empresa recién aprovisionada, para que pueda probar el producto antes de su primer ciclo.',
         },
         credit_price_usd_cents: {
           label: 'Precio de venta del crédito (centavos de USD)',

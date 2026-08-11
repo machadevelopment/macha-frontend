@@ -131,6 +131,8 @@ export const en: Dictionary = {
       eyebrow: 'CONFIGURATION',
       title: 'Business parameters',
       invalidJson: 'The value is not valid JSON.',
+      invalidNumber: 'Enter a valid number.',
+      readOnlyNote: 'Only a super_admin can edit these parameters. They are shown read-only here.',
       updatedAt: 'Updated',
       saveError: 'Could not save. The value is still the previous one.',
       settings: {
@@ -142,6 +144,11 @@ export const en: Dictionary = {
         credit_monthly_allotment: {
           label: 'Monthly credit allotment',
           description: 'Credits granted to each company at the start of its monthly cycle.',
+        },
+        credit_initial_grant: {
+          label: 'Initial credits for a new company',
+          description:
+            'Credits a freshly provisioned company starts with, so it can try the product before its first cycle.',
         },
         credit_price_usd_cents: {
           label: 'Credit sale price (USD cents)',
