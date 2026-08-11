@@ -98,11 +98,16 @@ export function AppShell({
   return (
     // Densidad compacta en el shell (design guide.md §12); cada pantalla puede
     // declarar la suya en su propio <main> sin que esto la pise.
-    <div data-density="compact" className="min-h-screen bg-background p-2 app:p-3">
+    <div data-density="compact" className="min-h-dvh bg-background p-2 app:p-3">
       <div
         className={cn(
           'mx-auto grid max-w-app overflow-hidden rounded-lg border border-border bg-background',
-          'min-h-[calc(100vh-1rem)] app:min-h-[calc(100vh-1.5rem)]',
+          // `dvh` y no `vh` (CU-868knx16t). En móvil la barra de direcciones NO se
+          // descuenta de `100vh`: el navegador reporta la altura de la ventana con la
+          // barra ya retraída, así que el alto mínimo quedaba ~60-100px por encima del
+          // área realmente visible y se podía hacer scroll contra el vacío en todas las
+          // pantallas a la vez — esto es el layout compartido. `dvh` sigue a la barra.
+          'min-h-[calc(100dvh-1rem)] app:min-h-[calc(100dvh-1.5rem)]',
           // design guide.md §Responsive: bajo 1080px `app → 1fr`, el sidebar se oculta
           // y la navegación pasa al drawer. Arriba, `grid-template-columns: 212px 1fr`
           // (§4.4); colapsado deja un riel de solo íconos en vez de esconder la nav.
