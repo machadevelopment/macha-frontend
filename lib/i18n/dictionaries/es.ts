@@ -647,6 +647,8 @@ export const es: Dictionary = {
     revenuePerUnit: 'Ingreso por unidad',
     performance: 'Desempeño por producto',
     salesByCategory: 'Ventas por categoría',
+    exportCsv: 'Exportar CSV',
+    csvFileName: 'ventas-por-producto',
     colProduct: 'Producto',
     colCategory: 'Categoría',
     colUnits: 'Unidades',
