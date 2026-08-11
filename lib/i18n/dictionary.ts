@@ -225,9 +225,58 @@ export interface Dictionary {
       title: string;
       empty: string;
       companyEyebrow: string;
+      /** Solo sobrevive para el editor JSON de respaldo de una entidad desconocida. */
       invalidJson: string;
       saveError: string;
       reextractError: string;
+      /** Qué se espera del operador. La bandeja no lo decía en ningún lado. */
+      instructions: string;
+      approve: string;
+      reject: string;
+      reextract: string;
+      amountInvalid: string;
+      reasonEyebrow: string;
+      /** `targetEntity` en lenguaje humano; el backend manda `transaction|invoice|bill`. */
+      entity: { transaction: string; invoice: string; bill: string };
+      /**
+       * Los nueve códigos de `flag_reason` que emite macha-backend
+       * (`lib/staging-rules.ts` + `lib/fx.ts`), traducidos. `missing_fx_rate` NO estaba
+       * en la lista del ticket y es el único con una salida concreta.
+       */
+      reason: {
+        low_confidence: string;
+        /** Sufijo con el porcentaje, cuando el código lo trae. `{value}`. */
+        lowConfidenceDetail: string;
+        invalid_type: string;
+        missing_category: string;
+        invalid_date: string;
+        invalid_amount: string;
+        invalid_currency: string;
+        missing_counterparty: string;
+        invalid_issue_date: string;
+        /** `{currency}` y `{date}`. */
+        missing_fx_rate: string;
+        /** Regla nueva del backend que este frontend todavía no conoce. */
+        unknown: string;
+      };
+      /** Etiquetas de los campos del payload, en vez de las claves crudas del JSON. */
+      field: {
+        type: string;
+        category: string;
+        date: string;
+        description: string;
+        amount: string;
+        currency: string;
+        product: string;
+        quantity: string;
+        productCategory: string;
+        counterparty: string;
+        issueDate: string;
+        dueDate: string;
+      };
+      /** Los cuatro valores del enum `type` de un movimiento. */
+      txType: { revenue: string; cogs: string; opex: string; other: string };
+      empty_value: string;
     };
   };
   /**
