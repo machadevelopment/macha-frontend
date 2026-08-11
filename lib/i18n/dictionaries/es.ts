@@ -318,6 +318,13 @@ export const es: Dictionary = {
       year: 'Este año',
       showing: 'Mostrando',
       vsPrevious: 'vs. período anterior',
+      custom: 'Personalizado',
+      customFrom: 'Desde',
+      customTo: 'Hasta',
+      customApply: 'Aplicar',
+      customIncomplete: 'Elige las dos fechas.',
+      customReversed: 'La fecha final no puede ser anterior a la inicial.',
+      customFuture: 'No puedes elegir fechas futuras.',
     },
     topProduct: {
       title: 'Producto que más vendió',

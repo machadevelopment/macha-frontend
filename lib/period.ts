@@ -17,13 +17,20 @@ export interface DateRange {
   to: string;
 }
 
-const iso = (d: Date): string => {
-  // `toISOString()` convierte a UTC y correría la fecha; se arma a mano desde los
-  // componentes locales.
+/**
+ * `YYYY-MM-DD` en fecha LOCAL. Exportada desde CU-868knx137: el rango personalizado
+ * necesita saber cuál es "hoy" en el mismo formato para poder rechazar fechas futuras.
+ *
+ * `toISOString()` convierte a UTC y correría la fecha; se arma a mano desde los
+ * componentes locales.
+ */
+export const localIsoDate = (d: Date): string => {
   const mes = String(d.getMonth() + 1).padStart(2, '0');
   const dia = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${mes}-${dia}`;
 };
+
+const iso = localIsoDate;
 
 export function computeRange(key: Exclude<PeriodKey, 'custom'>, hoy: Date): DateRange {
   const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -53,4 +60,29 @@ export function computeRange(key: Exclude<PeriodKey, 'custom'>, hoy: Date): Date
         to: iso(new Date(d.getFullYear(), 11, 31)),
       };
   }
+}
+
+/** Motivo por el que un rango personalizado no se puede aplicar. `null` = está bien. */
+export type CustomRangeError = 'incomplete' | 'reversed' | 'future';
+
+/**
+ * Valida el rango personalizado (CU-868knx137).
+ *
+ * Compara los `YYYY-MM-DD` COMO TEXTO, sin construir un solo `Date`. Con el año de
+ * cuatro dígitos y mes y día rellenados con cero, el orden lexicográfico y el
+ * cronológico son el mismo, así que `'2026-08-06' < '2026-08-07'` es exacto. Y evita de
+ * raíz la clase de bug que el resto de este archivo esquiva a mano: `new Date('2026-08-06')`
+ * se interpreta como MEDIANOCHE UTC, que en Guatemala (UTC-6) es el 5 de agosto a las 6
+ * de la tarde. Comparar así habría rechazado como "futuro" el día de hoy durante seis
+ * horas cada noche.
+ *
+ * Un rango de UN SOLO DÍA (`from === to`) es válido a propósito: es lo que pide alguien
+ * que quiere ver un día puntual, y es lo mismo que devuelve `computeRange('today')`.
+ */
+export function validateCustomRange(from: string, to: string, hoy: Date): CustomRangeError | null {
+  if (!from || !to) return 'incomplete';
+  if (to < from) return 'reversed';
+  // Solo se mira `to`: si `from` fuera futuro y `to` no, ya habría salido por 'reversed'.
+  if (to > localIsoDate(hoy)) return 'future';
+  return null;
 }

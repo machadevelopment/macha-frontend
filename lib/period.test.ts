@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { computeRange } from './period';
+import { computeRange, localIsoDate, validateCustomRange } from './period';
 
 /** Jueves 6 de agosto de 2026, en hora local. */
 const HOY = new Date(2026, 7, 6);
@@ -47,5 +47,65 @@ describe('computeRange (filtro de período)', () => {
       from: '2026-08-06',
       to: '2026-08-06',
     });
+  });
+});
+
+describe('localIsoDate', () => {
+  test('emite YYYY-MM-DD en local, con cero a la izquierda', () => {
+    expect(localIsoDate(new Date(2026, 0, 5))).toBe('2026-01-05');
+  });
+
+  test('no corre la fecha de noche en UTC-6', () => {
+    // `toISOString()` sobre esto devolvería '2026-08-07' en Guatemala.
+    expect(localIsoDate(new Date(2026, 7, 6, 20, 30))).toBe('2026-08-06');
+  });
+});
+
+describe('validateCustomRange (CU-868knx137)', () => {
+  test('acepta un rango normal', () => {
+    expect(validateCustomRange('2026-08-01', '2026-08-05', HOY)).toBeNull();
+  });
+
+  test('acepta un rango de un solo día', () => {
+    // Es lo que pide quien quiere ver un día puntual, y es lo mismo que devuelve
+    // computeRange('today'). No es un caso degenerado.
+    expect(validateCustomRange('2026-08-05', '2026-08-05', HOY)).toBeNull();
+  });
+
+  test('rechaza la fecha final anterior a la inicial', () => {
+    expect(validateCustomRange('2026-08-05', '2026-08-01', HOY)).toBe('reversed');
+  });
+
+  test('rechaza cualquiera de las dos fechas vacía', () => {
+    expect(validateCustomRange('', '2026-08-05', HOY)).toBe('incomplete');
+    expect(validateCustomRange('2026-08-01', '', HOY)).toBe('incomplete');
+  });
+
+  test('rechaza el rango futuro', () => {
+    expect(validateCustomRange('2026-08-01', '2026-08-07', HOY)).toBe('future');
+  });
+
+  test('hoy mismo NO es futuro', () => {
+    // El borde exacto: `to === hoy` tiene que pasar. Si se comparara con `>=`, el
+    // usuario nunca podría incluir el día en curso.
+    expect(validateCustomRange('2026-08-01', '2026-08-06', HOY)).toBeNull();
+  });
+
+  test('un inicio futuro sale por reversed, no se cuela', () => {
+    expect(validateCustomRange('2026-09-01', '2026-08-06', HOY)).toBe('reversed');
+  });
+
+  test('el orden de texto y el cronológico coinciden a través del cambio de año', () => {
+    // La validación compara los YYYY-MM-DD como strings. Este es el caso donde una
+    // comparación ingenua se rompería si el formato no llevara ceros a la izquierda.
+    expect(validateCustomRange('2025-12-31', '2026-01-01', HOY)).toBeNull();
+    expect(validateCustomRange('2026-01-01', '2025-12-31', HOY)).toBe('reversed');
+  });
+
+  test('no depende de la hora del día', () => {
+    // Con `new Date('2026-08-06')` (medianoche UTC) el 6 de agosto habría sido "futuro"
+    // en Guatemala durante seis horas cada noche.
+    const nocheEnGuatemala = new Date(2026, 7, 6, 23, 59);
+    expect(validateCustomRange('2026-08-06', '2026-08-06', nocheEnGuatemala)).toBeNull();
   });
 });

@@ -309,6 +309,13 @@ export const en: Dictionary = {
       year: 'This year',
       showing: 'Showing',
       vsPrevious: 'vs. previous period',
+      custom: 'Custom',
+      customFrom: 'From',
+      customTo: 'To',
+      customApply: 'Apply',
+      customIncomplete: 'Pick both dates.',
+      customReversed: 'The end date cannot be earlier than the start date.',
+      customFuture: 'You cannot pick future dates.',
     },
     topProduct: {
       title: 'Top selling product',

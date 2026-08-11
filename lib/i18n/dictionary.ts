@@ -342,6 +342,15 @@ export interface Dictionary {
       year: string;
       showing: string;
       vsPrevious: string;
+      /** Rango personalizado (CU-868knx137). Un solo componente sirve a las tres pantallas. */
+      custom: string;
+      customFrom: string;
+      customTo: string;
+      customApply: string;
+      /** Los tres motivos de `CustomRangeError` en `lib/period.ts`. */
+      customIncomplete: string;
+      customReversed: string;
+      customFuture: string;
     };
     /** El vacío distingue "no hubo ventas" de "hubo ventas sin producto identificado". */
     topProduct: {
