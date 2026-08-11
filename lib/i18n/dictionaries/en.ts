@@ -370,10 +370,19 @@ export const en: Dictionary = {
     eyebrow: 'CFO ASSISTANT',
     title: 'Chat',
     newChat: 'New chat',
-    empty: 'Type a message to get started.',
     placeholder: 'Ask about your finances…',
     send: 'Send',
     sending: 'Sending…',
+    welcome: {
+      title: 'What do you want to know about your business?',
+      subtitle:
+        'Ask in your own words. I answer from the data you already uploaded, never from estimates.',
+      quickLabel: 'To get you started',
+      q1: 'How is my cash flow this month?',
+      q2: 'Which product gives me the best margin?',
+      q3: 'What did I spend more on than last month?',
+      q4: 'Which invoices are overdue?',
+    },
   },
   reports: {
     eyebrow: 'REPORTS',
