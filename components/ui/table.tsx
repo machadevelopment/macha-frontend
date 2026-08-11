@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/cn';
 
 // design guide.md §5 "Tabla" — th mono uppercase, td density-aware padding, numeric cells
-// should get font-mono tabular-nums at the call site (this primitive stays generic).
+// should get tabular-nums at the call site (this primitive stays generic).
 //
 // CU-868khvzbd, criterio 3 (<640px): el contenedor ya tenía `overflow-x-auto`, pero eso
 // solo no alcanzaba — con `w-full` y celdas que envuelven, en 390px la tabla se

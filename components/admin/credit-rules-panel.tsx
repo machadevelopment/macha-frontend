@@ -139,10 +139,10 @@ export function CreditRulesPanel({
                       {r.actionKind}
                     </TableCell>
                     <TableCell>{r.ruleType}</TableCell>
-                    <TableCell className="font-mono tabular-nums">
+                    <TableCell className="tabular-nums">
                       {r.creditsPerUnit} {r.unit ? `/ ${r.unit}` : ''}
                     </TableCell>
-                    <TableCell className="font-mono tabular-nums">v{r.version}</TableCell>
+                    <TableCell className="tabular-nums">v{r.version}</TableCell>
                     <TableCell>
                       <Badge variant={r.active ? 'success' : 'neutral'}>
                         {r.active ? 'activa' : 'histórica'}

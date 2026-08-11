@@ -10,24 +10,42 @@
  */
 :root {
   /*
-   * Alineado con el prototipo "MVP Macha" (2026-08-06). El lenguaje ya era el mismo
-   * —Inter + JetBrains Mono, neutro, plano, con filete de 1px en vez de sombra— así que
-   * lo que cambia es el ajuste fino, no la identidad:
+   * Alineado con el prototipo "MVP Macha" (2026-08-06) y con el Brand Book
+   * (CU-868knx0vh, 2026-08-11). El lenguaje base ya era el mismo —neutro, plano, con
+   * filete de 1px en vez de sombra— así que lo que cambió primero fue el ajuste fino:
    *
-   *   · el lienzo pasa de gris (#EFEFEF) a BLANCO. Era la diferencia más visible de
-   *     todas: el prototipo busca el registro de Claude/ChatGPT/X, donde la página y la
-   *     tarjeta comparten superficie y la separación la da el filete, no el contraste
-   *     de fondos;
-   *   · la tinta se suaviza de #0F0F0F a #171717, que es el negro del prototipo;
-   *   · el sidebar deja de ser exactamente la superficie de tarjeta y toma un blanco
+   *   · la tinta se suavizó de #0F0F0F a #171717, que es el negro del prototipo;
+   *   · el sidebar dejó de ser exactamente la superficie de tarjeta y tomó un blanco
    *     apenas más frío, para que se lea como panel sin necesitar un fondo gris detrás.
    *
-   * Lo que NO se copió: el verde de acento del prototipo (142 45% 38%). Acá el color
-   * señala semántica financiera y nada más (design guide §1), y `--green` ya cumple esa
-   * función; adoptar un acento verde "de marca" rompería esa regla.
+   * EL LIENZO. Pasó de gris (#EFEFEF) a blanco puro en 2026-08-06, buscando el registro
+   * de Claude/ChatGPT/X donde la página y la tarjeta comparten superficie y la separación
+   * la da el filete. Con el Brand Book pasa a BLANCO HUESO (#F9F9F9): sigue sin ser un
+   * gris de contraste —la tarjeta blanca se despega apenas— pero deja de ser el mismo
+   * blanco que la tarjeta, que es lo que hacía que las superficies se leyeran planas y
+   * baratas en pantallas calibradas. Es el valor del Brand Book, no una interpretación.
+   *
+   * ══ LA REGLA DE LOS DOS VERDES (aprobada por Jose, CU-868knx0vh) ══
+   *
+   * Versiones anteriores de este bloque decían que NO había verde de marca, y que
+   * adoptar uno rompería la regla de "el color solo señala estado". Ese comentario se
+   * reescribe, no se borra: el argumento era correcto para UN solo verde, y la
+   * contradicción se resuelve teniendo DOS con roles que no se pisan.
+   *
+   *   · `--brand` (salvia #A0AF9A) dice "esto es Macha". Identidad: Insight Point,
+   *     acentos, pantallas de vitrina, cabecera de reportes. NUNCA aparece sobre un
+   *     dato.
+   *   · `--green` (#16A34A) dice "este dato va bien". Delta positivo, chips de estado,
+   *     series positivas. NUNCA se usa como decoración.
+   *
+   * La prueba de fuego, literal del ticket: si el color dice "va bien o mal" es
+   * funcional; si dice "esto es Macha" es salvia. Son tonos deliberadamente distintos
+   * —el salvia es desaturado y apagado, el funcional es saturado y brillante— para que
+   * nadie los confunda a simple vista. Si alguien alguna vez los acerca, este párrafo
+   * deja de ser cierto y la regla se cae.
    */
   /* Layer 1 — primitives (light, source of truth) */
-  --canvas: #ffffff;
+  --canvas: #f9f9f9;
   --surface: #ffffff;
   --surface-2: #ffffff;
   --sidebar: #fcfcfc;
@@ -48,6 +66,35 @@
   --amber-bg: #fffbeb;
   --amber-bd: #fde68a;
   --amber-accent: #d97706;
+
+  /* Marca — salvia del Brand Book. Ver la regla de los dos verdes, arriba. */
+  --brand: #a0af9a;
+  --brand-strong: #8b9c84;
+  --brand-soft: #eef1ec;
+  --brand-bd: #d5ddd0;
+  /* Tinta legible SOBRE el salvia: el salvia es claro, así que el texto encima va
+     oscuro. Blanco sobre #A0AF9A no llega a AA (≈2.1:1). */
+  --brand-on: #1c2419;
+  /*
+   * Insight Point: el gradiente radial del Brand Book, como token y no como clase
+   * suelta. Vive acá para que el componente que lo pinta no tenga que conocer los tres
+   * pasos del degradado, y para que cambiarlo sea un solo lugar.
+   */
+  --brand-gradient: radial-gradient(circle at 30% 25%, #c3cfbd 0%, #a0af9a 45%, #7f9077 100%);
+
+  /*
+   * Tipografía de interfaz. SF Pro Display es la fuente del Brand Book, y NO se puede
+   * empaquetar: es propiedad de Apple, su licencia la restringe a desarrollo sobre
+   * plataformas Apple y no está en Google Fonts, así que auto-hospedar el archivo en una
+   * web pública sería una violación de licencia. Lo que sí es legítimo es pedirla por el
+   * stack del sistema: `-apple-system` y `BlinkMacSystemFont` resuelven a SF en macOS y
+   * iOS —donde de hecho se revisa el producto— y en Windows/Android caen a Inter, que se
+   * sigue cargando por `next/font` justo para eso. `var(--font-ui)` va ANTES de
+   * `system-ui` a propósito: sin eso, Chrome en Windows resolvería `system-ui` a Segoe UI
+   * y nunca llegaría a Inter.
+   */
+  --font-ui-stack:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', var(--font-ui), system-ui, sans-serif;
 
   /* Layer 2 — semantics */
   --background: var(--canvas);
@@ -99,6 +146,19 @@
   --amber-bg: #221a08;
   --amber-bd: #4a3714;
   --amber-accent: #f59e0b;
+
+  /*
+   * El salvia NO cambia de tono en oscuro: es la marca, y una marca que se corre de hue
+   * entre temas deja de ser reconocible. Lo que sí cambian son sus acompañantes —el
+   * fondo tenue y el borde—, que ahí sí tienen que vivir sobre #121212. `--brand-on`
+   * también: sobre el mismo salvia claro el texto encima sigue siendo oscuro.
+   */
+  --brand: #a0af9a;
+  --brand-strong: #b4c1af;
+  --brand-soft: #191d17;
+  --brand-bd: #2f3a2b;
+  --brand-on: #0f120e;
+  --brand-gradient: radial-gradient(circle at 30% 25%, #b4c1af 0%, #8b9c84 45%, #5d6b57 100%);
 
   --background: var(--canvas);
   --foreground: var(--ink);
@@ -167,12 +227,32 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-ui), system-ui, sans-serif;
+    font-family: var(--font-ui-stack);
   }
-  /* Mono rule: all numbers/amounts/%/deltas/IDs/timestamps/uppercase eyebrows */
-  .font-mono,
-  .tabular {
+  /*
+   * REGLA MONO, reescrita (CU-868knx0vh). Antes cubría "números, montos, %, deltas, IDs,
+   * timestamps Y eyebrows en mayúscula". Las CIFRAS SALEN: el Brand Book las quiere en la
+   * tipografía de interfaz, y es el cambio de mayor impacto visual de todo el rediseño —
+   * una monoespaciada en los KPIs es lo que hacía que el producto se leyera como una
+   * herramienta de desarrollador y no como un producto financiero.
+   *
+   * Lo que las mantenía alineadas en tablas no era la monoespaciada sino
+   * `font-variant-numeric: tabular-nums`, que es un ajuste independiente de la familia:
+   * SF Pro e Inter lo traen. Por eso la alineación no se pierde al soltar el mono — es
+   * literalmente el mismo mecanismo, sin el ancho fijo de las letras.
+   *
+   * `font-mono` SIGUE existiendo y sigue siendo obligatorio para eyebrows y labels en
+   * mayúscula con tracking, que son un rasgo de identidad y no un dato. Si Jose decide
+   * que también salen, es un cambio de una línea acá más un barrido.
+   *
+   * `.tabular` se conserva como la utilidad para "esto es una cifra": ya no cambia de
+   * familia, solo activa las cifras tabulares.
+   */
+  .font-mono {
     font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .tabular {
     font-variant-numeric: tabular-nums;
   }
   /* Accessible focus ring on every interactive element */

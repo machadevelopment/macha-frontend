@@ -88,10 +88,10 @@ export function IndustryTemplatesPanel({
             <TableBody>
               {versions[t.id]?.map((v) => (
                 <TableRow key={v.id}>
-                  <TableCell className="font-mono tabular-nums">
+                  <TableCell className="tabular-nums">
                     v{v.version} {v.id === t.currentVersionId && '(actual)'}
                   </TableCell>
-                  <TableCell className="font-mono tabular-nums text-muted-foreground">
+                  <TableCell className="tabular-nums text-muted-foreground">
                     {formatDate(v.createdAt)}
                   </TableCell>
                 </TableRow>

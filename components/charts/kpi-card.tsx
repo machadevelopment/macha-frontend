@@ -103,12 +103,12 @@ export function KpiCard({
         encima del de al lado y los dos queden ilegibles es peor, y la cifra completa está una
         línea más abajo en `exact`.
       */}
-      <p className="mt-1 min-w-0 truncate font-mono text-kpi tabular-nums">{value}</p>
+      <p className="mt-1 min-w-0 truncate text-kpi tabular-nums">{value}</p>
       {exact !== undefined && (
-        <p className="mt-1 font-mono text-body tabular-nums text-muted-foreground">{exact}</p>
+        <p className="mt-1 text-body tabular-nums text-muted-foreground">{exact}</p>
       )}
       {secondary !== undefined && (
-        <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">{secondary}</p>
+        <p className="mt-0.5 text-body tabular-nums text-muted-foreground">{secondary}</p>
       )}
       {spark && <Sparkline data={spark} height={28} className="mt-2 w-full text-foreground" />}
       {hint !== undefined && <p className="mt-1 font-ui text-body text-faint">{hint}</p>}

@@ -79,14 +79,14 @@ export function ReportList({
           {reports.map((r) => (
             <TableRow key={r.id}>
               <TableCell>
-                <a href={`/reports/${r.id}`} className="font-mono tabular-nums underline">
+                <a href={`/reports/${r.id}`} className="tabular-nums underline">
                   {formatDate(r.periodStart, locale)} — {formatDate(r.periodEnd, locale)}
                 </a>
               </TableCell>
               <TableCell className="font-mono text-eyebrow uppercase text-faint">
                 {r.frequency}
               </TableCell>
-              <TableCell className="font-mono tabular-nums text-muted-foreground">
+              <TableCell className="tabular-nums text-muted-foreground">
                 {formatDate(r.updatedAt, locale)}
               </TableCell>
             </TableRow>

@@ -102,13 +102,13 @@ export function AlertList({
                     {label}
                   </Link>
                 </TableCell>
-                <TableCell className="font-mono tabular-nums">
+                <TableCell className="tabular-nums">
                   {a.triggeredValue} {unit}
                 </TableCell>
-                <TableCell className="font-mono tabular-nums text-muted-foreground">
+                <TableCell className="tabular-nums text-muted-foreground">
                   {a.threshold} {unit}
                 </TableCell>
-                <TableCell className="font-mono tabular-nums text-muted-foreground">
+                <TableCell className="tabular-nums text-muted-foreground">
                   {formatDate(a.createdAt, locale)}
                 </TableCell>
               </TableRow>

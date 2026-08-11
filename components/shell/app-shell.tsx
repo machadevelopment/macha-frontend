@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { MachaMark } from '@/components/ui/macha-mark';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { OrgSwitcher } from '@/components/org-switcher';
 import { LocaleSwitcher } from '@/components/locale-switcher';
@@ -144,8 +145,9 @@ export function AppShell({
           </Sheet>
           <Link
             href={home}
-            className="font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
+            className="flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
           >
+            <MachaMark />
             Macha
           </Link>
           <div className="ml-auto flex items-center">
@@ -201,15 +203,23 @@ function SidebarBody({
           collapsed ? 'app:justify-center' : 'justify-between',
         )}
       >
-        {/* Wordmark, no clave de i18n: es la marca (design guide.md §7, Inter 700 / -0.03em). */}
+        {/*
+          Wordmark, no clave de i18n: es la marca (design guide.md §7, 700 / -0.03em).
+
+          CU-868knx0vh: se le suma el isotipo de tres barras del Brand Book. Cuando el
+          sidebar está colapsado el texto se esconde pero el ISOTIPO SE QUEDA — un riel de
+          56px sin ninguna marca deja la app sin identidad y sin punto de retorno al
+          inicio, que es lo que este link es.
+        */}
         <Link
           href={home}
           className={cn(
-            'font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground',
-            collapsed && 'app:hidden',
+            'flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground',
+            collapsed && 'app:justify-center',
           )}
         >
-          Macha
+          <MachaMark label={collapsed ? 'Macha' : undefined} />
+          <span className={cn(collapsed && 'app:hidden')}>Macha</span>
         </Link>
         <button
           type="button"
@@ -346,7 +356,7 @@ function NavLink({
       {item.badge !== undefined && item.badge > 0 && (
         <span
           className={cn(
-            'ml-auto rounded-[20px] bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-muted-foreground',
+            'ml-auto rounded-[20px] bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground',
             collapsed && 'app:sr-only',
           )}
         >

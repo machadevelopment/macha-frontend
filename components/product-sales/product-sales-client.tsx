@@ -239,25 +239,22 @@ export function ProductSalesClient({
                       {p.category ?? labels.uncategorized}
                     </TableCell>
                     <TableCell
-                      className={cn(
-                        'text-right font-mono tabular-nums',
-                        p.units === null && 'text-faint',
-                      )}
+                      className={cn('text-right tabular-nums', p.units === null && 'text-faint')}
                       title={p.units === null ? labels.noUnitsHint : undefined}
                     >
                       {p.units === null ? labels.noUnits : formatNumber(p.units, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatMoney(p.revenue, moneda, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatMoney(p.cogs, moneda, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {/* `null` = producto sin ventas en el rango; no existe margen, no es 0%. */}
                       {p.grossMarginPct === null ? '—' : formatPct(p.grossMarginPct / 100, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatPct(p.revenueSharePct / 100, locale)}
                     </TableCell>
                     <TableCell>
@@ -297,7 +294,7 @@ export function ProductSalesClient({
                 {porCategoria.map((c) => (
                   <li key={c.name} className="flex items-baseline justify-between gap-3">
                     <span className="min-w-0 truncate text-body">{c.name}</span>
-                    <span className="shrink-0 font-mono text-body tabular-nums text-muted-foreground">
+                    <span className="shrink-0 text-body tabular-nums text-muted-foreground">
                       {formatPct(c.sharePct, locale)}
                     </span>
                   </li>

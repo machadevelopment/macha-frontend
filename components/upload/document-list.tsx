@@ -213,7 +213,7 @@ export function DocumentList({
                   </p>
                 )}
               </TableCell>
-              <TableCell className="font-mono tabular-nums text-muted-foreground">
+              <TableCell className="tabular-nums text-muted-foreground">
                 {formatDate(doc.createdAt, locale)}
               </TableCell>
               <TableCell>
