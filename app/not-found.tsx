@@ -27,7 +27,7 @@ export default function NotFound() {
   return (
     <main
       data-density="comfortable"
-      className="mx-auto flex min-h-screen max-w-app flex-col items-start justify-center gap-3 p-[var(--density-main-p)]"
+      className="mx-auto flex min-h-dvh max-w-app flex-col items-start justify-center gap-3 p-[var(--density-main-p)]"
     >
       <p className="font-mono text-eyebrow uppercase text-faint">404</p>
       <h1 className="text-h1">{t.notFound.title}</h1>
