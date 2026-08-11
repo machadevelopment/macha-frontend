@@ -8,6 +8,7 @@ import { PeriodFilter } from '@/components/dashboard/period-filter';
 import { request, type RequestError } from '@/lib/api/browser';
 import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
 import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
+import { delta, gastos, margenBruto, resultado, utilidadBruta } from '@/lib/metrics/period-totals';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import { TopProductCard } from '@/components/dashboard/top-product-card';
@@ -117,18 +118,11 @@ export function PeriodKpis({
   }
 
   const moneda = data.baseCurrency as 'GTQ' | 'USD';
-  const gastos = (t: PeriodTotals) => t.cogs + t.opex;
-  const utilidadBruta = (t: PeriodTotals) => t.revenue - t.cogs;
-  const resultado = (t: PeriodTotals) => t.revenue - gastos(t);
 
-  /** Fracción, no puntos porcentuales. `undefined` cuando no hay base con qué comparar. */
-  const delta = (actual: number, previo: number): number | undefined =>
-    previo === 0 ? undefined : (actual - previo) / Math.abs(previo);
-
-  // El margen es null cuando no hubo ventas: un "0.0%" ahí se leería como "vendiste sin
-  // ganar" en vez de "no vendiste" (CU-868kh8y58).
-  const margen =
-    data.current.revenue === 0 ? null : utilidadBruta(data.current) / data.current.revenue;
+  // Las cuentas viven en `lib/metrics/period-totals` desde CU-868knx15v: Analítica monta su
+  // propia fila de KPIs sobre los mismos totales, y dos copias de "gastos = cogs + opex" son
+  // dos números distintos esperando a que alguien toque una sola.
+  const margen = margenBruto(data.current);
 
   const serie = (f: (t: PeriodTotals) => number) => data.series.map(f);
 

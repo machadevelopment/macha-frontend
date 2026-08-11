@@ -614,6 +614,8 @@ export const en: Dictionary = {
     inflow: 'Inflow',
     outflow: 'Outflow',
     net: 'Net',
+    periodTotal: 'PERIOD TOTAL',
+    shareOfRevenue: 'Share of revenue',
     colCategory: 'Category',
     colType: 'Type',
     colTotal: 'Total',

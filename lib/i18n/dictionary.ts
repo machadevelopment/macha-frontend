@@ -680,6 +680,13 @@ export interface Dictionary {
     inflow: string;
     outflow: string;
     net: string;
+    /**
+     * CU-868knx15v: rótulo de la cifra grande que corona la tendencia. Sin él, un monto
+     * enorme flotando sobre una gráfica no dice si es el total, el promedio o el último día.
+     */
+    periodTotal: string;
+    /** Nombre accesible de la barra de participación de cada producto en el ingreso. */
+    shareOfRevenue: string;
     colCategory: string;
     colType: string;
     colTotal: string;
