@@ -171,7 +171,7 @@ export function ConfigPanel({
             {meta && <p className="mt-1 text-body text-muted-foreground">{meta.description}</p>}
 
             {!canEdit ? (
-              <p className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap break-words font-mono text-body tabular-nums">
+              <p className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap break-words text-body tabular-nums">
                 {draft}
               </p>
             ) : editor === 'number' ? (
@@ -187,7 +187,7 @@ export function ConfigPanel({
                 inputMode="decimal"
                 step="any"
                 min={0}
-                className="mt-2 font-mono tabular-nums"
+                className="mt-2 tabular-nums"
                 value={draft}
                 error={Boolean(saveErrors[s.key])}
                 onChange={(e) => setDrafts({ ...drafts, [s.key]: e.target.value })}

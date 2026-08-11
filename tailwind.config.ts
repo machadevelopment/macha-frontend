@@ -60,9 +60,38 @@ export default {
           bd: 'var(--amber-bd)',
           accent: 'var(--amber-accent)',
         },
+        /**
+         * MARCA — salvia del Brand Book (CU-868knx0vh). Este archivo decía antes que no
+         * existía un verde de marca y que agregarlo rompería la regla de "el color solo
+         * señala estado". La regla no cambia; lo que cambia es que ahora hay DOS verdes
+         * con roles que no se pisan, y este NO es el de los datos:
+         *
+         *   · `brand` (salvia, desaturado)  → "esto es Macha". Identidad, Insight Point,
+         *     vitrina, cabecera de reportes. Nunca sobre un dato.
+         *   · `success` (#16A34A, saturado) → "este dato va bien". Delta, chips, series.
+         *
+         * Si estás por usar `brand` para pintar un número, es `success`/`danger` lo que
+         * buscas.
+         */
+        brand: {
+          DEFAULT: 'var(--brand)',
+          strong: 'var(--brand-strong)',
+          soft: 'var(--brand-soft)',
+          bd: 'var(--brand-bd)',
+          on: 'var(--brand-on)',
+        },
+      },
+      backgroundImage: {
+        /** Insight Point: el gradiente radial salvia, como utilidad `bg-insight`. */
+        insight: 'var(--brand-gradient)',
       },
       fontFamily: {
-        ui: ['var(--font-ui)', 'system-ui', 'sans-serif'],
+        /**
+         * SF Pro Display primero, Inter de respaldo — el stack completo vive en
+         * `--font-ui-stack` (globals.css), que explica por qué la fuente NO se empaqueta:
+         * es de Apple y su licencia no permite auto-hospedarla en una web pública.
+         */
+        ui: ['var(--font-ui-stack)'],
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
       borderRadius: { sm: '5px', md: '8px', lg: '10px', xl: '11px', pill: '22px' },
@@ -72,8 +101,13 @@ export default {
         body: ['14px', { lineHeight: '1.5' }],
         // Escala del prototipo "MVP Macha": la cifra de KPI baja de 29px/700 a 24px/600.
         // Menos peso y menos tamaño; el énfasis lo da el contraste con la etiqueta, no el bulto.
-        kpi: ['24px', { lineHeight: '1.1', letterSpacing: '-0.03em', fontWeight: '600' }],
-        statbig: ['38px', { lineHeight: '1', letterSpacing: '-0.035em', fontWeight: '700' }],
+        //
+        // CU-868knx0vh: el tracking se cierra un punto (-0.03 → -0.035 en `kpi`, -0.035 →
+        // -0.04 en `statbig`) porque estas cifras ya no se pintan en monoespaciada. SF Pro
+        // e Inter tienen las cifras más angostas que JetBrains Mono, y el tracking que
+        // estaba calibrado para el ancho fijo del mono deja las cifras sueltas al soltarlo.
+        kpi: ['24px', { lineHeight: '1.1', letterSpacing: '-0.035em', fontWeight: '600' }],
+        statbig: ['38px', { lineHeight: '1', letterSpacing: '-0.04em', fontWeight: '700' }],
         // Prototipo: 11px con tracking 0.08em (el nuestro era 10.5/0.13, más espaciado).
         eyebrow: ['11px', { lineHeight: '1.2', letterSpacing: '0.08em', fontWeight: '500' }],
         chip: ['9.5px', { lineHeight: '1', letterSpacing: '0.09em', fontWeight: '600' }],

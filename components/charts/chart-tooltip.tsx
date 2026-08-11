@@ -33,7 +33,7 @@ export function makeChartTooltip(currency: 'GTQ' | 'USD', locale: Locale) {
                 />
                 {entry.name}
               </span>
-              <span className="font-mono tabular-nums text-body">
+              <span className="tabular-nums text-body">
                 {formatMoney(Number(entry.value ?? 0), currency, locale)}
               </span>
             </div>

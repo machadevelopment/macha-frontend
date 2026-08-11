@@ -151,7 +151,7 @@ export function CompanyFxRatesCard({
             value={rate}
             onChange={(e) => setRate(e.target.value)}
             placeholder="7.75"
-            className="w-32 font-mono tabular-nums"
+            className="w-32 tabular-nums"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -163,7 +163,7 @@ export function CompanyFxRatesCard({
             type="date"
             value={effectiveDate}
             onChange={(e) => setEffectiveDate(e.target.value)}
-            className="w-44 font-mono tabular-nums"
+            className="w-44 tabular-nums"
           />
         </div>
         <Button type="submit" disabled={submitting}>
@@ -190,16 +190,12 @@ export function CompanyFxRatesCard({
         <TableBody>
           {rates.map((r) => (
             <TableRow key={r.id}>
-              <TableCell className="font-mono tabular-nums">
-                {formatDate(r.effectiveDate)}
-              </TableCell>
+              <TableCell className="tabular-nums">{formatDate(r.effectiveDate)}</TableCell>
               {/* Una tasa no es dinero: no lleva código de moneda propio (el par ya está
                   en la cabecera). Cuatro decimales porque la columna es numeric(18,8) y
                   redondear a dos borraría diferencias reales. */}
-              <TableCell className="font-mono tabular-nums">
-                {formatNumber(r.rate, 'es', 4)}
-              </TableCell>
-              <TableCell className="font-mono tabular-nums text-eyebrow text-faint">
+              <TableCell className="tabular-nums">{formatNumber(r.rate, 'es', 4)}</TableCell>
+              <TableCell className="tabular-nums text-eyebrow text-faint">
                 {formatDate(r.createdAt)}
               </TableCell>
             </TableRow>

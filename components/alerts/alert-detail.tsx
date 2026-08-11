@@ -82,21 +82,21 @@ export function AlertDetail({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.triggeredValue}</p>
-            <p className="mt-1 font-mono text-kpi tabular-nums">
+            <p className="mt-1 text-kpi tabular-nums">
               {alert.triggeredValue}
               <span className="ml-1 text-body text-muted-foreground">{unit}</span>
             </p>
           </div>
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.threshold}</p>
-            <p className="mt-1 font-mono text-kpi tabular-nums text-muted-foreground">
+            <p className="mt-1 text-kpi tabular-nums text-muted-foreground">
               {alert.threshold}
               <span className="ml-1 text-body">{unit}</span>
             </p>
           </div>
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.triggeredAt}</p>
-            <p className="mt-1 font-mono tabular-nums">{formatDate(alert.createdAt, locale)}</p>
+            <p className="mt-1 tabular-nums">{formatDate(alert.createdAt, locale)}</p>
           </div>
         </div>
       </Card>

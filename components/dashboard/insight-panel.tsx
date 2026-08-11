@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { InsightPoint } from '@/components/ui/insight-point';
 import { requestJson } from '@/lib/api/browser';
 import { formatNumber } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
@@ -64,8 +65,16 @@ export function InsightPanel({
   return (
     <Card>
       <div className="flex items-center justify-between gap-3">
-        <p className="flex items-center gap-1.5 font-mono text-eyebrow uppercase text-faint">
-          <Sparkles className="h-3.5 w-3.5" strokeWidth={1.7} />
+        {/*
+          CU-868knx0vh: el sello del asesor es el Insight Point — el gradiente salvia del
+          Brand Book. Es identidad ("esto lo escribió Macha"), no un dato, así que es uno
+          de los pocos lugares donde el verde de MARCA es el correcto. La narrativa que
+          va debajo sigue siendo texto neutro: el salvia marca el origen, no el contenido.
+        */}
+        <p className="flex items-center gap-2 font-mono text-eyebrow uppercase text-faint">
+          <InsightPoint size="sm">
+            <Sparkles className="h-3 w-3" strokeWidth={1.9} />
+          </InsightPoint>
           IA
         </p>
         <Button size="sm" onClick={generate} disabled={state.status === 'loading'}>
@@ -84,7 +93,7 @@ export function InsightPanel({
               <p className="text-body text-danger">{labels.insightInsufficientCredits}</p>
               {/* El 402 ya traía `{required, balance}` y se descartaba. Los números pasan
                   por `formatNumber` como cualquier otra cifra que el usuario lee. */}
-              <p className="font-mono text-eyebrow tabular-nums text-muted-foreground">
+              <p className="text-eyebrow tabular-nums text-muted-foreground">
                 {labels.insightError.insufficientDetail
                   .replace('{required}', formatNumber(state.failure.required, locale))
                   .replace('{balance}', formatNumber(state.failure.balance, locale))}

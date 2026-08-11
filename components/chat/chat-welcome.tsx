@@ -1,6 +1,7 @@
 'use client';
 
 import { Sparkles } from 'lucide-react';
+import { InsightPoint } from '@/components/ui/insight-point';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -36,9 +37,12 @@ export function ChatWelcome({
     // en cuanto llega el primer mensaje, este componente desaparece y la conversación
     // tiene que quedar arriba, no centrada.
     <div className="my-auto flex flex-col items-center gap-4 px-2 py-6 text-center">
-      <span className="rounded-pill border border-border bg-card p-2.5 text-foreground">
-        <Sparkles className="h-5 w-5" strokeWidth={1.6} />
-      </span>
+      {/* CU-868knx0vh: el destello pasa a vivir dentro del Insight Point. Esta pantalla
+          es la presentación del asesor —identidad pura, ningún dato— así que es
+          exactamente el caso para el verde de marca. */}
+      <InsightPoint size="lg">
+        <Sparkles className="h-6 w-6" strokeWidth={1.6} />
+      </InsightPoint>
 
       <div className="flex flex-col gap-1">
         <p className="text-cardh2">{labels.title}</p>

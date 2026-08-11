@@ -159,7 +159,7 @@ export function CompaniesPanel({
                 <TableCell className="font-mono text-eyebrow uppercase text-faint">
                   {c.industry}
                 </TableCell>
-                <TableCell className="font-mono tabular-nums">{c.baseCurrency}</TableCell>
+                <TableCell className="tabular-nums">{c.baseCurrency}</TableCell>
                 <TableCell>
                   <Badge variant={c.status === 'active' ? 'success' : 'danger'}>{c.status}</Badge>
                 </TableCell>

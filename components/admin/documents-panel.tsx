@@ -87,7 +87,7 @@ export function DocumentsPanel({
                 </Badge>
                 {d.errorReason && <p className="mt-1 text-body text-danger">{d.errorReason}</p>}
               </TableCell>
-              <TableCell className="font-mono tabular-nums">
+              <TableCell className="tabular-nums">
                 {d.rowCount ?? '—'}{' '}
                 {d.flaggedCount ? labels.flaggedSuffix.replace('{n}', String(d.flaggedCount)) : ''}
               </TableCell>

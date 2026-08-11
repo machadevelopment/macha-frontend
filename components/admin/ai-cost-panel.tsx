@@ -65,13 +65,13 @@ export function AiCostPanel({
               {/* Código de moneda explícito (CLAUDE.md): el producto opera en GTQ y USD,
                   `$` es ambiguo. Los 4 decimales sí se conservan: el costo por llamada
                   está en el orden de USD 0.0004 y con 2 decimales se vería como cero. */}
-              <TableCell className="font-mono tabular-nums">
+              <TableCell className="tabular-nums">
                 {formatMoney(r.totalCostUsd, 'USD', 'es', { fractionDigits: 4 })}
               </TableCell>
-              <TableCell className="font-mono tabular-nums">
+              <TableCell className="tabular-nums">
                 {formatNumber(r.totalInputTokens)} / {formatNumber(r.totalOutputTokens)}
               </TableCell>
-              <TableCell className="font-mono tabular-nums">{formatNumber(r.callCount)}</TableCell>
+              <TableCell className="tabular-nums">{formatNumber(r.callCount)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

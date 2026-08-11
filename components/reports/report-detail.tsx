@@ -169,7 +169,7 @@ export function ReportDetail({
           normal— no había forma de saber qué se estaba leyendo. El período es la
           identidad del documento, así que es el título. */}
       <div>
-        <h1 className="font-mono text-h1 tabular-nums">
+        <h1 className="text-h1 tabular-nums">
           {formatDate(report.periodStart, locale)} — {formatDate(report.periodEnd, locale)}
         </h1>
         <div className="mt-1 flex items-center gap-2">
@@ -196,19 +196,19 @@ export function ReportDetail({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.revenue}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.revenue, currency, locale)}
           </p>
         </Card>
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.cogs}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.cogs, currency, locale)}
           </p>
         </Card>
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.margin}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {/* CU-868kh8y58: `report_versions.metrics` es un jsonb en un ledger
                 append-only, así que las versiones emitidas ANTES de esta decisión
                 conservan `margin` para siempre y no hay migración que las alcance.
@@ -217,7 +217,7 @@ export function ReportDetail({
             {formatMoney(report.metrics.grossProfit ?? report.metrics.margin, currency, locale)}
           </p>
           {report.metrics.grossMarginPct != null && (
-            <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">
+            <p className="mt-0.5 text-body tabular-nums text-muted-foreground">
               {formatPct(report.metrics.grossMarginPct / 100, locale)}
             </p>
           )}
@@ -232,13 +232,13 @@ export function ReportDetail({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.arOpen}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.accountsReceivableOpen, currency, locale)}
           </p>
         </Card>
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.apOpen}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.accountsPayableOpen, currency, locale)}
           </p>
         </Card>

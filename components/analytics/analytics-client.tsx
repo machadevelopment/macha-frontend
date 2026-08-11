@@ -215,10 +215,10 @@ export function AnalyticsClient({
                           <TableCell className="text-muted-foreground">
                             {labels.type[r.type]}
                           </TableCell>
-                          <TableCell className="text-right font-mono tabular-nums">
+                          <TableCell className="text-right tabular-nums">
                             {formatMoney(r.total, moneda, locale)}
                           </TableCell>
-                          <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                          <TableCell className="text-right tabular-nums text-muted-foreground">
                             {/* `sharePct` viene 0-100 y `formatPct` espera fracción. */}
                             {formatPct(r.sharePct / 100, locale)}
                           </TableCell>
