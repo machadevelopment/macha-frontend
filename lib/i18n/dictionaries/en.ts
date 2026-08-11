@@ -455,6 +455,38 @@ export const en: Dictionary = {
       days: 'days',
       percent: '%',
     },
+    config: {
+      tabHistory: 'History',
+      tabConfig: 'Settings',
+      title: 'When you want us to alert you',
+      subtitle:
+        'Adjust the number on each rule, or turn it off if it does not apply to your business. Changes take effect immediately.',
+      thresholdLabel: 'Alert me at',
+      enabledOn: 'On',
+      enabledOff: 'Off',
+      save: 'Save',
+      saving: 'Saving…',
+      saved: 'Saved',
+      saveFailed: 'We could not save the change. Try again.',
+      notifyImmediately: 'You get an email right away',
+      notifyBatched: 'Summarised in your report',
+      readOnly:
+        'Only the owner and administrators can change these rules. These are the values your company works with.',
+      empty: 'Your company has no alert rules configured yet.',
+      description: {
+        ar_overdue: 'We alert you when a receivable invoice goes this many days past its due date.',
+        portfolio_concentration:
+          'We alert you when a single customer accounts for more than this percentage of everything owed to you.',
+        revenue_drop:
+          'We alert you when the month revenue falls more than this percentage against the average of the previous three months.',
+        margin_drop:
+          'We alert you when your gross margin for the period (revenue minus direct cost) drops below this percentage.',
+        spend_out_of_range:
+          'We alert you when a spend category exceeds its three-month average by more than this percentage. It needs at least three months of history loaded.',
+        low_credit_balance:
+          'We alert you when less than this percentage of your monthly credit allotment is left.',
+      },
+    },
   },
   register: {
     eyebrow: 'REGISTER',

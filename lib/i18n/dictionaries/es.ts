@@ -467,6 +467,39 @@ export const es: Dictionary = {
       days: 'días',
       percent: '%',
     },
+    config: {
+      tabHistory: 'Histórico',
+      tabConfig: 'Configuración',
+      title: 'Cuándo quieres que te avisemos',
+      subtitle:
+        'Ajusta el número de cada regla o apágala si no aplica a tu negocio. Los cambios entran de inmediato.',
+      thresholdLabel: 'Avísame en',
+      enabledOn: 'Activa',
+      enabledOff: 'Apagada',
+      save: 'Guardar',
+      saving: 'Guardando…',
+      saved: 'Guardado',
+      saveFailed: 'No pudimos guardar el cambio. Intenta de nuevo.',
+      notifyImmediately: 'Te llega un correo al instante',
+      notifyBatched: 'Se resume en tu reporte',
+      readOnly:
+        'Solo el propietario y los administradores pueden cambiar estas reglas. Estos son los valores con los que trabaja tu empresa.',
+      empty: 'Tu empresa todavía no tiene reglas de alerta configuradas.',
+      description: {
+        ar_overdue:
+          'Te avisamos cuando una factura por cobrar pasa este número de días desde su vencimiento.',
+        portfolio_concentration:
+          'Te avisamos cuando un solo cliente concentra más de este porcentaje de todo lo que te deben.',
+        revenue_drop:
+          'Te avisamos cuando los ingresos del mes caen más de este porcentaje frente al promedio de los tres meses anteriores.',
+        margin_drop:
+          'Te avisamos cuando tu margen bruto del período (ingresos menos costo directo) baja de este porcentaje.',
+        spend_out_of_range:
+          'Te avisamos cuando una categoría de gasto supera su promedio de tres meses en más de este porcentaje. Necesita al menos tres meses de historia cargada.',
+        low_credit_balance:
+          'Te avisamos cuando te queda menos de este porcentaje de los créditos de tu asignación mensual.',
+      },
+    },
   },
   register: {
     eyebrow: 'REGISTRO',

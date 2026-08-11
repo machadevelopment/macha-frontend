@@ -521,6 +521,34 @@ export interface Dictionary {
       days: string;
       percent: string;
     };
+    /**
+     * Pantalla de configuración de reglas por empresa (ronda de QA 2026-08-11).
+     *
+     * Las etiquetas de regla NO se toman del backend aunque `GET /alert-rules` mande un
+     * `label`: el catálogo de macha-backend (`config/alert-catalog.ts`) es español-only y
+     * esta pantalla es del cliente, que puede estar en inglés. El nombre sale de
+     * `alerts.rule` (que ya existía) y la descripción de `alerts.config.description`.
+     */
+    config: {
+      tabHistory: string;
+      tabConfig: string;
+      title: string;
+      subtitle: string;
+      thresholdLabel: string;
+      enabledOn: string;
+      enabledOff: string;
+      save: string;
+      saving: string;
+      saved: string;
+      saveFailed: string;
+      /** Informativo: el cliente ve cuáles avisan al instante, pero no puede cambiarlo. */
+      notifyImmediately: string;
+      notifyBatched: string;
+      readOnly: string;
+      empty: string;
+      /** Una por regla; las mismas seis claves que `alerts.rule`. */
+      description: Record<keyof Dictionary['alerts']['rule'], string>;
+    };
   };
   register: {
     eyebrow: string;
