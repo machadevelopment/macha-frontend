@@ -703,6 +703,13 @@ export interface Dictionary {
     revenuePerUnit: string;
     performance: string;
     salesByCategory: string;
+    /** CU-868knx1a0: EXPORTAR la tabla que ya está en pantalla. No es importar — la
+     *  carga de datos vive en su propia pantalla ("Cargar datos"). */
+    exportCsv: string;
+    /** Base del nombre del archivo descargado; el rango de fechas se le agrega aparte.
+     *  Va en el diccionario porque el usuario lo ve: es el nombre del archivo que le
+     *  queda en Descargas. */
+    csvFileName: string;
     colProduct: string;
     colCategory: string;
     colUnits: string;
