@@ -451,6 +451,11 @@ export const es: Dictionary = {
       period: 'Periodo',
       aging: 'Antigüedad',
     },
+    insightCategory: {
+      collections: 'Cobranza',
+      sales: 'Ventas',
+      financial: 'Financiero',
+    },
     insightCta: 'Generar insight',
     insightLoading: 'Generando…',
     insightInsufficientCredits: 'Saldo de créditos insuficiente para generar un insight.',
