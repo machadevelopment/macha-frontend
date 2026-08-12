@@ -655,7 +655,17 @@ export interface Dictionary {
     industry: string;
     baseCurrency: string;
     locale: string;
+    /** Selección de plan en el alta (ticket B4). El catálogo sale de `/register/plans`. */
+    planTitle: string;
+    planSubtitle: string;
+    /** `{n}` = créditos incluidos. */
+    planCredits: string;
+    planFree: string;
+    planPerMonth: string;
+    planRecommended: string;
     submit: string;
+    /** "Continuar al pago" delante de un plan gratuito sería una promesa falsa. */
+    submitFree: string;
     submitting: string;
     error: string;
     noMembershipsTitle: string;
