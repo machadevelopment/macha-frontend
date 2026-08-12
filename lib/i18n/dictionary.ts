@@ -497,6 +497,12 @@ export interface Dictionary {
       period: string;
       aging: string;
     };
+    /**
+     * Etiquetas de las categorías de consejo (CU-868knx0vh). El backend manda el código
+     * (`collections`/`sales`/`financial`) y la traducción vive acá — mismo criterio que
+     * `alerts.rule`: el backend clasifica, el diccionario nombra.
+     */
+    insightCategory: { collections: string; sales: string; financial: string };
     insightCta: string;
     insightLoading: string;
     insightInsufficientCredits: string;

@@ -9,7 +9,11 @@ import { requestJson } from '@/lib/api/browser';
 import { formatNumber } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
-import type { InsightResponse, InsufficientCreditsResponse } from '@/lib/api/dashboard';
+import type {
+  InsightCategory,
+  InsightResponse,
+  InsufficientCreditsResponse,
+} from '@/lib/api/dashboard';
 
 // CU-868kfvabk: the hard block (criterio 3) is enforced server-side (POST
 // /insights) — this component only reflects whatever the backend decides, it
@@ -43,7 +47,7 @@ export function InsightPanel({
     | { status: 'idle' }
     | { status: 'loading' }
     | { status: 'error'; failure: Failure }
-    | { status: 'done'; narrative: string }
+    | { status: 'done'; insights: InsightResponse['insights']; narrative: string }
   >({ status: 'idle' });
 
   async function generate() {
@@ -58,7 +62,11 @@ export function InsightPanel({
       setState({ status: 'error', failure: classify(result.error.status, result.error.body) });
       return;
     }
-    setState({ status: 'done', narrative: result.data.narrative });
+    setState({
+      status: 'done',
+      insights: result.data.insights ?? [],
+      narrative: result.data.narrative,
+    });
     onCreditsUpdated(result.data.creditBalance);
   }
 
@@ -83,7 +91,7 @@ export function InsightPanel({
       </div>
 
       {state.status === 'done' && (
-        <p className="mt-3 whitespace-pre-wrap text-body">{state.narrative}</p>
+        <InsightCards insights={state.insights} narrative={state.narrative} labels={labels} />
       )}
 
       {state.status === 'error' && (
@@ -120,6 +128,87 @@ export function InsightPanel({
       )}
     </Card>
   );
+}
+
+/**
+ * El consejo, en una tarjeta por insight y con su categoría (CU-868knx0vh).
+ *
+ * ═══ LA CATEGORÍA VIENE DEL BACKEND, NO SE ADIVINA ═══
+ *
+ * Una versión anterior de este componente NO ponía etiquetas, y por una buena razón:
+ * `POST /insights` devolvía un solo texto plano, y la única forma de rotularlo desde acá
+ * habría sido adivinar por palabras clave. Un insight sobre margen etiquetado "Cobranza" no
+ * es un detalle estético — es información falsa en la pantalla donde el dueño decide.
+ *
+ * Ahora el backend clasifica de verdad (herramienta con esquema, `lib/anthropic.ts`) y manda
+ * un CÓDIGO por insight. Acá solo se traduce con el diccionario, igual que se hace con
+ * `ruleKey` de las alertas: el backend clasifica, el diccionario nombra.
+ *
+ * ═══ DEGRADACIÓN ═══
+ *
+ * Si `insights` viene vacío —el modelo contestó en prosa y no llamó a la herramienta— se
+ * cae al texto partido por párrafo, SIN etiquetas. Es exactamente el comportamiento
+ * anterior: preferible sin categoría que con la categoría equivocada.
+ */
+function InsightCards({
+  insights,
+  narrative,
+  labels,
+}: {
+  insights: InsightResponse['insights'];
+  narrative: string;
+  labels: Dictionary['dashboard'];
+}) {
+  if (insights.length > 0) {
+    return (
+      <ul className="mt-3 flex flex-col gap-2">
+        {insights.map((insight, i) => (
+          <li key={i} className="rounded-md border border-border bg-soft px-3 py-2.5">
+            {/*
+              La categoría va en mono y en tenue: ordena y agrupa, pero el protagonista es
+              el consejo. Un chip de color acá competiría con los datos del dashboard — y
+              además el color en este producto significa estado financiero, no tema.
+            */}
+            <span className="font-mono text-eyebrow uppercase text-faint">
+              {categoria(insight.category, labels)}
+            </span>
+            <p className="mt-0.5 text-body">{insight.text}</p>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Sin clasificación: el camino de antes. Los párrafos son las unidades que el modelo
+  // emitió; si viene todo junto, se pinta tal cual en vez de inventar un corte.
+  const parrafos = narrative
+    .split(/\n\s*\n|\n/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  if (parrafos.length <= 1) {
+    return <p className="mt-3 whitespace-pre-wrap text-body">{narrative}</p>;
+  }
+
+  return (
+    <ul className="mt-3 flex flex-col gap-2">
+      {parrafos.map((texto, i) => (
+        <li key={i} className="rounded-md border border-border bg-soft px-3 py-2.5">
+          <span className="font-mono text-eyebrow text-faint">{i + 1}</span>
+          <p className="mt-0.5 whitespace-pre-wrap text-body">{texto}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Código → etiqueta. Una categoría que el backend agregue y el diccionario todavía no
+ * conozca se muestra CRUDA en vez de romper la tarjeta: mismo criterio que `isKnownRule`
+ * en las alertas.
+ */
+function categoria(code: InsightCategory, labels: Dictionary['dashboard']): string {
+  return labels.insightCategory[code] ?? code;
 }
 
 /**

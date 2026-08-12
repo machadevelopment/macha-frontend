@@ -437,6 +437,11 @@ export const en: Dictionary = {
       period: 'Period',
       aging: 'Aging',
     },
+    insightCategory: {
+      collections: 'Collections',
+      sales: 'Sales',
+      financial: 'Financial',
+    },
     insightCta: 'Generate insight',
     insightLoading: 'Generating…',
     insightInsufficientCredits: 'Insufficient credit balance to generate an insight.',
