@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { DonutChart } from '@tremor/react';
+import { ShareDonut } from '@/components/charts/chart-primitives';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -27,8 +27,7 @@ import {
 } from '@/components/ui/table';
 import { request, type RequestError } from '@/lib/api/browser';
 import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
-import { formatMoney, formatMoneyCompact, formatNumber, formatPct } from '@/lib/format';
-import { makeChartTooltip } from '@/components/charts/chart-tooltip';
+import { formatMoney, formatNumber, formatPct } from '@/lib/format';
 import { chartColors } from '@/components/charts/chart-theme';
 import { cn } from '@/lib/cn';
 import { csvFileName, serializeCsv } from '@/lib/csv/serialize';
@@ -281,13 +280,17 @@ export function ProductSalesClient({
             <p className="mt-3 text-body text-muted-foreground">{labels.empty}</p>
           ) : (
             <>
-              <DonutChart
+              {/* CU-868knx0vh: por el envoltorio común, igual que la tendencia y el aging.
+                  De ahí sale el formato compacto/exacto y el cromo — acá se nota sobre todo
+                  en la separación entre rebanadas, que Tremor pinta con una clase de su
+                  propio tema que este proyecto nunca registró. */}
+              <ShareDonut
                 className="mt-3 h-56"
                 data={porCategoria}
                 index="name"
                 category="revenue"
-                valueFormatter={(n) => formatMoneyCompact(n, moneda, locale)}
-                customTooltip={makeChartTooltip(moneda, locale)}
+                currency={moneda}
+                locale={locale}
                 colors={[chartColors.neutral]}
               />
               <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">

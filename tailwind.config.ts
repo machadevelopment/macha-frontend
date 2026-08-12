@@ -133,7 +133,14 @@ export default {
       // `card` sale de un token porque cambia entre claro y oscuro (en oscuro no es una
       // sombra negra sino un filo de luz — ver globals.css). `tab` se queda literal: es un
       // detalle del control de pestañas que no depende del tema.
-      boxShadow: { tab: '0 1px 2px rgba(0,0,0,.06)', card: 'var(--shadow-card)' },
+      //
+      // `btn` (CU-868knx0vh) sigue a `card`: mismo motivo —cambia de naturaleza entre
+      // temas— y por eso también sale de un token y no de un literal.
+      boxShadow: {
+        tab: '0 1px 2px rgba(0,0,0,.06)',
+        card: 'var(--shadow-card)',
+        btn: 'var(--shadow-btn)',
+      },
       /**
        * Ancho máximo del shell (design guide.md §4.4).
        *

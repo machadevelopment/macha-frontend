@@ -1,16 +1,15 @@
 'use client';
 
-import { AreaChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadError } from '@/components/ui/load-error';
 import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
-import { formatMoney, formatMoneyCompact } from '@/lib/format';
-import { makeChartTooltip } from '@/components/charts/chart-tooltip';
+import { formatMoney } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { MetricsResponse } from '@/lib/api/dashboard';
 import { chartColors } from '@/components/charts/chart-theme';
+import { TrendArea } from '@/components/charts/chart-primitives';
 
 export function TrendChart({
   locale,
@@ -56,17 +55,25 @@ export function TrendChart({
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <AreaChart
+      {/*
+        CU-868knx0vh: pasa por `TrendArea` en vez de montar el `AreaChart` de Tremor a
+        mano. De ahí salen ahora el degradado bajo la curva, la curva suave, el formato
+        compacto del eje con el tooltip exacto (CU-868khvyqa) y el estilo de eje/grid —
+        antes esta pantalla tenía su propia combinación y no coincidía con Analítica.
+
+        El `font-mono` del eje SE VA: la regla mono revisada reserva la monoespaciada para
+        eyebrows y labels, nunca para cifras. Las marcas del eje ya salen con la tipografía
+        de interfaz y `tabular-nums` desde `.macha-chart`.
+      */}
+      <TrendArea
         data={data.months}
         index="period"
         categories={['revenue', 'cogs', 'margin']}
         colors={[chartColors.neutral, chartColors.negative, chartColors.positive]}
-        // CU-868khvyqa: el eje va compacto o se recorta a "000.00"; el monto completo
-        // vive en el tooltip, porque `valueFormatter` alimenta a los dos.
-        valueFormatter={(v: number) => formatMoneyCompact(v, currency, locale)}
-        customTooltip={makeChartTooltip(currency, locale)}
+        currency={currency}
+        locale={locale}
         yAxisWidth={72}
-        className="h-64 font-mono text-eyebrow"
+        className="h-64"
         showLegend
         showGridLines
       />

@@ -35,7 +35,10 @@ export function DeltaBadge({
   const bueno = invert ? value <= 0 : value >= 0;
 
   return (
-    <Badge variant={bueno ? 'success' : 'danger'} className={cn('gap-1 normal-case', className)}>
+    /* `gap-1` ya no se escribe acá: bajó a `Badge` (CU-868knx0vh), donde lo hereda
+       cualquier chip con ícono. Solo queda lo propio de este chip: la cifra va en
+       minúscula, a diferencia del rótulo en mayúscula del resto. */
+    <Badge variant={bueno ? 'success' : 'danger'} className={cn('normal-case', className)}>
       {value >= 0 ? (
         <TrendingUp className="h-3 w-3" strokeWidth={2} />
       ) : (
