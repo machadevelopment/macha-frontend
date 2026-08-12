@@ -598,6 +598,9 @@ export const en: Dictionary = {
     industry: 'Industry',
     baseCurrency: 'Base currency',
     locale: 'Language',
+    planEyebrow: 'YOUR PLAN',
+    companyEyebrow: 'YOUR COMPANY',
+    companyTitle: 'Your business details',
     planTitle: 'Choose your plan',
     planSubtitle: 'You can change it any time from your account.',
     planCredits: '{n} credits',
@@ -672,6 +675,7 @@ export const en: Dictionary = {
     role: { owner: 'Owner', admin: 'Admin', member: 'Member' },
     status: { active: 'Active', invited: 'Invited', revoked: 'Revoked' },
     accept: {
+      eyebrow: 'INVITATION',
       title: "You've been invited to a company",
       subtitle: 'Accepting gives your account access to that company\u2019s data.',
       action: 'Accept invitation',
