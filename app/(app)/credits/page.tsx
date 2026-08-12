@@ -34,7 +34,7 @@ export default async function CreditsPage() {
 
         <div>
           <p className="mb-2 text-cardh2">{t.credits.topUpTitle}</p>
-          <CreditsPurchasePanel labels={t.credits} />
+          <CreditsPurchasePanel labels={t.credits} locale={locale} />
         </div>
       </div>
     </main>

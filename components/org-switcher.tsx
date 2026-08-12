@@ -40,18 +40,23 @@ export interface OrgSwitcherLabels {
   machaInternal: string;
 }
 
-const defaultLabels: OrgSwitcherLabels = {
-  selectCompany: 'Selecciona una empresa',
-  machaInternal: 'Macha Internal',
-};
-
+/**
+ * CU-868kkgbtv: `labels` es OBLIGATORIO y ya no tiene default.
+ *
+ * Antes había un `defaultLabels` con los textos quemados en español. Hoy
+ * `app-shell` siempre pasa `labels`, así que era inalcanzable — pero era un
+ * default en el idioma equivocado esperando a que alguien montara el componente
+ * sin props, y el fallo habría sido silencioso (texto en español a un cliente en
+ * inglés, no un error). Volviéndolo requerido, ese caso deja de compilar en vez
+ * de degradarse en silencio.
+ */
 export function OrgSwitcher({
   initialCompanyId,
-  labels = defaultLabels,
+  labels,
   collapsed = false,
 }: {
   initialCompanyId?: string;
-  labels?: OrgSwitcherLabels;
+  labels: OrgSwitcherLabels;
   collapsed?: boolean;
 }) {
   const router = useRouter();
