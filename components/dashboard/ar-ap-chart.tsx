@@ -1,16 +1,15 @@
 'use client';
 
-import { BarChart } from '@tremor/react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadError } from '@/components/ui/load-error';
 import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
-import { formatMoney, formatMoneyCompact } from '@/lib/format';
-import { makeChartTooltip } from '@/components/charts/chart-tooltip';
+import { formatMoney } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { ArApResponse } from '@/lib/api/dashboard';
 import { chartColors } from '@/components/charts/chart-theme';
+import { CategoryBars } from '@/components/charts/chart-primitives';
 
 const BUCKET_ORDER = ['current', '1_30', '31_60', '61_90', '90_plus'] as const;
 
@@ -62,16 +61,19 @@ export function ArApChart({
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <BarChart
+      {/* CU-868knx0vh: ver nota en trend-chart.tsx. Barras y no área porque el eje X acá
+          no es tiempo sino tramos de antigüedad — una curva entre "31-60" y "61-90"
+          sugeriría una continuidad que no existe. Lo que sí se comparte con la tendencia
+          es el cromo: eje, grid, cursor y leyenda salen del mismo lugar. */}
+      <CategoryBars
         data={chartData}
         index="bucket"
         categories={[arLabel, apLabel]}
         colors={[chartColors.neutral, chartColors.negative]}
-        // CU-868khvyqa: ver nota en trend-chart.tsx — eje compacto, tooltip exacto.
-        valueFormatter={(v: number) => formatMoneyCompact(v, currency, locale)}
-        customTooltip={makeChartTooltip(currency, locale)}
+        currency={currency}
+        locale={locale}
         yAxisWidth={72}
-        className="h-64 font-mono text-eyebrow"
+        className="h-64"
         showLegend
       />
       {/* Alternativa accesible: el SVG del chart no expone los valores a lectores de

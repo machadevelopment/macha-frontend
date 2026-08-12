@@ -1,5 +1,6 @@
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
+import { ShowcaseFrame, ShowcaseHeading, showcaseCta } from '@/components/ui/showcase';
 
 /**
  * CU-868kkgb8f criterio 3: la pantalla de 404 del producto.
@@ -19,22 +20,28 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  *
  * Tampoco monta el `AppShell`: el 404 tiene que servirle igual a un visitante sin sesión,
  * y el shell exige una.
+ *
+ * CU-868knx0vh — VITRINA. Un 404 no es una pantalla de producto: la alcanza cualquiera,
+ * incluido quien todavía no es cliente y quien recibió un link viejo. Era texto pelado
+ * alineado a la izquierda, así que se le da el mismo marco de marca que a `/` y al
+ * registro. El "404" se queda como eyebrow —es un código, va en mono— y el mensaje sigue
+ * siendo deliberadamente genérico por la razón de arriba.
  */
 export default function NotFound() {
   const locale = getLocale();
   const t = getDictionary(locale).common;
 
   return (
-    <main
-      data-density="comfortable"
-      className="mx-auto flex min-h-dvh max-w-app flex-col items-start justify-center gap-3 p-[var(--density-main-p)]"
-    >
-      <p className="font-mono text-eyebrow uppercase text-faint">404</p>
-      <h1 className="text-h1">{t.notFound.title}</h1>
-      <p className="text-body text-muted-foreground">{t.notFound.body}</p>
-      <a href="/" className="text-body underline">
-        {t.notFound.cta}
-      </a>
-    </main>
+    <ShowcaseFrame className="min-h-dvh">
+      <main
+        data-density="comfortable"
+        className="mx-auto flex min-h-dvh max-w-[720px] flex-col items-center justify-center gap-6 p-[var(--density-main-p)]"
+      >
+        <ShowcaseHeading eyebrow="404" title={t.notFound.title} subtitle={t.notFound.body} />
+        <a href="/" className={showcaseCta}>
+          {t.notFound.cta}
+        </a>
+      </main>
+    </ShowcaseFrame>
   );
 }

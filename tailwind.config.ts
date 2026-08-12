@@ -75,21 +75,45 @@ export default {
          */
         brand: {
           DEFAULT: 'var(--brand)',
+          /** Extremo claro del degradado del Brand Book (#F4F4F2 muestreado del isotipo). */
+          light: 'var(--brand-light)',
           strong: 'var(--brand-strong)',
           soft: 'var(--brand-soft)',
           bd: 'var(--brand-bd)',
           on: 'var(--brand-on)',
+          /**
+           * Tinta de marca sobre `brand-soft`, NO sobre el salvia (para eso está `on`).
+           * Existe porque `brand-on` es casi negra en los dos temas —el salvia no cambia
+           * de tono— y sobre el `brand-soft` oscuro se vuelve invisible. Ver globals.css.
+           */
+          ink: 'var(--brand-ink)',
         },
       },
       backgroundImage: {
-        /** Insight Point: el gradiente radial salvia, como utilidad `bg-insight`. */
+        /**
+         * Los cuatro degradados del Brand Book. Salen de tokens y no de literales porque
+         * los cuatro cambian entre claro y oscuro (ver globals.css).
+         *
+         *   · `bg-insight`      el Insight Point como FIGURA (sello, avatar de marca)
+         *   · `bg-insight-glow` el mismo recurso como ATMÓSFERA de fondo, muy difuminado y
+         *                       con alfa: para vitrina. NUNCA detrás de tablas ni gráficas.
+         *   · `bg-brand-bar` / `bg-brand-bar-inverse` las barras del isotipo, con el
+         *                       degradado contrapuesto que tiene el asset original.
+         */
         insight: 'var(--brand-gradient)',
+        'insight-glow': 'var(--brand-glow)',
+        'brand-bar': 'var(--brand-bar)',
+        'brand-bar-inverse': 'var(--brand-bar-inverse)',
       },
       fontFamily: {
         /**
-         * SF Pro Display primero, Inter de respaldo — el stack completo vive en
-         * `--font-ui-stack` (globals.css), que explica por qué la fuente NO se empaqueta:
-         * es de Apple y su licencia no permite auto-hospedarla en una web pública.
+         * SF Pro Display, auto-hospedada con `next/font/local` (`lib/fonts.ts`). El stack
+         * completo vive en `--font-ui-stack` (globals.css), con la SF del sistema detrás
+         * como respaldo por si el archivo no carga.
+         *
+         * OJO: la licencia de SF Pro es de Apple y no cubre servirla desde web. Está
+         * documentado en `lib/fonts.ts` y es una decisión tomada por el dueño, no un
+         * descuido.
          */
         ui: ['var(--font-ui-stack)'],
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
@@ -97,6 +121,18 @@ export default {
       borderRadius: { sm: '5px', md: '8px', lg: '10px', xl: '11px', pill: '22px' },
       fontSize: {
         h1: ['27px', { lineHeight: '1.15', letterSpacing: '-0.03em', fontWeight: '700' }],
+        /**
+         * CU-868knx0vh (zona de vitrina): titular de las pantallas que ve un cliente nuevo
+         * o un inversionista (`/`, registro, invitación, 404, error).
+         *
+         * `h1` (27px) es el título de una pantalla DE PRODUCTO, donde compite con KPIs,
+         * tablas y una barra de acciones; en una vitrina —una sola columna centrada, sin un
+         * dato en pantalla— se lee timidísimo, y era literalmente lo que el ticket llamaba
+         * "falta jerarquía tipográfica". No se reusa `statbig` (38px) aunque el tamaño sea
+         * parecido: ese token significa "esto es una cifra grande" y su tracking está
+         * calibrado para dígitos, no para prosa.
+         */
+        display: ['38px', { lineHeight: '1.1', letterSpacing: '-0.035em', fontWeight: '700' }],
         cardh2: ['15px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }],
         body: ['14px', { lineHeight: '1.5' }],
         // Escala del prototipo "MVP Macha": la cifra de KPI baja de 29px/700 a 24px/600.
@@ -112,7 +148,17 @@ export default {
         eyebrow: ['11px', { lineHeight: '1.2', letterSpacing: '0.08em', fontWeight: '500' }],
         chip: ['9.5px', { lineHeight: '1', letterSpacing: '0.09em', fontWeight: '600' }],
       },
-      boxShadow: { tab: '0 1px 2px rgba(0,0,0,.06)' },
+      // `card` sale de un token porque cambia entre claro y oscuro (en oscuro no es una
+      // sombra negra sino un filo de luz — ver globals.css). `tab` se queda literal: es un
+      // detalle del control de pestañas que no depende del tema.
+      //
+      // `btn` (CU-868knx0vh) sigue a `card`: mismo motivo —cambia de naturaleza entre
+      // temas— y por eso también sale de un token y no de un literal.
+      boxShadow: {
+        tab: '0 1px 2px rgba(0,0,0,.06)',
+        card: 'var(--shadow-card)',
+        btn: 'var(--shadow-btn)',
+      },
       /**
        * Ancho máximo del shell (design guide.md §4.4).
        *

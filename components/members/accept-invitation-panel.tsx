@@ -29,7 +29,14 @@ export function AcceptInvitationPanel({
   if (!token) {
     return (
       <Card>
-        <p className="text-body text-danger">{labels.missingToken}</p>
+        {/* Tripleta texto+fondo+borde (design guide §1.3): el color de estado nunca va solo
+            como tinta sobre la tarjeta. */}
+        <p
+          role="alert"
+          className="rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-body text-danger"
+        >
+          {labels.missingToken}
+        </p>
       </Card>
     );
   }
@@ -54,11 +61,25 @@ export function AcceptInvitationPanel({
   }
 
   return (
-    <Card>
-      <p className="mb-1 text-cardh2">{labels.title}</p>
-      <p className="mb-4 text-body text-muted-foreground">{labels.subtitle}</p>
-      {error && <p className="mb-3 text-body text-danger">{error}</p>}
-      <Button onClick={() => void accept()} disabled={state !== 'idle'}>
+    /*
+     * CU-868knx0vh: el título y la bajada se fueron a la cabecera de vitrina de la página.
+     * Repetirlos acá sería decir dos veces lo mismo con dos pesos distintos; la tarjeta se
+     * queda con la acción, que es todo lo que esta pantalla pide hacer.
+     */
+    <Card className="flex flex-col items-center gap-3 text-center">
+      {error && (
+        <p
+          role="alert"
+          className="w-full rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-body text-danger"
+        >
+          {error}
+        </p>
+      )}
+      <Button
+        onClick={() => void accept()}
+        disabled={state !== 'idle'}
+        className="w-full sm:w-auto"
+      >
         {state === 'done' ? labels.accepted : labels.action}
       </Button>
     </Card>

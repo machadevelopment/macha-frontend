@@ -1,13 +1,21 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn';
 
-// design guide.md §5 "Card genérica" (`.card`, `.card-t`/`.card-h2`) — density-aware padding.
+/**
+ * design guide.md §5 "Card genérica" (`.card`, `.card-t`/`.card-h2`) — density-aware padding.
+ *
+ * Rediseño Brand Book: se suma `shadow-card`. El filete de 1px se queda —sostiene la
+ * separación donde la sombra no se ve— pero solo, se leía plano contra el prototipo
+ * premium: delimitaba la tarjeta sin despegarla del lienzo. La sombra es deliberadamente
+ * corta (1px + 2px, alfa bajo): el registro del producto sigue siendo plano, la tarjeta se
+ * despega del blanco hueso, no flota.
+ */
 export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        'rounded-xl border border-border bg-card p-[var(--density-card-p)] text-card-foreground',
+        'rounded-xl border border-border bg-card p-[var(--density-card-p)] text-card-foreground shadow-card',
         className,
       )}
       {...props}

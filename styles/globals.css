@@ -67,8 +67,27 @@
   --amber-bd: #fde68a;
   --amber-accent: #d97706;
 
-  /* Marca — salvia del Brand Book. Ver la regla de los dos verdes, arriba. */
+  /*
+   * ══ MARCA — valores MUESTREADOS de los assets del Brand Book, no interpretados ══
+   *
+   * La primera pasada de este rediseño (2026-08-11) trabajó sobre los hex citados en el
+   * ticket porque los assets todavía no estaban en el repo. Con el Brand Book entregado
+   * (`Macha-Veintitres/`), los valores se sacaron del PNG del isotipo leyendo píxeles:
+   *
+   *   · salvia real ....... #A1B09B  (el ticket citaba #A0AF9A; difieren en 1 por canal,
+   *                                   se conserva #A0AF9A como valor canónico documentado
+   *                                   y se usa el muestreado en el gradiente, que es donde
+   *                                   se compara contra el asset)
+   *   · claro del degradado #F4F4F2  (NO blanco puro: es un gris cálido)
+   *
+   * EL GRADIENTE DE MARCA VA DE SALVIA A CLARO, y nada más. La versión anterior inventaba
+   * un tercer paso oscuro (#7F9077) que NO existe en el Brand Book — se corrige. En el
+   * isotipo el degradado es lineal y las barras exteriores corren claro→salvia mientras la
+   * central va invertida; para el Insight Point el manual lo usa radial y difuminado.
+   */
   --brand: #a0af9a;
+  /* Extremo claro del degradado del Brand Book (#F4F4F2 muestreado del isotipo). */
+  --brand-light: #f4f4f2;
   --brand-strong: #8b9c84;
   --brand-soft: #eef1ec;
   --brand-bd: #d5ddd0;
@@ -76,25 +95,90 @@
      oscuro. Blanco sobre #A0AF9A no llega a AA (≈2.1:1). */
   --brand-on: #1c2419;
   /*
-   * Insight Point: el gradiente radial del Brand Book, como token y no como clase
-   * suelta. Vive acá para que el componente que lo pinta no tenga que conocer los tres
-   * pasos del degradado, y para que cambiarlo sea un solo lugar.
+   * Tinta de marca sobre superficies TENUES (`--brand-soft`), que NO es lo mismo que
+   * `--brand-on` (CU-868knx0vh, zona de vitrina).
+   *
+   * `--brand-on` es la tinta sobre el SALVIA, y por eso es casi negra en los dos temas —
+   * el salvia no cambia de tono. Sobre `--brand-soft` eso funciona en claro (#1C2419
+   * sobre #EEF1EC ≈ 12:1) y se rompe en oscuro: `--brand-soft` ahí es #191D17 y
+   * `--brand-on` #0F120E, o sea tinta casi negra sobre fondo casi negro — el chip
+   * desaparece. Faltaba el token, así que existe.
+   *
+   * NO contradice "el salvia nunca es tinta de texto pequeño": el salvia (#A0AF9A) es
+   * claro y de bajo contraste, y sigue prohibido como tinta. Esto es un salvia oscurecido
+   * en claro (#4A5745 sobre #EEF1EC ≈ 6.6:1) y aclarado en oscuro (#B4C1AF sobre #191D17
+   * ≈ 9.5:1): ambos AA con margen. Y como toda marca, jamás sobre un dato — es para
+   * eyebrows y chips de identidad de vitrina (ver `Badge variant="brand"`).
    */
-  --brand-gradient: radial-gradient(circle at 30% 25%, #c3cfbd 0%, #a0af9a 45%, #7f9077 100%);
+  --brand-ink: #4a5745;
+  /*
+   * Insight Point: radial salvia → claro, difuminado. Dos paradas y no tres, porque son
+   * las dos que tiene el asset. `--brand-glow` es la versión MUY difuminada para fondos de
+   * vitrina, donde el punto es atmósfera y no una figura: va con alfa para que se apoye
+   * sobre el lienzo en vez de taparlo.
+   */
+  --brand-gradient: radial-gradient(circle at 32% 28%, #b9c6b3 0%, #a1b09b 55%, #8b9c84 100%);
+  --brand-glow: radial-gradient(
+    60% 60% at 50% 40%,
+    rgb(161 176 155 / 38%) 0%,
+    rgb(161 176 155 / 12%) 45%,
+    rgb(161 176 155 / 0%) 100%
+  );
+  /* Degradado del isotipo, para las barras. Lineal, no radial. */
+  --brand-bar: linear-gradient(180deg, #f4f4f2 0%, #a1b09b 100%);
+  --brand-bar-inverse: linear-gradient(180deg, #a1b09b 0%, #f4f4f2 100%);
 
   /*
-   * Tipografía de interfaz. SF Pro Display es la fuente del Brand Book, y NO se puede
-   * empaquetar: es propiedad de Apple, su licencia la restringe a desarrollo sobre
-   * plataformas Apple y no está en Google Fonts, así que auto-hospedar el archivo en una
-   * web pública sería una violación de licencia. Lo que sí es legítimo es pedirla por el
-   * stack del sistema: `-apple-system` y `BlinkMacSystemFont` resuelven a SF en macOS y
-   * iOS —donde de hecho se revisa el producto— y en Windows/Android caen a Inter, que se
-   * sigue cargando por `next/font` justo para eso. `var(--font-ui)` va ANTES de
-   * `system-ui` a propósito: sin eso, Chrome en Windows resolvería `system-ui` a Segoe UI
-   * y nunca llegaría a Inter.
+   * Tipografía de interfaz. REESCRITO al llegar el Brand Book con los archivos.
+   *
+   * La versión anterior decía que SF Pro Display no se podía empaquetar y la pedía por el
+   * stack del sistema, con Inter de respaldo. Ahora el Brand Book entregó los `.otf` y el
+   * dueño decidió auto-hospedarla, así que `var(--font-ui)` —que ahora ES SF Pro Display,
+   * servida por `next/font/local`— va PRIMERA. Ver `lib/fonts.ts`: ahí está la nota de
+   * licencia, que sigue siendo un riesgo real y sigue siendo decisión del dueño.
+   *
+   * `-apple-system` se queda DETRÁS y no se borra: si el `.otf` no carga (bloqueo de red,
+   * CSP, error de despliegue), en Mac se cae a la SF del sistema —la misma tipografía— y
+   * solo después a la genérica. Es el respaldo que menos se nota.
+   *
+   * Inter YA NO se carga: dejó de ser respaldo cuando SF Pro pasó a viajar en el bundle.
+   * Mantenerla habría sido descargar ~100 KB para un caso que ahora cubre el sistema.
    */
   --font-ui-stack:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Display', var(--font-ui), system-ui, sans-serif;
+    var(--font-ui), -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+
+  /*
+   * ACABADO DE TARJETA (prompt de rediseño §3.5): sombra sutil en vez del filete plano.
+   *
+   * El filete de 1px solo era la marca del "terminal financiero" original; contra el
+   * prototipo premium se lee barato porque no separa la tarjeta del lienzo, solo la
+   * delimita. La sombra se queda MUY corta a propósito — dos capas de 1px y 3px con alfa
+   * bajo — porque el registro sigue siendo plano: se busca que la tarjeta se despegue del
+   * blanco hueso, no que flote.
+   *
+   * El borde NO se quita: sostiene la separación cuando la sombra no se ve (modo oscuro,
+   * pantallas de bajo contraste, impresión).
+   */
+  --shadow-card: 0 1px 2px rgb(23 23 23 / 4%), 0 2px 6px rgb(23 23 23 / 5%);
+
+  /*
+   * ACABADO DE BOTÓN (CU-868knx0vh). El design guide §5 ya especificaba los estados del
+   * botón —"hover: #000/dark #fff; active: scale/opacidad"— pero el componente solo tenía
+   * `hover:opacity-90`, que es otra cosa: bajar la opacidad del primario lo DESTIÑE contra
+   * el lienzo en vez de intensificarlo, y en oscuro lo apaga justo cuando debería
+   * encenderse. Ahora el hover tiene su propio tono por tema, que es lo que pedía el guide.
+   *
+   * `--border-strong` es el borde del botón secundario en hover (§5: #CFCFCF / #3A3A3A).
+   * Existe como token y no como clase suelta porque es un valor de tema con dos versiones.
+   *
+   * `--shadow-btn` es la contraparte de `--shadow-card`: una sola capa de 1px, todavía más
+   * corta que la de la tarjeta. Un botón que flota más que la tarjeta que lo contiene
+   * rompe el registro plano; lo que se busca es que se lea como una superficie sólida y no
+   * como un rectángulo de color pegado.
+   */
+  --primary-hover: #000000;
+  --border-strong: #cfcfcf;
+  --shadow-btn: 0 1px 2px rgb(23 23 23 / 8%);
 
   /* Layer 2 — semantics */
   --background: var(--canvas);
@@ -154,11 +238,46 @@
    * también: sobre el mismo salvia claro el texto encima sigue siendo oscuro.
    */
   --brand: #a0af9a;
+  /*
+   * En oscuro el extremo "claro" del degradado NO puede ser #F4F4F2: un punto que va de
+   * salvia a casi-blanco sobre #121212 se lee como un foco encendido, no como marca. El
+   * degradado se mantiene DENTRO de la familia salvia y baja hacia el verde profundo, que
+   * es la lectura equivalente del mismo recurso sobre fondo oscuro.
+   */
+  --brand-light: #b4c1af;
   --brand-strong: #b4c1af;
   --brand-soft: #191d17;
   --brand-bd: #2f3a2b;
   --brand-on: #0f120e;
-  --brand-gradient: radial-gradient(circle at 30% 25%, #b4c1af 0%, #8b9c84 45%, #5d6b57 100%);
+  /* Se invierte respecto a claro: sobre `--brand-soft` oscuro (#191D17) la tinta de marca
+     tiene que ser CLARA. Ver la nota extensa en `:root`. */
+  --brand-ink: #b4c1af;
+  --brand-gradient: radial-gradient(circle at 32% 28%, #b4c1af 0%, #8b9c84 55%, #5d6b57 100%);
+  /* Más tenue que en claro: sobre #121212 el mismo alfa se ve el doble. */
+  --brand-glow: radial-gradient(
+    60% 60% at 50% 40%,
+    rgb(161 176 155 / 22%) 0%,
+    rgb(161 176 155 / 8%) 45%,
+    rgb(161 176 155 / 0%) 100%
+  );
+  --brand-bar: linear-gradient(180deg, #4a5545 0%, #a1b09b 100%);
+  --brand-bar-inverse: linear-gradient(180deg, #a1b09b 0%, #4a5545 100%);
+
+  /*
+   * En oscuro una sombra negra es invisible: el fondo ya es casi negro. Lo que separa una
+   * tarjeta ahí es la LUZ, no la sombra — por eso acá es un filo claro de 1px arriba
+   * (`inset`) más una sombra muy tenue para dar profundidad. Es el equivalente funcional,
+   * no el mismo valor.
+   */
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 4%), 0 2px 8px rgb(0 0 0 / 30%);
+
+  /* En oscuro el primario es claro, así que "intensificar" es ir hacia el blanco, no hacia
+   * el negro. Misma lógica que en claro, valor invertido (design guide §5). */
+  --primary-hover: #ffffff;
+  --border-strong: #3a3a3a;
+  /* Sombra negra sobre fondo casi negro no se ve: acá el relieve lo da un filo claro
+   * interior, igual que en `--shadow-card`. */
+  --shadow-btn: inset 0 1px 0 rgb(255 255 255 / 6%);
 
   --background: var(--canvas);
   --foreground: var(--ink);
@@ -259,5 +378,94 @@
   :where(a, button, [role='button'], input, select, textarea, [tabindex]):focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+}
+
+/*
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ * CHARTS — `.macha-chart` (CU-868knx0vh). La aplican los envoltorios de
+ * `components/charts/chart-primitives.tsx`; ninguna pantalla la escribe a mano.
+ * ══════════════════════════════════════════════════════════════════════════════════════
+ *
+ * POR QUÉ EL ESTILO DE LOS CHARTS ESTÁ EN CSS Y NO EN PROPS. Verificado contra
+ * `@tremor/react` 3.18.7 instalado (el detalle largo está en `chart-theme.ts`):
+ *
+ *   · Todo lo que Tremor no reconoce como prop lo reenvía al `<div>` CONTENEDOR, no al
+ *     SVG. Un `fill`/`fontSize` pasado como prop termina siendo un atributo HTML sobre un
+ *     `<div>`, donde no existe, y los atributos no heredan hacia los hijos.
+ *   · Tremor tematiza sus ejes con `fill-tremor-content` / `text-tremor-label` y sus
+ *     rebanadas con `stroke-tremor-background`. **Esas clases no están en nuestro CSS**:
+ *     nunca registramos el tema de Tremor en `tailwind.config.ts`, y compilando el
+ *     proyecto no aparecen. Todo eso se quedaba con los valores por defecto del SVG —el
+ *     tick del eje, en NEGRO, sobre una tarjeta `#171717` en modo oscuro.
+ *
+ * `fill` y `stroke` también son propiedades CSS, y un selector de clase gana sobre el
+ * atributo de presencia que pinta Recharts. Esta es la vía que sí llega al `<text>`.
+ *
+ * Los ganchos son las clases de RECHARTS (`recharts-*`), no las de Tremor: son las
+ * estables, las pinta la librería de abajo y no dependen de que exista un tema de Tremor.
+ *
+ * COLOR DE SERIE: no se toca acá a propósito. La serie la pinta Tremor con sus clases de
+ * paleta (`stroke-neutral-500`, `text-emerald-500` para el degradado), que sí existen
+ * porque están en el `safelist` de `tailwind.config.ts`. Este bloque es cromo —eje, grid,
+ * cursor, leyenda—, y el cromo nunca lleva color de dato ni el salvia de marca.
+ */
+@layer components {
+  /*
+   * Marcas de los ejes. `--faint` y no `--muted-foreground`: el eje es referencia, no
+   * contenido, y tiene que ceder ante la serie. `tabular-nums` es lo que mantiene alineadas
+   * las cifras del eje Y — no la monoespaciada, que salió del producto (regla mono §3).
+   */
+  .macha-chart .recharts-cartesian-axis-tick-value {
+    fill: var(--faint);
+    font-family: var(--font-ui-stack);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    /* El contenedor puede traer `tracking` heredado de una utilidad de texto; en cifras de
+       eje el tracking abierto rompe la alineación que da `tabular-nums`. */
+    letter-spacing: 0;
+  }
+
+  /* Cuadrícula: `--soft`, un paso más tenue que el borde de la tarjeta. Recharts pinta
+     `stroke="#ccc"` por atributo y el selector de clase lo gana. */
+  .macha-chart .recharts-cartesian-grid line {
+    stroke: var(--soft);
+  }
+
+  /*
+   * Cursor del tooltip. Tremor lo trae con `#d1d5db` QUEMADO en su dist (`stroke` en área,
+   * `fill` + `opacity: .15` en barras) — un gris claro fijo que en modo oscuro se pierde
+   * contra `#121212`. Se redefine por token para los dos temas.
+   *
+   * Las dos propiedades van juntas porque el cursor es un `<path>` en ambos casos y no se
+   * distinguen por etiqueta: en área es una línea (rellenarla no pinta nada, un trazo de
+   * dos puntos no encierra superficie) y en barras es el rectángulo de la columna.
+   */
+  .macha-chart .recharts-tooltip-cursor {
+    fill: var(--fill);
+    stroke: var(--border);
+    opacity: 1;
+  }
+
+  /* Punto activo de la serie: el anillo va del color de la TARJETA, para que el punto se
+     recorte contra el relleno del área en vez de fundirse con él. */
+  .macha-chart .recharts-active-dot {
+    stroke: var(--card);
+    stroke-width: 2;
+  }
+
+  /* Separación entre rebanadas del donut, por la misma razón. */
+  .macha-chart .recharts-sector {
+    stroke: var(--card);
+  }
+
+  /*
+   * Leyenda. El punto de cada serie conserva su color (lo lleva en una clase propia, que
+   * gana sobre lo heredado); lo que se hereda es solo el tamaño y el color del TEXTO, que
+   * es rótulo y no dato.
+   */
+  .macha-chart .recharts-legend-wrapper {
+    color: var(--muted-foreground);
+    font-size: 11px;
   }
 }

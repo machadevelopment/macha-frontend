@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { AreaChart } from '@tremor/react';
 import { DollarSign, Percent, PiggyBank, Receipt } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadError } from '@/components/ui/load-error';
@@ -20,8 +19,8 @@ import { request, type RequestError } from '@/lib/api/browser';
 import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
 import { formatMoney, formatMoneyCompact, formatNumber, formatPct } from '@/lib/format';
 import { delta, gastos, margenBruto, utilidadBruta } from '@/lib/metrics/period-totals';
-import { makeChartTooltip } from '@/components/charts/chart-tooltip';
-import { chartAxisStyle, chartColors } from '@/components/charts/chart-theme';
+import { chartColors } from '@/components/charts/chart-theme';
+import { TrendArea } from '@/components/charts/chart-primitives';
 import type {
   CategoryBreakdownResponse,
   PeriodMetricsResponse,
@@ -101,8 +100,6 @@ export function AnalyticsClient({
   }, [cargar, rango]);
 
   const moneda = (metricas?.baseCurrency ?? 'GTQ') as 'GTQ' | 'USD';
-  const tooltip = makeChartTooltip(moneda, locale);
-  const fmtEje = (n: number) => formatMoneyCompact(n, moneda, locale);
 
   const filtro = (
     <PeriodFilter
@@ -275,27 +272,29 @@ export function AnalyticsClient({
             )}
           </div>
           {/*
-            4 — ÁREA CON DEGRADADO. `showGradient` va explícito aunque sea el default de
-            Tremor: es una decisión de diseño de esta pantalla, no un accidente de la
-            librería, y quien lea el archivo tiene que poder verla. `curveType="monotone"`
-            suaviza la curva sin inventar picos entre puntos (a diferencia de "natural",
-            que sobrepasa los valores reales — inaceptable en un dato financiero).
+            4 — ÁREA CON DEGRADADO. El degradado y la curva suave ya no se piden acá: son
+            el default de `TrendArea` (CU-868knx0vh), que es lo que hace que la tendencia
+            del dashboard se vea igual que esta sin que nadie tenga que acordarse.
+
+            El `{...chartAxisStyle}` que estaba en esta llamada SE FUE porque no hacía
+            nada: Tremor reenvía las props que no conoce al `<div>` contenedor, así que
+            `fill`/`fontSize` terminaban como atributos HTML sobre un div y jamás llegaban
+            al `<text>` del SVG. Verificado renderizando el componente; el detalle está en
+            `chart-theme.ts`. Ahora el eje se pinta por CSS desde `.macha-chart`.
+
             La serie va NEUTRA: un ingreso no es "bueno" ni "malo" por existir, y el verde
             funcional está reservado para lo que sí señala estado, como el chip de arriba.
           */}
-          <AreaChart
+          <TrendArea
             className="mt-4 h-80"
             data={puntos}
             index="fecha"
             categories={[labels.revenueTrend]}
             colors={[chartColors.neutral]}
-            valueFormatter={fmtEje}
-            customTooltip={tooltip}
+            currency={moneda}
+            locale={locale}
             showLegend={false}
-            showGradient
-            curveType="monotone"
             yAxisWidth={64}
-            {...chartAxisStyle}
           />
         </Card>
 
@@ -313,18 +312,15 @@ export function AnalyticsClient({
               contar nada. Verde/rojo funcionales, que acá sí señalan estado: entra plata /
               sale plata.
             */}
-            <AreaChart
+            <TrendArea
               className="mt-3 h-64"
               data={puntos}
               index="fecha"
               categories={[labels.inflow, labels.outflow]}
               colors={[chartColors.positive, chartColors.negative]}
-              valueFormatter={fmtEje}
-              customTooltip={tooltip}
-              showGradient
-              curveType="monotone"
+              currency={moneda}
+              locale={locale}
               yAxisWidth={64}
-              {...chartAxisStyle}
             />
           </Card>
 

@@ -684,6 +684,15 @@ export interface Dictionary {
     industry: string;
     baseCurrency: string;
     locale: string;
+    /**
+     * CU-868knx0vh: las dos secciones del alta se nombran con un eyebrow en mono. NO son
+     * pasos —el formulario sigue siendo una sola pantalla, decisión de B4—, son rótulos:
+     * lo que antes eran dos títulos del mismo peso ahora tiene jerarquía.
+     */
+    planEyebrow: string;
+    companyEyebrow: string;
+    /** Encabezado de la segunda sección; el plan ya tenía el suyo (`planTitle`). */
+    companyTitle: string;
     /** Selección de plan en el alta (ticket B4). El catálogo sale de `/register/plans`. */
     planTitle: string;
     planSubtitle: string;
@@ -763,6 +772,12 @@ export interface Dictionary {
     role: { owner: string; admin: string; member: string };
     status: { active: string; invited: string; revoked: string };
     accept: {
+      /**
+       * CU-868knx0vh: la pantalla pasó a ser vitrina y su cabecera necesita el eyebrow
+       * en mono que llevan todas (`/`, registro, 404). Antes la tarjeta empezaba directo
+       * con el título.
+       */
+      eyebrow: string;
       title: string;
       subtitle: string;
       action: string;
