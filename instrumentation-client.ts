@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { resolveSentryEnvironment } from './lib/sentry-environment';
 
 // CU-868kfv9ur: no-op without a real DSN — local/dev/CI never set
 // NEXT_PUBLIC_SENTRY_DSN (same pattern as every other optional integration).
@@ -11,6 +12,14 @@ import * as Sentry from '@sentry/nextjs';
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    // CU-868kmr1tb: en el navegador solo existen las variables `NEXT_PUBLIC_*`, que Next
+    // sustituye por literales en build. `NEXT_PUBLIC_VERCEL_ENV` la expone la propia
+    // plataforma. Ver lib/sentry-environment.ts para por qué NODE_ENV no basta.
+    environment: resolveSentryEnvironment(
+      process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+      process.env.NEXT_PUBLIC_VERCEL_ENV,
+      process.env.NODE_ENV,
+    ),
     tracesSampleRate: 0.1,
   });
 }
