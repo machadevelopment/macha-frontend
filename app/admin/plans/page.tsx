@@ -19,7 +19,7 @@ export default async function AdminPlansPage() {
   return (
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.plans.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.admin.plans.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.plans.title}</h1>
       <PlansPanel labels={t.admin.plans} common={t.admin.common} canEdit={tier === 'super_admin'} />
     </>
   );

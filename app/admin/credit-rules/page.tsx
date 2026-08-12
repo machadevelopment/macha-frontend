@@ -7,7 +7,7 @@ export default function AdminCreditRulesPage() {
   return (
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.creditRules.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.admin.creditRules.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.creditRules.title}</h1>
       <CreditRulesPanel labels={t.admin.creditRules} common={t.admin.common} />
     </>
   );

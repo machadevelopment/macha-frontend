@@ -7,7 +7,7 @@ export default function AdminDocumentsPage() {
   return (
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.documents.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.admin.documents.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.documents.title}</h1>
       <DocumentsPanel labels={t.admin.documents} common={t.admin.common} />
     </>
   );
