@@ -550,6 +550,33 @@ export interface Dictionary {
     title: string;
     empty: string;
     viewRendered: string;
+    /** Descargas del reporte (ticket B2). El binario vive en S3; esto abre su URL firmada. */
+    downloadPdf: string;
+    downloadExcel: string;
+    /**
+     * Generador a demanda (ticket B2). Reportes dejó de ser una lista que llenaba un cron.
+     * La generación es ASÍNCRONA (202 `queued`), y los textos lo dicen explícitamente.
+     */
+    builder: {
+      title: string;
+      subtitle: string;
+      readOnly: string;
+      typeLabel: string;
+      /** Nombre por tipo de reporte; la clave es el `type` que manda el backend. */
+      type: Record<string, string>;
+      sectionsLabel: string;
+      sectionsRequired: string;
+      instructionsLabel: string;
+      instructionsPlaceholder: string;
+      generate: string;
+      generating: string;
+      /** `{n}` = créditos que costó. Dice "en cola", nunca "listo". */
+      queued: string;
+      error: string;
+      /** `{required}` y `{balance}`: el 402 los trae y son la salida accionable. */
+      insufficientCredits: string;
+      queueFull: string;
+    };
     edit: string;
     save: string;
     saving: string;
