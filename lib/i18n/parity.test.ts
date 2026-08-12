@@ -116,6 +116,27 @@ describe('claves introducidas por CU-868kh8rz8 (antes hardcodeadas)', () => {
   }
 });
 
+/**
+ * CU-868kkgbtv: las claves del camino de FALLO del dropzone de documentos.
+ *
+ * `document-dropzone.tsx` tenía un `toast.error('No se pudo subir el archivo…')`
+ * quemado en español; CU-868kkgb3c lo cambió por estas dos claves. Se fijan acá
+ * porque son del camino que nadie ejercita a mano — un fallo de red al subir un
+ * Excel — que es exactamente por lo que el string quemado sobrevivió a la primera
+ * pasada de i18n. Si alguien las borra, el componente deja de compilar, pero esto
+ * deja constancia de POR QUÉ existen.
+ */
+describe('claves del camino de fallo del dropzone (CU-868kkgbtv)', () => {
+  const REQUIRED = ['common.loadError.network', 'common.loadError.server'];
+
+  for (const key of REQUIRED) {
+    test(`${key} existe en ambos diccionarios`, () => {
+      expect(flatEs.has(key)).toBe(true);
+      expect(flatEn.has(key)).toBe(true);
+    });
+  }
+});
+
 // Guarda de tipo: si `Dictionary` gana una rama nueva, ambos diccionarios la deben
 // satisfacer para que este archivo compile.
 const _typecheck: [Dictionary, Dictionary] = [es, en];
