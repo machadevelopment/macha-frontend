@@ -123,6 +123,18 @@ export interface Dictionary {
       colStatus: string;
       suspend: string;
       activate: string;
+      /**
+       * Ticket B5 — columnas de la vista consolidada. El operador ve plan, saldo, costo
+       * de IA y tokens sin salir de esta pantalla; antes eran tres.
+       */
+      colPlan: string;
+      colBalance: string;
+      colAiCost: string;
+      colTokens: string;
+      /** Empresa sin fila en `subscriptions` (las creadas a mano antes del autoservicio). */
+      noPlan: string;
+      /** Enlace al drill-down por tipo de acción, que sigue viviendo en `/admin/ai-cost`. */
+      aiCostBreakdown: string;
     };
     companyDetail: {
       eyebrow: string;

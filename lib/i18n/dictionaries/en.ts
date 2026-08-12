@@ -76,6 +76,12 @@ export const en: Dictionary = {
       colStatus: 'Status',
       suspend: 'Suspend',
       activate: 'Activate',
+      colPlan: 'Plan',
+      colBalance: 'Balance',
+      colAiCost: 'AI cost',
+      colTokens: 'Tokens in/out',
+      noPlan: 'No plan',
+      aiCostBreakdown: 'View breakdown by action type',
     },
     companyDetail: {
       eyebrow: 'COMPANY',

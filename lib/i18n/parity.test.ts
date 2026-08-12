@@ -64,6 +64,11 @@ describe('paridad de diccionarios ES/EN', () => {
     // CU-868kh8zvt — el backoffice pasa a ser bilingüe; estas dos coinciden de verdad.
     'admin.aiCost.colTokens', // "Tokens in/out" — la abreviatura es la misma en ambos
     'admin.companyDetail.colEmail', // "Email"
+    // Ticket B5 — la vista consolidada trae las mismas dos cabeceras a la tabla de
+    // empresas, por la misma razón: "Plan" se escribe igual en español y en inglés, y
+    // "Tokens in/out" es la abreviatura que usa la industria en los dos idiomas.
+    'admin.companies.colPlan',
+    'admin.companies.colTokens',
     // Pantallas nuevas del prototipo MVP Macha.
     'analytics.colTotal', // "Total" — misma palabra en los dos idiomas
     'inventory.colSku', // "SKU" — sigla internacional, no se traduce
