@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
 import { getLocale } from '@/lib/i18n/server';
-import { inter, mono } from '@/lib/fonts';
+import { sfPro, mono } from '@/lib/fonts';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import '@/styles/globals.css';
@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const locale = getLocale();
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${mono.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${sfPro.variable} ${mono.variable}`}>
       <body>
         <AuthKitProvider>
           <ThemeProvider>

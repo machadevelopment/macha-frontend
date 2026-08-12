@@ -14,3 +14,9 @@ next-env.d.ts
 # `vercel link` pone un `.env*` a secas y se la lleva por delante.
 .env*
 !.env.example
+
+# Assets de marca del Brand Book (21 MB de PNG/JPG/OTF y el PDF del manual).
+# Son el INSUMO de diseño, no assets de la app: lo que la app necesita ya vive en
+# `app/fonts/` (los cuatro pesos de SF Pro) y en los componentes que reproducen el
+# isotipo en SVG. Ignorado para que nadie meta 21 MB al repo con un `git add`.
+Macha-Veintitres/

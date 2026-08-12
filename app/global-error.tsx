@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
-import { inter, mono } from '@/lib/fonts';
+import { sfPro, mono } from '@/lib/fonts';
 import { defaultLocale, locales, LOCALE_COOKIE, type Locale } from '@/lib/i18n/config';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import '@/styles/globals.css';
@@ -51,7 +51,7 @@ export default function GlobalError({
   const t = getDictionary(locale).common;
 
   return (
-    <html lang={locale} className={`${inter.variable} ${mono.variable}`}>
+    <html lang={locale} className={`${sfPro.variable} ${mono.variable}`}>
       <body>
         <main
           data-density="comfortable"

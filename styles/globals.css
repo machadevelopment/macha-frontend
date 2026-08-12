@@ -67,8 +67,27 @@
   --amber-bd: #fde68a;
   --amber-accent: #d97706;
 
-  /* Marca — salvia del Brand Book. Ver la regla de los dos verdes, arriba. */
+  /*
+   * ══ MARCA — valores MUESTREADOS de los assets del Brand Book, no interpretados ══
+   *
+   * La primera pasada de este rediseño (2026-08-11) trabajó sobre los hex citados en el
+   * ticket porque los assets todavía no estaban en el repo. Con el Brand Book entregado
+   * (`Macha-Veintitres/`), los valores se sacaron del PNG del isotipo leyendo píxeles:
+   *
+   *   · salvia real ....... #A1B09B  (el ticket citaba #A0AF9A; difieren en 1 por canal,
+   *                                   se conserva #A0AF9A como valor canónico documentado
+   *                                   y se usa el muestreado en el gradiente, que es donde
+   *                                   se compara contra el asset)
+   *   · claro del degradado #F4F4F2  (NO blanco puro: es un gris cálido)
+   *
+   * EL GRADIENTE DE MARCA VA DE SALVIA A CLARO, y nada más. La versión anterior inventaba
+   * un tercer paso oscuro (#7F9077) que NO existe en el Brand Book — se corrige. En el
+   * isotipo el degradado es lineal y las barras exteriores corren claro→salvia mientras la
+   * central va invertida; para el Insight Point el manual lo usa radial y difuminado.
+   */
   --brand: #a0af9a;
+  /* Extremo claro del degradado del Brand Book (#F4F4F2 muestreado del isotipo). */
+  --brand-light: #f4f4f2;
   --brand-strong: #8b9c84;
   --brand-soft: #eef1ec;
   --brand-bd: #d5ddd0;
@@ -76,25 +95,54 @@
      oscuro. Blanco sobre #A0AF9A no llega a AA (≈2.1:1). */
   --brand-on: #1c2419;
   /*
-   * Insight Point: el gradiente radial del Brand Book, como token y no como clase
-   * suelta. Vive acá para que el componente que lo pinta no tenga que conocer los tres
-   * pasos del degradado, y para que cambiarlo sea un solo lugar.
+   * Insight Point: radial salvia → claro, difuminado. Dos paradas y no tres, porque son
+   * las dos que tiene el asset. `--brand-glow` es la versión MUY difuminada para fondos de
+   * vitrina, donde el punto es atmósfera y no una figura: va con alfa para que se apoye
+   * sobre el lienzo en vez de taparlo.
    */
-  --brand-gradient: radial-gradient(circle at 30% 25%, #c3cfbd 0%, #a0af9a 45%, #7f9077 100%);
+  --brand-gradient: radial-gradient(circle at 32% 28%, #b9c6b3 0%, #a1b09b 55%, #8b9c84 100%);
+  --brand-glow: radial-gradient(
+    60% 60% at 50% 40%,
+    rgb(161 176 155 / 38%) 0%,
+    rgb(161 176 155 / 12%) 45%,
+    rgb(161 176 155 / 0%) 100%
+  );
+  /* Degradado del isotipo, para las barras. Lineal, no radial. */
+  --brand-bar: linear-gradient(180deg, #f4f4f2 0%, #a1b09b 100%);
+  --brand-bar-inverse: linear-gradient(180deg, #a1b09b 0%, #f4f4f2 100%);
 
   /*
-   * Tipografía de interfaz. SF Pro Display es la fuente del Brand Book, y NO se puede
-   * empaquetar: es propiedad de Apple, su licencia la restringe a desarrollo sobre
-   * plataformas Apple y no está en Google Fonts, así que auto-hospedar el archivo en una
-   * web pública sería una violación de licencia. Lo que sí es legítimo es pedirla por el
-   * stack del sistema: `-apple-system` y `BlinkMacSystemFont` resuelven a SF en macOS y
-   * iOS —donde de hecho se revisa el producto— y en Windows/Android caen a Inter, que se
-   * sigue cargando por `next/font` justo para eso. `var(--font-ui)` va ANTES de
-   * `system-ui` a propósito: sin eso, Chrome en Windows resolvería `system-ui` a Segoe UI
-   * y nunca llegaría a Inter.
+   * Tipografía de interfaz. REESCRITO al llegar el Brand Book con los archivos.
+   *
+   * La versión anterior decía que SF Pro Display no se podía empaquetar y la pedía por el
+   * stack del sistema, con Inter de respaldo. Ahora el Brand Book entregó los `.otf` y el
+   * dueño decidió auto-hospedarla, así que `var(--font-ui)` —que ahora ES SF Pro Display,
+   * servida por `next/font/local`— va PRIMERA. Ver `lib/fonts.ts`: ahí está la nota de
+   * licencia, que sigue siendo un riesgo real y sigue siendo decisión del dueño.
+   *
+   * `-apple-system` se queda DETRÁS y no se borra: si el `.otf` no carga (bloqueo de red,
+   * CSP, error de despliegue), en Mac se cae a la SF del sistema —la misma tipografía— y
+   * solo después a la genérica. Es el respaldo que menos se nota.
+   *
+   * Inter YA NO se carga: dejó de ser respaldo cuando SF Pro pasó a viajar en el bundle.
+   * Mantenerla habría sido descargar ~100 KB para un caso que ahora cubre el sistema.
    */
   --font-ui-stack:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Display', var(--font-ui), system-ui, sans-serif;
+    var(--font-ui), -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+
+  /*
+   * ACABADO DE TARJETA (prompt de rediseño §3.5): sombra sutil en vez del filete plano.
+   *
+   * El filete de 1px solo era la marca del "terminal financiero" original; contra el
+   * prototipo premium se lee barato porque no separa la tarjeta del lienzo, solo la
+   * delimita. La sombra se queda MUY corta a propósito — dos capas de 1px y 3px con alfa
+   * bajo — porque el registro sigue siendo plano: se busca que la tarjeta se despegue del
+   * blanco hueso, no que flote.
+   *
+   * El borde NO se quita: sostiene la separación cuando la sombra no se ve (modo oscuro,
+   * pantallas de bajo contraste, impresión).
+   */
+  --shadow-card: 0 1px 2px rgb(23 23 23 / 4%), 0 2px 6px rgb(23 23 23 / 5%);
 
   /* Layer 2 — semantics */
   --background: var(--canvas);
@@ -154,11 +202,35 @@
    * también: sobre el mismo salvia claro el texto encima sigue siendo oscuro.
    */
   --brand: #a0af9a;
+  /*
+   * En oscuro el extremo "claro" del degradado NO puede ser #F4F4F2: un punto que va de
+   * salvia a casi-blanco sobre #121212 se lee como un foco encendido, no como marca. El
+   * degradado se mantiene DENTRO de la familia salvia y baja hacia el verde profundo, que
+   * es la lectura equivalente del mismo recurso sobre fondo oscuro.
+   */
+  --brand-light: #b4c1af;
   --brand-strong: #b4c1af;
   --brand-soft: #191d17;
   --brand-bd: #2f3a2b;
   --brand-on: #0f120e;
-  --brand-gradient: radial-gradient(circle at 30% 25%, #b4c1af 0%, #8b9c84 45%, #5d6b57 100%);
+  --brand-gradient: radial-gradient(circle at 32% 28%, #b4c1af 0%, #8b9c84 55%, #5d6b57 100%);
+  /* Más tenue que en claro: sobre #121212 el mismo alfa se ve el doble. */
+  --brand-glow: radial-gradient(
+    60% 60% at 50% 40%,
+    rgb(161 176 155 / 22%) 0%,
+    rgb(161 176 155 / 8%) 45%,
+    rgb(161 176 155 / 0%) 100%
+  );
+  --brand-bar: linear-gradient(180deg, #4a5545 0%, #a1b09b 100%);
+  --brand-bar-inverse: linear-gradient(180deg, #a1b09b 0%, #4a5545 100%);
+
+  /*
+   * En oscuro una sombra negra es invisible: el fondo ya es casi negro. Lo que separa una
+   * tarjeta ahí es la LUZ, no la sombra — por eso acá es un filo claro de 1px arriba
+   * (`inset`) más una sombra muy tenue para dar profundidad. Es el equivalente funcional,
+   * no el mismo valor.
+   */
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 4%), 0 2px 8px rgb(0 0 0 / 30%);
 
   --background: var(--canvas);
   --foreground: var(--ink);
