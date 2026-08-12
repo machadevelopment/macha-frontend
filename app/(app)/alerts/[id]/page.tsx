@@ -11,7 +11,7 @@ export default function AlertDetailPage({ params }: { params: { id: string } }) 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <p className="font-mono text-eyebrow uppercase text-faint">{t.alerts.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.alerts.title}</h1>
+      <h1 className="mb-5 text-h1">{t.alerts.title}</h1>
       <AlertDetail alertId={params.id} locale={locale} labels={t.alerts} />
     </main>
   );

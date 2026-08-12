@@ -20,7 +20,7 @@ export default async function ReportsPage() {
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <p className="font-mono text-eyebrow uppercase text-faint">{t.reports.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.reports.title}</h1>
+      <h1 className="mb-5 text-h1">{t.reports.title}</h1>
       <ReportsScreen
         locale={locale}
         labels={t.reports}

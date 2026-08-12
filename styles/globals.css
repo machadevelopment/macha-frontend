@@ -319,7 +319,21 @@
  */
 :root {
   --density-card-p: 16px;
-  --density-main-p: 26px;
+  /*
+   * CU-868knx0vh — "más aire y jerarquía", pedido del prompt de rediseño §3.2.
+   *
+   * Sube de 26 a 34. Es el margen de la PÁGINA: el aire alrededor del contenido, no dentro
+   * de las tarjetas. Subirlo acá levanta las 17 pantallas de una vez, que es exactamente lo
+   * que el prompt pide hacer "usando los density tokens que ya existen".
+   *
+   * ⚠️ `--density-card-p` NO SUBE, y es deliberado. El padding de tarjeta le quita ancho
+   * ÚTIL al contenido, y las cinco tarjetas de KPI del dashboard ya viven al límite: hubo
+   * un desbordamiento real donde un monto se pintaba encima de la tarjeta vecina y tapaba
+   * la cifra de al lado. Se arregló con notación compacta y `truncate`, pero el margen
+   * sigue siendo estrecho. Dar aire por dentro de una tarjeta que contiene una cifra es
+   * quitárselo a la cifra.
+   */
+  --density-main-p: 34px;
   --density-btn-py: 8px;
   --density-btn-px: 14px;
   --density-btn-sm-py: 5px;
@@ -331,7 +345,9 @@
 }
 [data-density='comfortable'] {
   --density-card-p: 20px;
-  --density-main-p: 30px;
+  /* Cómoda (formularios/onboarding): sube igual, y acá sin la reserva de arriba — no hay
+     tablas de KPI compitiendo por ancho en un formulario. */
+  --density-main-p: 40px;
   --density-btn-py: 10px;
   --density-btn-px: 16px;
   --density-td-p: 14px;

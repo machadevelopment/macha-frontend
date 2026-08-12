@@ -7,7 +7,7 @@ export default function AdminAiCostPage() {
   return (
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.aiCost.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.admin.aiCost.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.aiCost.title}</h1>
       <AiCostPanel labels={t.admin.aiCost} common={t.admin.common} />
     </>
   );
