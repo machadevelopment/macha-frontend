@@ -87,7 +87,7 @@ export function KeyAlertsCard({
                   <Badge variant="danger" className="normal-case">
                     {isKnownRule(a.ruleKey) ? alertLabels.rule[a.ruleKey] : a.ruleKey}
                   </Badge>
-                  <span className="font-mono tabular-nums text-eyebrow text-faint">
+                  <span className="tabular-nums text-eyebrow text-faint">
                     {formatDate(a.createdAt, locale)}
                   </span>
                 </div>

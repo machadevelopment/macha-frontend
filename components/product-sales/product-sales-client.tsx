@@ -6,12 +6,14 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Crown,
+  Download,
   Layers,
   Minus,
   Package,
   Receipt,
   Snowflake,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadError } from '@/components/ui/load-error';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
@@ -29,6 +31,9 @@ import { formatMoney, formatMoneyCompact, formatNumber, formatPct } from '@/lib/
 import { makeChartTooltip } from '@/components/charts/chart-tooltip';
 import { chartColors } from '@/components/charts/chart-theme';
 import { cn } from '@/lib/cn';
+import { csvFileName, serializeCsv } from '@/lib/csv/serialize';
+import { descargarCsv } from '@/lib/csv/download';
+import { filasCsvProductos } from '@/components/product-sales/csv';
 import { agruparPorCategoria, resumir } from '@/components/product-sales/summary';
 import type { ProductRevenue, ProductRevenueResponse } from '@/lib/api/dashboard';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -97,10 +102,38 @@ export function ProductSalesClient({
     />
   );
 
+  /**
+   * EXPORTAR, no importar. La tabla ya está entera en memoria —`/api/metrics-products`
+   * con `limit=200`, el catálogo completo y no un top-N—, así que el archivo se arma
+   * aquí: pedirle al backend que lo vuelva a calcular sería una segunda consulta al
+   * mismo dato y abriría la puerta a que el archivo y la pantalla no coincidan.
+   *
+   * Sale con el período y la moneda base que están seleccionados en este momento, que es
+   * lo que el usuario está viendo cuando presiona el botón.
+   */
+  const exportar = () => {
+    const contenido = serializeCsv(filasCsvProductos({ items, labels, moneda, locale }));
+    descargarCsv(csvFileName(labels.csvFileName, rango), contenido);
+  };
+
+  // El botón solo aparece cuando hay algo que exportar: en el estado vacío o de error
+  // descargaría un archivo con puros encabezados, que se ve como una falla del producto.
+  const encabezado = (
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      {filtro}
+      {items.length > 0 && (
+        <Button variant="outline" size="sm" onClick={exportar} className="gap-2">
+          <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+          {labels.exportCsv}
+        </Button>
+      )}
+    </div>
+  );
+
   if (error) {
     return (
       <>
-        <div className="mb-4">{filtro}</div>
+        {encabezado}
         <Card>
           <LoadError error={error} labels={common.loadError} onRetry={() => void cargar(rango)} />
         </Card>
@@ -111,7 +144,7 @@ export function ProductSalesClient({
   if (data && items.length === 0) {
     return (
       <>
-        <div className="mb-4">{filtro}</div>
+        {encabezado}
         <Card>
           <p className="text-body text-muted-foreground">{labels.empty}</p>
           <p className="mt-1 text-body text-faint">{labels.emptyHint}</p>
@@ -162,7 +195,7 @@ export function ProductSalesClient({
 
   return (
     <>
-      <div className="mb-4">{filtro}</div>
+      {encabezado}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3 xl:grid-cols-5">
         {tarjetas.map((c) => (
@@ -206,25 +239,22 @@ export function ProductSalesClient({
                       {p.category ?? labels.uncategorized}
                     </TableCell>
                     <TableCell
-                      className={cn(
-                        'text-right font-mono tabular-nums',
-                        p.units === null && 'text-faint',
-                      )}
+                      className={cn('text-right tabular-nums', p.units === null && 'text-faint')}
                       title={p.units === null ? labels.noUnitsHint : undefined}
                     >
                       {p.units === null ? labels.noUnits : formatNumber(p.units, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatMoney(p.revenue, moneda, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatMoney(p.cogs, moneda, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {/* `null` = producto sin ventas en el rango; no existe margen, no es 0%. */}
                       {p.grossMarginPct === null ? '—' : formatPct(p.grossMarginPct / 100, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatPct(p.revenueSharePct / 100, locale)}
                     </TableCell>
                     <TableCell>
@@ -264,7 +294,7 @@ export function ProductSalesClient({
                 {porCategoria.map((c) => (
                   <li key={c.name} className="flex items-baseline justify-between gap-3">
                     <span className="min-w-0 truncate text-body">{c.name}</span>
-                    <span className="shrink-0 font-mono text-body tabular-nums text-muted-foreground">
+                    <span className="shrink-0 text-body tabular-nums text-muted-foreground">
                       {formatPct(c.sharePct, locale)}
                     </span>
                   </li>

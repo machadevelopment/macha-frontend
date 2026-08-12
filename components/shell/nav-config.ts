@@ -6,6 +6,7 @@ import {
   Building2,
   CreditCard,
   FileText,
+  Layers,
   LayoutGrid,
   Package,
   Settings,
@@ -118,6 +119,12 @@ export function adminNav(t: Dictionary['shell']): NavSection[] {
       label: t.section.platform,
       items: [
         { href: '/admin/industry-templates', icon: Package, label: t.adminNav.templates },
+        // Ticket B3: el catálogo de planes va JUNTO a las reglas de crédito y los
+        // parámetros de negocio, no suelto. Los tres son la configuración económica y el
+        // reparto entre ellos es deliberado (ver C2 del documento de QA): reglas =
+        // cuántos créditos cuesta cada acción; parámetros = equivalencia y precio del
+        // crédito; planes = qué incluye cada plan y cuánto vale.
+        { href: '/admin/plans', icon: Layers, label: t.adminNav.plans },
         { href: '/admin/credit-rules', icon: CreditCard, label: t.adminNav.creditRules },
         { href: '/admin/config', icon: Settings, label: t.adminNav.config },
         { href: '/admin/ai-cost', icon: Sparkles, label: t.adminNav.aiCost },

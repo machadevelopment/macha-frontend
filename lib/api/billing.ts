@@ -5,6 +5,20 @@ export interface RegisterRequest {
   industry: string;
   baseCurrency: 'GTQ' | 'USD';
   locale: 'es' | 'en';
+  /**
+   * Ticket B4. Opcional en el backend —si no viene, toma el plan de entrada del catálogo—
+   * y por eso opcional acá también: el contrato es del backend, no del formulario.
+   */
+  planCode?: string;
+}
+
+/** Plan del catálogo, tal como lo devuelve `GET /register/plans` (ticket B4). */
+export interface RegisterPlan {
+  code: string;
+  name: string;
+  amountUsdCents: number;
+  monthlyCredits: number;
+  sortOrder: number;
 }
 
 export interface RegisterResponse {

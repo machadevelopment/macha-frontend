@@ -53,7 +53,7 @@ export function AdviceRail({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
-        <CreditsBadge balance={balance} label={labels.creditsLabel} />
+        <CreditsBadge balance={balance} label={labels.creditsLabel} locale={locale} />
       </div>
       <InsightPanel
         locale={locale}

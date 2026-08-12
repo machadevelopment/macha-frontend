@@ -123,6 +123,18 @@ export interface Dictionary {
       colStatus: string;
       suspend: string;
       activate: string;
+      /**
+       * Ticket B5 — columnas de la vista consolidada. El operador ve plan, saldo, costo
+       * de IA y tokens sin salir de esta pantalla; antes eran tres.
+       */
+      colPlan: string;
+      colBalance: string;
+      colAiCost: string;
+      colTokens: string;
+      /** Empresa sin fila en `subscriptions` (las creadas a mano antes del autoservicio). */
+      noPlan: string;
+      /** Enlace al drill-down por tipo de acción, que sigue viviendo en `/admin/ai-cost`. */
+      aiCostBreakdown: string;
     };
     companyDetail: {
       eyebrow: string;
@@ -180,15 +192,51 @@ export interface Dictionary {
       eyebrow: string;
       title: string;
       invalidJson: string;
+      /** Error del editor numérico — no todo parámetro se teclea como JSON. */
+      invalidNumber: string;
       saveError: string;
+      /**
+       * Aviso para quien no es `super_admin`: ve los valores, no los edita. El gate
+       * real es del backend (`edit_credits_to_tokens_param`); esto solo lo explica.
+       */
+      readOnlyNote: string;
       /** Prefijo de la marca de tiempo bajo cada parámetro. */
       updatedAt: string;
+      /** Autor del último cambio (ticket B7). Se antepone al correo. */
+      updatedBy: string;
       /**
        * Etiqueta y descripción de cada `platform_settings.key` editable. Las claves son
        * los identificadores REALES del backend, no se traducen — se muestran tal cual
        * bajo el label, porque es con ellos que se opera.
        */
       settings: Record<string, { label: string; description: string }>;
+    };
+    /**
+     * Catálogo de planes (ticket B3). Vive junto a `creditRules` y `config` porque los
+     * tres son la configuración económica, con un reparto deliberado: reglas = cuántos
+     * créditos cuesta cada acción; parámetros = equivalencia y precio del crédito;
+     * planes = qué incluye cada plan y cuánto vale.
+     */
+    plans: {
+      eyebrow: string;
+      title: string;
+      readOnlyNote: string;
+      createTitle: string;
+      /** El código es permanente: viaja a `subscriptions.plan_code`. Se avisa de entrada. */
+      codeHint: string;
+      codeLabel: string;
+      nameLabel: string;
+      priceLabel: string;
+      creditsLabel: string;
+      createAction: string;
+      createError: string;
+      saveError: string;
+      invalidNumber: string;
+      active: string;
+      /** La baja es lógica, nunca un DELETE: hay empresas suscritas a planes retirados. */
+      inactive: string;
+      activate: string;
+      deactivate: string;
     };
     creditRules: {
       eyebrow: string;
@@ -225,9 +273,58 @@ export interface Dictionary {
       title: string;
       empty: string;
       companyEyebrow: string;
+      /** Solo sobrevive para el editor JSON de respaldo de una entidad desconocida. */
       invalidJson: string;
       saveError: string;
       reextractError: string;
+      /** Qué se espera del operador. La bandeja no lo decía en ningún lado. */
+      instructions: string;
+      approve: string;
+      reject: string;
+      reextract: string;
+      amountInvalid: string;
+      reasonEyebrow: string;
+      /** `targetEntity` en lenguaje humano; el backend manda `transaction|invoice|bill`. */
+      entity: { transaction: string; invoice: string; bill: string };
+      /**
+       * Los nueve códigos de `flag_reason` que emite macha-backend
+       * (`lib/staging-rules.ts` + `lib/fx.ts`), traducidos. `missing_fx_rate` NO estaba
+       * en la lista del ticket y es el único con una salida concreta.
+       */
+      reason: {
+        low_confidence: string;
+        /** Sufijo con el porcentaje, cuando el código lo trae. `{value}`. */
+        lowConfidenceDetail: string;
+        invalid_type: string;
+        missing_category: string;
+        invalid_date: string;
+        invalid_amount: string;
+        invalid_currency: string;
+        missing_counterparty: string;
+        invalid_issue_date: string;
+        /** `{currency}` y `{date}`. */
+        missing_fx_rate: string;
+        /** Regla nueva del backend que este frontend todavía no conoce. */
+        unknown: string;
+      };
+      /** Etiquetas de los campos del payload, en vez de las claves crudas del JSON. */
+      field: {
+        type: string;
+        category: string;
+        date: string;
+        description: string;
+        amount: string;
+        currency: string;
+        product: string;
+        quantity: string;
+        productCategory: string;
+        counterparty: string;
+        issueDate: string;
+        dueDate: string;
+      };
+      /** Los cuatro valores del enum `type` de un movimiento. */
+      txType: { revenue: string; cogs: string; opex: string; other: string };
+      empty_value: string;
     };
   };
   /**
@@ -267,6 +364,8 @@ export interface Dictionary {
       companies: string;
       stagingRows: string;
       templates: string;
+      /** Catálogo de planes (ticket B3). Va junto a la demás configuración económica. */
+      plans: string;
       creditRules: string;
       config: string;
       aiCost: string;
@@ -342,6 +441,15 @@ export interface Dictionary {
       year: string;
       showing: string;
       vsPrevious: string;
+      /** Rango personalizado (CU-868knx137). Un solo componente sirve a las tres pantallas. */
+      custom: string;
+      customFrom: string;
+      customTo: string;
+      customApply: string;
+      /** Los tres motivos de `CustomRangeError` en `lib/period.ts`. */
+      customIncomplete: string;
+      customReversed: string;
+      customFuture: string;
     };
     /** El vacío distingue "no hubo ventas" de "hubo ventas sin producto identificado". */
     topProduct: {
@@ -421,16 +529,56 @@ export interface Dictionary {
     eyebrow: string;
     title: string;
     newChat: string;
-    empty: string;
     placeholder: string;
     send: string;
     sending: string;
+    /**
+     * Estado vacío del asesor (CU-868knx189). Sustituye a la antigua `chat.empty`, que era
+     * una sola línea gris — se borra en vez de dejarla huérfana en el diccionario.
+     */
+    welcome: {
+      title: string;
+      subtitle: string;
+      quickLabel: string;
+      /** Las cuatro preguntas rápidas, una por eje: caja, margen, gasto y cobros. */
+      q1: string;
+      q2: string;
+      q3: string;
+      q4: string;
+    };
   };
   reports: {
     eyebrow: string;
     title: string;
     empty: string;
     viewRendered: string;
+    /** Descargas del reporte (ticket B2). El binario vive en S3; esto abre su URL firmada. */
+    downloadPdf: string;
+    downloadExcel: string;
+    /**
+     * Generador a demanda (ticket B2). Reportes dejó de ser una lista que llenaba un cron.
+     * La generación es ASÍNCRONA (202 `queued`), y los textos lo dicen explícitamente.
+     */
+    builder: {
+      title: string;
+      subtitle: string;
+      readOnly: string;
+      typeLabel: string;
+      /** Nombre por tipo de reporte; la clave es el `type` que manda el backend. */
+      type: Record<string, string>;
+      sectionsLabel: string;
+      sectionsRequired: string;
+      instructionsLabel: string;
+      instructionsPlaceholder: string;
+      generate: string;
+      generating: string;
+      /** `{n}` = créditos que costó. Dice "en cola", nunca "listo". */
+      queued: string;
+      error: string;
+      /** `{required}` y `{balance}`: el 402 los trae y son la salida accionable. */
+      insufficientCredits: string;
+      queueFull: string;
+    };
     edit: string;
     save: string;
     saving: string;
@@ -499,6 +647,34 @@ export interface Dictionary {
       days: string;
       percent: string;
     };
+    /**
+     * Pantalla de configuración de reglas por empresa (ronda de QA 2026-08-11).
+     *
+     * Las etiquetas de regla NO se toman del backend aunque `GET /alert-rules` mande un
+     * `label`: el catálogo de macha-backend (`config/alert-catalog.ts`) es español-only y
+     * esta pantalla es del cliente, que puede estar en inglés. El nombre sale de
+     * `alerts.rule` (que ya existía) y la descripción de `alerts.config.description`.
+     */
+    config: {
+      tabHistory: string;
+      tabConfig: string;
+      title: string;
+      subtitle: string;
+      thresholdLabel: string;
+      enabledOn: string;
+      enabledOff: string;
+      save: string;
+      saving: string;
+      saved: string;
+      saveFailed: string;
+      /** Informativo: el cliente ve cuáles avisan al instante, pero no puede cambiarlo. */
+      notifyImmediately: string;
+      notifyBatched: string;
+      readOnly: string;
+      empty: string;
+      /** Una por regla; las mismas seis claves que `alerts.rule`. */
+      description: Record<keyof Dictionary['alerts']['rule'], string>;
+    };
   };
   register: {
     eyebrow: string;
@@ -508,7 +684,17 @@ export interface Dictionary {
     industry: string;
     baseCurrency: string;
     locale: string;
+    /** Selección de plan en el alta (ticket B4). El catálogo sale de `/register/plans`. */
+    planTitle: string;
+    planSubtitle: string;
+    /** `{n}` = créditos incluidos. */
+    planCredits: string;
+    planFree: string;
+    planPerMonth: string;
+    planRecommended: string;
     submit: string;
+    /** "Continuar al pago" delante de un plan gratuito sería una promesa falsa. */
+    submitFree: string;
     submitting: string;
     error: string;
     noMembershipsTitle: string;
@@ -519,6 +705,8 @@ export interface Dictionary {
     eyebrow: string;
     title: string;
     subtitle: string;
+    /** Encabezado de la sección de recarga, ahora que la pantalla ya no es solo eso. */
+    topUpTitle: string;
     currentBalance: string;
     creditsLabel: string;
     quantity: string;
@@ -528,6 +716,27 @@ export interface Dictionary {
     error: string;
     notOwner: string;
     topUpCta: string;
+    /**
+     * Gestión de plan (ticket B3). La pantalla pasó de "Comprar créditos" a "Plan y
+     * créditos": el plan es lo primero y la recarga individual queda debajo, conservada.
+     */
+    plan: {
+      title: string;
+      subtitle: string;
+      readOnly: string;
+      currentEyebrow: string;
+      currentBadge: string;
+      /** `{n}` = créditos incluidos en el plan. */
+      includedCredits: string;
+      free: string;
+      perMonth: string;
+      choose: string;
+      changing: string;
+      changeFailed: string;
+      /** El upgrade no pasa por cobro en esta etapa; callarlo confundiría al owner. */
+      noChargeNote: string;
+      loadError: { network: string; server: string; forbidden: string; retry: string };
+    };
   };
 
   /** CU-868kh8pwv: gestión de miembros autoservicio. */
@@ -574,6 +783,13 @@ export interface Dictionary {
     inflow: string;
     outflow: string;
     net: string;
+    /**
+     * CU-868knx15v: rótulo de la cifra grande que corona la tendencia. Sin él, un monto
+     * enorme flotando sobre una gráfica no dice si es el total, el promedio o el último día.
+     */
+    periodTotal: string;
+    /** Nombre accesible de la barra de participación de cada producto en el ingreso. */
+    shareOfRevenue: string;
     colCategory: string;
     colType: string;
     colTotal: string;
@@ -597,6 +813,13 @@ export interface Dictionary {
     revenuePerUnit: string;
     performance: string;
     salesByCategory: string;
+    /** CU-868knx1a0: EXPORTAR la tabla que ya está en pantalla. No es importar — la
+     *  carga de datos vive en su propia pantalla ("Cargar datos"). */
+    exportCsv: string;
+    /** Base del nombre del archivo descargado; el rango de fechas se le agrega aparte.
+     *  Va en el diccionario porque el usuario lo ve: es el nombre del archivo que le
+     *  queda en Descargas. */
+    csvFileName: string;
     colProduct: string;
     colCategory: string;
     colUnits: string;

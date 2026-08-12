@@ -7,13 +7,21 @@ import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request, requestJson } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/lib/format';
+import { draftFor, editorFor, parseSettingDraft } from '@/components/admin/config-settings';
 
 interface Setting {
   key: string;
   value: unknown;
   updatedAt: string;
+  /**
+   * Correo de quien lo cambió (ticket B7). `null` cuando la fila viene del seed o el staff
+   * que la tocó ya no existe — el backend hace `leftJoin` a propósito para que esas filas
+   * SIGAN apareciendo en vez de desaparecer del panel.
+   */
+  updatedByEmail: string | null;
 }
 
 /**
@@ -54,12 +62,22 @@ function rowsFor(key: string, draft: string): number {
   return 1;
 }
 
+/**
+ * CU-B7-QA-20260811: `canEdit` lo resuelve la página server-side con
+ * `getStaffTier()` — el mismo mecanismo con el que `app/admin/layout.tsx` gatea la
+ * ruta entera. No se consulta ninguna capacidad desde el cliente ni se replica la
+ * matriz de permisos: la autoridad sigue siendo `assertStaffCapability(tier,
+ * 'edit_credits_to_tokens_param')` en macha-backend, que responde 403 aunque este
+ * booleano llegue inflado.
+ */
 export function ConfigPanel({
   labels,
   common,
+  canEdit,
 }: {
   labels: Dictionary['admin']['config'];
   common: Dictionary['admin']['common'];
+  canEdit: boolean;
 }) {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
@@ -70,16 +88,9 @@ export function ConfigPanel({
     useCallback(async () => {
       const result = await request<Setting[]>('/api/admin/config');
       if (result.ok) {
-        // Strings edit as plain text (no surrounding JSON quotes/escapes); numbers
-        // and anything else fall back to their JSON form.
-        setDrafts(
-          Object.fromEntries(
-            result.data.map((s) => [
-              s.key,
-              typeof s.value === 'string' ? s.value : JSON.stringify(s.value),
-            ]),
-          ),
-        );
+        // La serialización valor→texto vive en `config-settings.ts` para poder
+        // probarla: es la mitad del contrato de tipos con el jsonb del backend.
+        setDrafts(Object.fromEntries(result.data.map((s) => [s.key, draftFor(s.value)])));
       }
       return result;
     }, []),
@@ -98,17 +109,17 @@ export function ConfigPanel({
    */
   async function save(key: string) {
     const original = settings?.find((s) => s.key === key);
-    let value: unknown;
-    if (typeof original?.value === 'string') {
-      value = drafts[key];
-    } else {
-      try {
-        value = JSON.parse(drafts[key]!);
-      } catch {
-        setSaveErrors((prev) => ({ ...prev, [key]: labels.invalidJson }));
-        return;
-      }
+    const parsed = parseSettingDraft(key, drafts[key] ?? '', original?.value);
+    if (!parsed.ok) {
+      // El mensaje se elige por el editor que el operador tiene enfrente: decirle
+      // "no es JSON válido" a quien está en un campo numérico no le dice qué arreglar.
+      setSaveErrors((prev) => ({
+        ...prev,
+        [key]: parsed.reason === 'number' ? labels.invalidNumber : labels.invalidJson,
+      }));
+      return;
     }
+    const value = parsed.value;
 
     setSaving(key);
     setSaveErrors((prev) => {
@@ -137,36 +148,92 @@ export function ConfigPanel({
 
   return (
     <div className="flex flex-col gap-3">
+      {/*
+        CU-B7-QA-20260811: quien no es super_admin ve los valores pero no los controles.
+        Los parámetros son información útil para cualquier staff (saber a qué ratio se
+        debita, qué prompt se está mandando); lo que no puede es cambiarlos. Un
+        formulario deshabilitado sería peor: invita a editar y luego no deja, y no
+        explica por qué.
+      */}
+      {!canEdit && <p className="text-body text-muted-foreground">{labels.readOnlyNote}</p>}
+
       {settings.map((s) => {
         const meta = labels.settings[s.key];
         const draft = drafts[s.key] ?? '';
+        const editor = editorFor(s.key, s.value);
+        const title = meta?.label ?? humanizeSettingKey(s.key);
         return (
           <Card key={s.key}>
-            <label htmlFor={`setting-${s.key}`} className="block text-cardh2">
-              {meta?.label ?? humanizeSettingKey(s.key)}
-            </label>
+            {canEdit ? (
+              <label htmlFor={`setting-${s.key}`} className="block text-cardh2">
+                {title}
+              </label>
+            ) : (
+              // Sin campo al que apuntar, un <label> es ruido para un lector de
+              // pantalla: en modo lectura es un encabezado de tarjeta y nada más.
+              <p className="text-cardh2">{title}</p>
+            )}
             <p className="font-mono text-eyebrow uppercase text-faint">{s.key}</p>
             {meta && <p className="mt-1 text-body text-muted-foreground">{meta.description}</p>}
-            <Textarea
-              id={`setting-${s.key}`}
-              rows={rowsFor(s.key, draft)}
-              className="mt-2 font-mono text-body"
-              value={draft}
-              onChange={(e) => setDrafts({ ...drafts, [s.key]: e.target.value })}
-            />
+
+            {!canEdit ? (
+              <p className="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap break-words text-body tabular-nums">
+                {draft}
+              </p>
+            ) : editor === 'number' ? (
+              /*
+                Cifras (ratios, montos, topes) en un input numérico: el teclado móvil
+                correcto, las flechas del navegador y un rechazo temprano de lo que no
+                es un número, en vez de un textarea donde "1,200" se ve razonable y
+                llega al backend como JSON inválido.
+              */
+              <Input
+                id={`setting-${s.key}`}
+                type="number"
+                inputMode="decimal"
+                step="any"
+                min={0}
+                className="mt-2 tabular-nums"
+                value={draft}
+                error={Boolean(saveErrors[s.key])}
+                onChange={(e) => setDrafts({ ...drafts, [s.key]: e.target.value })}
+              />
+            ) : (
+              <Textarea
+                id={`setting-${s.key}`}
+                rows={rowsFor(s.key, draft)}
+                className="mt-2 font-mono text-body"
+                value={draft}
+                onChange={(e) => setDrafts({ ...drafts, [s.key]: e.target.value })}
+              />
+            )}
+
             {s.updatedAt && (
+              /*
+               * Ticket B7: además de CUÁNDO, ahora dice QUIÉN. En una pantalla donde se
+               * edita el precio del crédito y la equivalencia crédito↔token, "cambió el 9
+               * de agosto" sin autor es la mitad del dato: cuando un número está mal, lo
+               * primero que se necesita saber es a quién preguntarle.
+               *
+               * Sin autor NO se escribe "por: —" ni se esconde la línea entera: se muestra
+               * solo la fecha, que es exactamente lo que se sabe. Una fila sembrada por el
+               * seed no tiene autor y eso no es un dato faltante, es que nadie la tocó.
+               */
               <p className="mt-1 font-mono text-eyebrow uppercase text-faint">
                 {labels.updatedAt} {formatDate(s.updatedAt)}
+                {s.updatedByEmail && ` · ${labels.updatedBy} ${s.updatedByEmail}`}
               </p>
             )}
-            <Button
-              size="sm"
-              className="mt-2"
-              onClick={() => save(s.key)}
-              disabled={saving === s.key}
-            >
-              {saving === s.key ? common.saving : common.save}
-            </Button>
+            {canEdit && (
+              <Button
+                size="sm"
+                className="mt-2"
+                onClick={() => save(s.key)}
+                disabled={saving === s.key}
+              >
+                {saving === s.key ? common.saving : common.save}
+              </Button>
+            )}
             {/* CU-868kkgb3c: el error va por parámetro, junto a su propio botón. */}
             {saveErrors[s.key] && <p className="mt-1 text-body text-danger">{saveErrors[s.key]}</p>}
           </Card>

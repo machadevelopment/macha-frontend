@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { CreditsBadge } from '@/components/dashboard/credits-badge';
 import type { Dictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/config';
 import { request, requestJson } from '@/lib/api/browser';
 import type { CreditsTopupRequest, CreditsTopupResponse } from '@/lib/api/billing';
 
@@ -15,7 +16,13 @@ import type { CreditsTopupRequest, CreditsTopupResponse } from '@/lib/api/billin
  * saldo mostrado (criterio 3: siempre en créditos, nunca tokens/USD) solo se
  * actualiza tras la conciliación real del webhook, no aquí.
  */
-export function CreditsPurchasePanel({ labels }: { labels: Dictionary['credits'] }) {
+export function CreditsPurchasePanel({
+  labels,
+  locale,
+}: {
+  labels: Dictionary['credits'];
+  locale: Locale;
+}) {
   const [balance, setBalance] = useState<number | null>(null);
   const [credits, setCredits] = useState(100);
   const [submitting, setSubmitting] = useState(false);
@@ -54,7 +61,7 @@ export function CreditsPurchasePanel({ labels }: { labels: Dictionary['credits']
     <Card>
       <div className="mb-3 flex items-center justify-between">
         <p className="text-cardh2">{labels.currentBalance}</p>
-        <CreditsBadge balance={balance} label={labels.creditsLabel} />
+        <CreditsBadge balance={balance} label={labels.creditsLabel} locale={locale} />
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-4">

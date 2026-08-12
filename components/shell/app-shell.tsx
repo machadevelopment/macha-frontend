@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { MachaMark } from '@/components/ui/macha-mark';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { OrgSwitcher } from '@/components/org-switcher';
 import { LocaleSwitcher } from '@/components/locale-switcher';
@@ -98,11 +99,16 @@ export function AppShell({
   return (
     // Densidad compacta en el shell (design guide.md §12); cada pantalla puede
     // declarar la suya en su propio <main> sin que esto la pise.
-    <div data-density="compact" className="min-h-screen bg-background p-2 app:p-3">
+    <div data-density="compact" className="min-h-dvh bg-background p-2 app:p-3">
       <div
         className={cn(
           'mx-auto grid max-w-app overflow-hidden rounded-lg border border-border bg-background',
-          'min-h-[calc(100vh-1rem)] app:min-h-[calc(100vh-1.5rem)]',
+          // `dvh` y no `vh` (CU-868knx16t). En móvil la barra de direcciones NO se
+          // descuenta de `100vh`: el navegador reporta la altura de la ventana con la
+          // barra ya retraída, así que el alto mínimo quedaba ~60-100px por encima del
+          // área realmente visible y se podía hacer scroll contra el vacío en todas las
+          // pantallas a la vez — esto es el layout compartido. `dvh` sigue a la barra.
+          'min-h-[calc(100dvh-1rem)] app:min-h-[calc(100dvh-1.5rem)]',
           // design guide.md §Responsive: bajo 1080px `app → 1fr`, el sidebar se oculta
           // y la navegación pasa al drawer. Arriba, `grid-template-columns: 212px 1fr`
           // (§4.4); colapsado deja un riel de solo íconos en vez de esconder la nav.
@@ -139,8 +145,9 @@ export function AppShell({
           </Sheet>
           <Link
             href={home}
-            className="font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
+            className="flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
           >
+            <MachaMark />
             Macha
           </Link>
           <div className="ml-auto flex items-center">
@@ -196,15 +203,23 @@ function SidebarBody({
           collapsed ? 'app:justify-center' : 'justify-between',
         )}
       >
-        {/* Wordmark, no clave de i18n: es la marca (design guide.md §7, Inter 700 / -0.03em). */}
+        {/*
+          Wordmark, no clave de i18n: es la marca (design guide.md §7, 700 / -0.03em).
+
+          CU-868knx0vh: se le suma el isotipo de tres barras del Brand Book. Cuando el
+          sidebar está colapsado el texto se esconde pero el ISOTIPO SE QUEDA — un riel de
+          56px sin ninguna marca deja la app sin identidad y sin punto de retorno al
+          inicio, que es lo que este link es.
+        */}
         <Link
           href={home}
           className={cn(
-            'font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground',
-            collapsed && 'app:hidden',
+            'flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground',
+            collapsed && 'app:justify-center',
           )}
         >
-          Macha
+          <MachaMark label={collapsed ? 'Macha' : undefined} />
+          <span className={cn(collapsed && 'app:hidden')}>Macha</span>
         </Link>
         <button
           type="button"
@@ -341,7 +356,7 @@ function NavLink({
       {item.badge !== undefined && item.badge > 0 && (
         <span
           className={cn(
-            'ml-auto rounded-[20px] bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-muted-foreground',
+            'ml-auto rounded-[20px] bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground',
             collapsed && 'app:sr-only',
           )}
         >

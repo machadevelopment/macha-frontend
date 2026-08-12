@@ -19,6 +19,10 @@ export default function AnalyticsPage() {
       <AnalyticsClient
         locale={locale}
         labels={t.analytics}
+        // Los textos de KPI se toman del dashboard, no se duplican bajo `analytics`: son
+        // las mismas métricas del mismo endpoint, y dos juegos de etiquetas para lo mismo
+        // acaban divergiendo. Mismo criterio que `periodLabels`, que ya venía de ahí.
+        kpiLabels={t.dashboard.kpi}
         periodLabels={t.dashboard.period}
         common={t.common}
       />

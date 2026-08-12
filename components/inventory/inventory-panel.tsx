@@ -117,7 +117,7 @@ export function InventoryPanel({
             {labels.stockValue}
             <DollarSign className="h-3.5 w-3.5" strokeWidth={1.7} />
           </p>
-          <p className="mt-2 font-mono text-kpi tabular-nums">
+          <p className="mt-2 text-kpi tabular-nums">
             {formatMoney(data?.totalStockValueBase ?? 0, moneda, locale)}
           </p>
         </Card>
@@ -126,9 +126,7 @@ export function InventoryPanel({
             {labels.skuCount}
             <Boxes className="h-3.5 w-3.5" strokeWidth={1.7} />
           </p>
-          <p className="mt-2 font-mono text-kpi tabular-nums">
-            {formatNumber(items.length, locale)}
-          </p>
+          <p className="mt-2 text-kpi tabular-nums">{formatNumber(items.length, locale)}</p>
         </Card>
         <Card>
           <p className="flex items-center justify-between font-mono text-eyebrow uppercase text-faint">
@@ -137,7 +135,7 @@ export function InventoryPanel({
           </p>
           <p
             className={cn(
-              'mt-2 font-mono text-kpi tabular-nums',
+              'mt-2 text-kpi tabular-nums',
               (data?.belowReorderCount ?? 0) > 0 && 'text-danger',
             )}
           >
@@ -189,10 +187,10 @@ export function InventoryPanel({
               <TableBody>
                 {items.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-mono tabular-nums">{item.sku}</TableCell>
+                    <TableCell className="tabular-nums">{item.sku}</TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-muted-foreground">{item.location ?? '—'}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       <span className="inline-flex items-center gap-1.5">
                         {formatNumber(item.quantityOnHand, locale)}
                         {item.belowReorderPoint && (
@@ -200,21 +198,21 @@ export function InventoryPanel({
                         )}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatNumber(item.reorderPoint, locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatMoney(
                         item.unitCostOriginal,
                         item.unitCostCurrency as 'GTQ' | 'USD',
                         locale,
                       )}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatMoney(item.stockValueBase, moneda, locale)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{item.supplier ?? '—'}</TableCell>
-                    <TableCell className="font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="tabular-nums text-muted-foreground">
                       {item.lastRestockDate ? formatDate(item.lastRestockDate, locale) : '—'}
                     </TableCell>
                     <TableCell>
@@ -283,7 +281,7 @@ export function InventoryPanel({
               <TableBody>
                 {movimientos!.movements.map((m) => (
                   <TableRow key={m.id}>
-                    <TableCell className="font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="tabular-nums text-muted-foreground">
                       {formatDate(m.occurredAt, locale)}
                     </TableCell>
                     <TableCell className="font-medium">{m.itemName}</TableCell>
@@ -300,14 +298,14 @@ export function InventoryPanel({
                         {labels.movement[m.movementType]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {/* El signo lo pone el tipo, no el número guardado (que es positivo
                           salvo en ajustes). Mostrarlo aquí evita leer "salida 30" como una
                           suma. */}
                       {m.movementType === 'out' ? '−' : m.movementType === 'in' ? '+' : ''}
                       {formatNumber(Math.abs(m.quantity), locale)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatNumber(m.quantityAfter, locale)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{m.reason ?? '—'}</TableCell>

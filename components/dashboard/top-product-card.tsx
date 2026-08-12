@@ -51,7 +51,7 @@ export function TopProductCard({
       ) : (
         <>
           <p className="mt-2 text-cardh2">{primero.name}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(primero.revenue, moneda, locale)}
           </p>
           {resto.length > 0 && (
@@ -59,7 +59,7 @@ export function TopProductCard({
               {resto.map((p) => (
                 <li key={p.productId} className="flex items-baseline justify-between gap-3">
                   <span className="min-w-0 truncate text-body">{p.name}</span>
-                  <span className="shrink-0 font-mono text-body tabular-nums text-muted-foreground">
+                  <span className="shrink-0 text-body tabular-nums text-muted-foreground">
                     {formatMoney(p.revenue, moneda, locale)}
                   </span>
                 </li>

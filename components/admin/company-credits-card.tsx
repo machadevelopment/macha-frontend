@@ -127,7 +127,7 @@ export function CompanyCreditsCard({
           {/* Créditos no son dinero: no llevan código de moneda (no son GTQ ni USD).
               Sí son un número que se lee, así que pasa por el formateo centralizado y
               por la regla mono, como el resto de las cifras. */}
-          <span className="font-mono tabular-nums text-h2">{formatNumber(balance)}</span>
+          <span className="tabular-nums text-h2">{formatNumber(balance)}</span>
           {balance <= 0 && <Badge variant="danger">{labels.noBalance}</Badge>}
         </div>
       </div>
@@ -144,7 +144,7 @@ export function CompanyCreditsCard({
             value={delta}
             onChange={(e) => setDelta(e.target.value)}
             placeholder="500"
-            className="w-28 font-mono tabular-nums"
+            className="w-28 tabular-nums"
           />
         </div>
         <div className="flex min-w-64 flex-1 flex-col gap-1">
@@ -185,12 +185,10 @@ export function CompanyCreditsCard({
         <TableBody>
           {movements.map((m) => (
             <TableRow key={m.id}>
-              <TableCell className="font-mono tabular-nums text-eyebrow text-faint">
+              <TableCell className="tabular-nums text-eyebrow text-faint">
                 {formatDate(m.createdAt)}
               </TableCell>
-              <TableCell
-                className={`font-mono tabular-nums ${m.delta < 0 ? 'text-danger' : 'text-success'}`}
-              >
+              <TableCell className={`tabular-nums ${m.delta < 0 ? 'text-danger' : 'text-success'}`}>
                 {m.delta > 0 ? '+' : ''}
                 {formatNumber(m.delta)}
               </TableCell>

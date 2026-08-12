@@ -1,7 +1,5 @@
-import { TrendingDown, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { formatPct } from '@/lib/format';
+import { DeltaBadge } from '@/components/charts/delta-badge';
 import type { Locale } from '@/lib/i18n/config';
 import { cn } from '@/lib/cn';
 import { Sparkline } from '@/components/charts/sparkline';
@@ -77,8 +75,6 @@ export function KpiCard({
     );
   }
 
-  const isGood = invertDelta ? (delta ?? 0) <= 0 : (delta ?? 0) >= 0;
-
   return (
     // La elevación al pasar el cursor viene del prototipo. Con transform+transition de
     // CSS y no con framer-motion: es una dependencia entera para un desplazamiento de
@@ -103,24 +99,17 @@ export function KpiCard({
         encima del de al lado y los dos queden ilegibles es peor, y la cifra completa está una
         línea más abajo en `exact`.
       */}
-      <p className="mt-1 min-w-0 truncate font-mono text-kpi tabular-nums">{value}</p>
+      <p className="mt-1 min-w-0 truncate text-kpi tabular-nums">{value}</p>
       {exact !== undefined && (
-        <p className="mt-1 font-mono text-body tabular-nums text-muted-foreground">{exact}</p>
+        <p className="mt-1 text-body tabular-nums text-muted-foreground">{exact}</p>
       )}
       {secondary !== undefined && (
-        <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">{secondary}</p>
+        <p className="mt-0.5 text-body tabular-nums text-muted-foreground">{secondary}</p>
       )}
       {spark && <Sparkline data={spark} height={28} className="mt-2 w-full text-foreground" />}
       {hint !== undefined && <p className="mt-1 font-ui text-body text-faint">{hint}</p>}
       {delta !== undefined && (
-        <Badge variant={isGood ? 'success' : 'danger'} className="mt-2 gap-1 normal-case">
-          {delta >= 0 ? (
-            <TrendingUp className="h-3 w-3" strokeWidth={2} />
-          ) : (
-            <TrendingDown className="h-3 w-3" strokeWidth={2} />
-          )}
-          {formatPct(Math.abs(delta), locale)}
-        </Badge>
+        <DeltaBadge value={delta} invert={invertDelta} locale={locale} className="mt-2" />
       )}
       {delta !== undefined && deltaCaption && (
         <p className="mt-1 font-ui text-body text-faint">{deltaCaption}</p>

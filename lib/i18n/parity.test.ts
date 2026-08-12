@@ -64,10 +64,18 @@ describe('paridad de diccionarios ES/EN', () => {
     // CU-868kh8zvt — el backoffice pasa a ser bilingüe; estas dos coinciden de verdad.
     'admin.aiCost.colTokens', // "Tokens in/out" — la abreviatura es la misma en ambos
     'admin.companyDetail.colEmail', // "Email"
+    // Ticket B5 — la vista consolidada trae las mismas dos cabeceras a la tabla de
+    // empresas, por la misma razón: "Plan" se escribe igual en español y en inglés, y
+    // "Tokens in/out" es la abreviatura que usa la industria en los dos idiomas.
+    'admin.companies.colPlan',
+    'admin.companies.colTokens',
     // Pantallas nuevas del prototipo MVP Macha.
     'analytics.colTotal', // "Total" — misma palabra en los dos idiomas
     'inventory.colSku', // "SKU" — sigla internacional, no se traduce
     'inventory.fieldSku', // idem
+    // Ticket B3: la pantalla de créditos pasó a ser gestión de plan y su eyebrow es
+    // "PLAN", que se escribe igual en español y en inglés.
+    'credits.eyebrow',
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {
@@ -99,6 +107,27 @@ describe('claves introducidas por CU-868kh8rz8 (antes hardcodeadas)', () => {
     'dashboard.chart.period', // tabla sr-only de trend-chart
     'dashboard.chart.aging', // tabla sr-only de ar-ap-chart
   ];
+
+  for (const key of REQUIRED) {
+    test(`${key} existe en ambos diccionarios`, () => {
+      expect(flatEs.has(key)).toBe(true);
+      expect(flatEn.has(key)).toBe(true);
+    });
+  }
+});
+
+/**
+ * CU-868kkgbtv: las claves del camino de FALLO del dropzone de documentos.
+ *
+ * `document-dropzone.tsx` tenía un `toast.error('No se pudo subir el archivo…')`
+ * quemado en español; CU-868kkgb3c lo cambió por estas dos claves. Se fijan acá
+ * porque son del camino que nadie ejercita a mano — un fallo de red al subir un
+ * Excel — que es exactamente por lo que el string quemado sobrevivió a la primera
+ * pasada de i18n. Si alguien las borra, el componente deja de compilar, pero esto
+ * deja constancia de POR QUÉ existen.
+ */
+describe('claves del camino de fallo del dropzone (CU-868kkgbtv)', () => {
+  const REQUIRED = ['common.loadError.network', 'common.loadError.server'];
 
   for (const key of REQUIRED) {
     test(`${key} existe en ambos diccionarios`, () => {

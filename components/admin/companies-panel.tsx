@@ -9,6 +9,7 @@ import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request, requestJson } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney, formatNumber } from '@/lib/format';
 import {
   Table,
   TableBody,
@@ -18,6 +19,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+/**
+ * Ticket B5 — la fila trae, además de la identidad de la empresa, su plan, su saldo de
+ * créditos y su consumo de IA acumulado. Todo viene de UNA sola respuesta
+ * (`/api/admin/companies/overview`): con el listado a secas, el saldo era una petición
+ * POR EMPRESA y el costo otra pantalla distinta.
+ */
 interface CompanyRow {
   id: string;
   name: string;
@@ -25,6 +32,19 @@ interface CompanyRow {
   baseCurrency: string;
   status: 'active' | 'suspended';
   createdAt: string;
+  /**
+   * `planName` es el nombre del catálogo `plans`; `planCode` es lo que hay escrito en la
+   * suscripción. Se prefiere el nombre y se cae al código porque un plan retirado del
+   * catálogo deja suscripciones vivas apuntándolo, y en ese caso el código sigue siendo
+   * más informativo que un guion. Ambos son `null` en una empresa sin suscripción.
+   */
+  planCode: string | null;
+  planName: string | null;
+  creditBalance: number;
+  /** Mismos nombres que `/admin/ai-cost` — las dos tablas se formatean con el mismo código. */
+  totalCostUsd: string;
+  totalInputTokens: string;
+  totalOutputTokens: string;
 }
 
 const PAGE_SIZE = 50;
@@ -50,10 +70,13 @@ export function CompaniesPanel({
   // CU-868kkgb3c: este panel era el ÚNICO con un `.catch`, pero atribuía cualquier
   // fallo a "no autorizado" — un 500 o un corte de red se reportaban como falta de
   // permisos. Ahora el motivo real lo clasifica `request`.
+  // Ticket B5: la fuente pasa a ser `/overview`, que devuelve el mismo listado paginado
+  // ya cruzado con plan, saldo y consumo de IA. El contrato de paginación es idéntico,
+  // así que el "cargar más" no cambia.
   const { state, loadMore, loadingMore, moreError, reload } = usePagedList<CompanyRow>(
     useCallback(async (offset) => {
       const result = await request<{ companies: CompanyRow[]; hasMore: boolean }>(
-        `/api/admin/companies?limit=${PAGE_SIZE}&offset=${offset}`,
+        `/api/admin/companies/overview?limit=${PAGE_SIZE}&offset=${offset}`,
       );
       return result.ok
         ? {
@@ -144,6 +167,10 @@ export function CompaniesPanel({
               <TableHead>{labels.colCompany}</TableHead>
               <TableHead>{labels.colIndustry}</TableHead>
               <TableHead>{labels.colCurrency}</TableHead>
+              <TableHead>{labels.colPlan}</TableHead>
+              <TableHead>{labels.colBalance}</TableHead>
+              <TableHead>{labels.colAiCost}</TableHead>
+              <TableHead>{labels.colTokens}</TableHead>
               <TableHead>{labels.colStatus}</TableHead>
               <TableHead />
             </TableRow>
@@ -159,7 +186,31 @@ export function CompaniesPanel({
                 <TableCell className="font-mono text-eyebrow uppercase text-faint">
                   {c.industry}
                 </TableCell>
-                <TableCell className="font-mono tabular-nums">{c.baseCurrency}</TableCell>
+                <TableCell className="tabular-nums">{c.baseCurrency}</TableCell>
+                {/* El plan es texto de catálogo, no un dato de "va bien o mal": sin color.
+                    Cuando no hay suscripción se dice con palabras, no con un guion. */}
+                <TableCell className="text-body">
+                  {c.planName ?? c.planCode ?? <span className="text-faint">{labels.noPlan}</span>}
+                </TableCell>
+                {/* Saldo agotado = la empresa no puede pedir un insight. Eso SÍ es un
+                    estado, así que va con color funcional y —regla del design guide §2.6—
+                    como chip completo (texto+fondo+borde), nunca texto de color suelto. */}
+                <TableCell className="tabular-nums">
+                  {c.creditBalance <= 0 ? (
+                    <Badge variant="danger">{formatNumber(c.creditBalance)}</Badge>
+                  ) : (
+                    formatNumber(c.creditBalance)
+                  )}
+                </TableCell>
+                {/* Código de moneda explícito y 4 decimales, igual que `/admin/ai-cost`:
+                    el costo por llamada está en el orden de USD 0.0004 y con 2 decimales
+                    una empresa con consumo real se vería como cero. */}
+                <TableCell className="tabular-nums">
+                  {formatMoney(c.totalCostUsd, 'USD', 'es', { fractionDigits: 4 })}
+                </TableCell>
+                <TableCell className="tabular-nums">
+                  {formatNumber(c.totalInputTokens)} / {formatNumber(c.totalOutputTokens)}
+                </TableCell>
                 <TableCell>
                   <Badge variant={c.status === 'active' ? 'success' : 'danger'}>{c.status}</Badge>
                 </TableCell>
@@ -172,6 +223,14 @@ export function CompaniesPanel({
             ))}
           </TableBody>
         </Table>
+        {/* El drill-down NO se va: esta tabla da el total de IA por empresa y la
+            descomposición por tipo de acción sigue en `/admin/ai-cost`. */}
+        <a
+          href="/admin/ai-cost"
+          className="mt-3 inline-block text-body text-muted-foreground underline"
+        >
+          {labels.aiCostBreakdown}
+        </a>
         {moreError && (
           <AdminLoadError error={moreError} labels={common.loadError} onRetry={loadMore} />
         )}

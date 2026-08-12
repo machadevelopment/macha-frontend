@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, MessageSquare } from 'lucide-react';
+import { Download, ExternalLink, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -136,6 +136,27 @@ export function ReportDetail({
     window.open(result.data.url, '_blank', 'noopener,noreferrer');
   }
 
+  /**
+   * Descarga en PDF o Excel (ticket B2). Misma mecánica que `openRendered` y por la misma
+   * razón: el backend NO devuelve el binario sino una URL prefirmada de S3, de vida corta.
+   *
+   * Se comparte el manejo de fallo con `openRendered`, incluido el motivo original de
+   * CU-868kkg9z5: abrir `undefined` en una pestaña nueva le muestra al usuario una página
+   * en blanco, que lee como "el reporte salió vacío" en vez de "no se pudo descargar".
+   *
+   * Un 404 acá tiene un significado propio y esperable: el reporte existe pero su
+   * exportación todavía no — la generación es asíncrona. El texto del backend lo dice, y
+   * `errorMessage` lo conserva.
+   */
+  async function download(format: 'pdf' | 'xlsx') {
+    const result = await request<{ url: string }>(`/api/reports/${reportId}/export/${format}`);
+    if (!result.ok) {
+      setSaveError(errorMessage(result.error) ?? common.loadError.server);
+      return;
+    }
+    window.open(result.data.url, '_blank', 'noopener,noreferrer');
+  }
+
   // CU-868kh8uau: se manda `versionId` (el `report_versions.id` real), no `reportId`.
   // Antes iba el id del REPORTE en el campo que dice contener el de la VERSIÓN y, al no
   // haber FK, la referencia falsa se persistía en silencio. El backend ahora valida y
@@ -169,7 +190,7 @@ export function ReportDetail({
           normal— no había forma de saber qué se estaba leyendo. El período es la
           identidad del documento, así que es el título. */}
       <div>
-        <h1 className="font-mono text-h1 tabular-nums">
+        <h1 className="text-h1 tabular-nums">
           {formatDate(report.periodStart, locale)} — {formatDate(report.periodEnd, locale)}
         </h1>
         <div className="mt-1 flex items-center gap-2">
@@ -191,24 +212,44 @@ export function ReportDetail({
           <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.7} />
           {labels.askInChat}
         </Button>
+        {/* Ticket B2. Van junto a "Ver versión final" porque son la misma acción vista de
+            tres formas —abrir el reporte— y no una función aparte escondida en otro lado. */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => void download('pdf')}
+        >
+          <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+          {labels.downloadPdf}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => void download('xlsx')}
+        >
+          <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+          {labels.downloadExcel}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.revenue}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.revenue, currency, locale)}
           </p>
         </Card>
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.cogs}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.cogs, currency, locale)}
           </p>
         </Card>
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.margin}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {/* CU-868kh8y58: `report_versions.metrics` es un jsonb en un ledger
                 append-only, así que las versiones emitidas ANTES de esta decisión
                 conservan `margin` para siempre y no hay migración que las alcance.
@@ -217,7 +258,7 @@ export function ReportDetail({
             {formatMoney(report.metrics.grossProfit ?? report.metrics.margin, currency, locale)}
           </p>
           {report.metrics.grossMarginPct != null && (
-            <p className="mt-0.5 font-mono text-body tabular-nums text-muted-foreground">
+            <p className="mt-0.5 text-body tabular-nums text-muted-foreground">
               {formatPct(report.metrics.grossMarginPct / 100, locale)}
             </p>
           )}
@@ -232,13 +273,13 @@ export function ReportDetail({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.arOpen}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.accountsReceivableOpen, currency, locale)}
           </p>
         </Card>
         <Card>
           <p className="font-mono text-eyebrow uppercase text-faint">{labels.kpi.apOpen}</p>
-          <p className="mt-1 font-mono text-kpi tabular-nums">
+          <p className="mt-1 text-kpi tabular-nums">
             {formatMoney(report.metrics.accountsPayableOpen, currency, locale)}
           </p>
         </Card>

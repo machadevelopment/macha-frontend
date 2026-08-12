@@ -134,7 +134,7 @@ function SessionUnavailable({
   return (
     <main
       data-density="comfortable"
-      className="mx-auto flex min-h-screen max-w-app flex-col items-start justify-center gap-3 p-[var(--density-main-p)]"
+      className="mx-auto flex min-h-dvh max-w-app flex-col items-start justify-center gap-3 p-[var(--density-main-p)]"
     >
       <div className="flex w-full items-center justify-between">
         <p className="font-mono text-eyebrow uppercase text-faint">{t.home.eyebrow}</p>
