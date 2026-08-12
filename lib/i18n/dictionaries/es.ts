@@ -58,6 +58,8 @@ export const es: Dictionary = {
       colKind: 'Tipo',
       colCost: 'Costo',
       colTokens: 'Tokens in/out',
+      colCache: 'Caché',
+      cacheNone: 'sin datos',
       colCalls: 'Llamadas',
     },
     companies: {

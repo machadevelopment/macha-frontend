@@ -5,7 +5,7 @@ import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
 import type { Dictionary } from '@/lib/i18n/dictionary';
-import { formatMoney, formatNumber } from '@/lib/format';
+import { formatMoney, formatNumber, formatPct } from '@/lib/format';
 import {
   Table,
   TableBody,
@@ -22,6 +22,17 @@ interface CostRow {
   totalCostUsd: string;
   totalInputTokens: string;
   totalOutputTokens: string;
+  totalCacheReadTokens: string;
+  totalCacheCreationTokens: string;
+  /**
+   * Fracción de la ENTRADA servida desde el caché de prompt, ya calculada en el backend
+   * (`lib/ai-usage.ts`). No se deriva acá a propósito: es una cifra que más de una pantalla
+   * va a mostrar y que no puede diferir entre ellas.
+   *
+   * `null` = la empresa no tiene entrada registrada. Distinto de 0, que es "el caché no
+   * pegó": pintar 0 % donde no hay datos es una alarma falsa.
+   */
+  cacheHitRate: number | null;
   callCount: string;
 }
 
@@ -52,6 +63,7 @@ export function AiCostPanel({
             <TableHead>{labels.colKind}</TableHead>
             <TableHead>{labels.colCost}</TableHead>
             <TableHead>{labels.colTokens}</TableHead>
+            <TableHead>{labels.colCache}</TableHead>
             <TableHead>{labels.colCalls}</TableHead>
           </TableRow>
         </TableHeader>
@@ -70,6 +82,17 @@ export function AiCostPanel({
               </TableCell>
               <TableCell className="tabular-nums">
                 {formatNumber(r.totalInputTokens)} / {formatNumber(r.totalOutputTokens)}
+              </TableCell>
+              {/* Sin color de estado: no hay un umbral acordado de "buena" tasa de caché,
+                  y pintar de verde o rojo un número sin criterio inventa una alarma. Es un
+                  dato para leer, no un semáforo — y el verde de marca nunca va sobre un
+                  dato (regla de los dos verdes). */}
+              <TableCell className="tabular-nums">
+                {r.cacheHitRate === null ? (
+                  <span className="text-faint">{labels.cacheNone}</span>
+                ) : (
+                  formatPct(r.cacheHitRate, 'es', 0)
+                )}
               </TableCell>
               <TableCell className="tabular-nums">{formatNumber(r.callCount)}</TableCell>
             </TableRow>
