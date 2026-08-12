@@ -6,6 +6,7 @@ import { Download, ExternalLink, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ShowcaseFrame, ShowcaseSeal } from '@/components/ui/showcase';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadError } from '@/components/ui/load-error';
 import { errorMessage, request, requestJson, type RequestError } from '@/lib/api/browser';
@@ -188,18 +189,47 @@ export function ReportDetail({
           repetían los de la lista ("REPORTES / Reportes") y el único identificador
           visible era "v3": llegando por el deep-link del email —que es el camino
           normal— no había forma de saber qué se estaba leyendo. El período es la
-          identidad del documento, así que es el título. */}
-      <div>
-        <h1 className="text-h1 tabular-nums">
-          {formatDate(report.periodStart, locale)} — {formatDate(report.periodEnd, locale)}
-        </h1>
-        <div className="mt-1 flex items-center gap-2">
-          <Badge variant="neutral">{frequencyLabel}</Badge>
-          <span className="font-mono text-eyebrow uppercase text-faint">
-            {labels.baseCurrencyLabel}: {currency}
+          identidad del documento, así que es el título.
+
+          CU-868knx0vh — LA CABECERA ES VITRINA, EL CUERPO NO (design guide §2.7). Un
+          reporte se comparte: se abre desde un correo, se descarga en PDF, se le manda al
+          contador o a un banco. Su encabezado es la cara de Macha delante de alguien que
+          quizá no es usuario del producto, así que lleva marca al 100% — atmósfera del
+          Insight Point, sello con el isotipo y la barra del degradado del Brand Book.
+
+          Y SE CORTA ACÁ. `ShowcaseFrame` recorta la atmósfera dentro del panel: debajo
+          vienen KPIs y cifras, y el salvia jamás va detrás de un dato (compite con el verde
+          funcional de los deltas y hace dudar de a quién pertenece el color). Por eso el
+          marco envuelve solo este bloque y no el `<div>` de toda la pantalla. */}
+      <ShowcaseFrame className="rounded-xl border border-border bg-card shadow-card">
+        <div className="flex items-start gap-4 p-[var(--density-card-p)]">
+          {/* Las barras del isotipo, tumbadas a filete vertical: el degradado de
+              `bg-brand-bar` es vertical, así que en un elemento alto se lee como el asset y
+              no como una raya de color. */}
+          <span className="w-[3px] shrink-0 self-stretch rounded-sm bg-brand-bar" aria-hidden />
+
+          <div className="min-w-0 flex-1">
+            <h1 className="text-h1 tabular-nums">
+              {formatDate(report.periodStart, locale)} — {formatDate(report.periodEnd, locale)}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              {/* Chip NEUTRO y no de marca: la frecuencia es un atributo del documento, y un
+                  chip salvia acá empezaría a calificar contenido. */}
+              <Badge variant="neutral">{frequencyLabel}</Badge>
+              <span className="font-mono text-eyebrow uppercase text-faint">
+                {labels.baseCurrencyLabel}: {currency}
+              </span>
+            </div>
+          </div>
+
+          {/* El sello, no un logo suelto: es la firma de quien emite el documento. Se
+              esconde en pantallas angostas para no robarle el ancho al período, que es la
+              identidad del reporte. */}
+          <span className="hidden sm:block">
+            <ShowcaseSeal size="md" />
           </span>
         </div>
-      </div>
+      </ShowcaseFrame>
 
       {!editing && saveError && <p className="text-body text-danger">{saveError}</p>}
 
