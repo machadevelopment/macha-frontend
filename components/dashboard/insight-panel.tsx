@@ -82,9 +82,7 @@ export function InsightPanel({
         </Button>
       </div>
 
-      {state.status === 'done' && (
-        <p className="mt-3 whitespace-pre-wrap text-body">{state.narrative}</p>
-      )}
+      {state.status === 'done' && <InsightCards narrative={state.narrative} />}
 
       {state.status === 'error' && (
         <div className="mt-3 flex flex-col items-start gap-1">
@@ -119,6 +117,70 @@ export function InsightPanel({
         </div>
       )}
     </Card>
+  );
+}
+
+/**
+ * El consejo, partido en una tarjeta por insight (CU-868knx0vh).
+ *
+ * ═══ POR QUÉ NO HAY ETIQUETAS DE CATEGORÍA ═══
+ *
+ * El prompt de rediseño pide "tarjetas con etiqueta de categoría (Cobranza, Ventas,
+ * Financiero)". NO SE IMPLEMENTAN, y no es por falta de ganas: `POST /insights` devuelve un
+ * único `narrative` de TEXTO PLANO —el prompt del backend dice literalmente "Responde en
+ * texto plano, sin markdown"— y no trae ningún campo de categoría.
+ *
+ * La única forma de poner esas etiquetas desde acá sería adivinarlas por palabras clave del
+ * texto. Eso es rotular el consejo financiero de un cliente con una categoría que nadie
+ * calculó: un insight sobre margen etiquetado "Cobranza" no es un detalle estético, es
+ * información falsa en la pantalla donde el dueño decide.
+ *
+ * Para tenerlas de verdad hace falta que el backend las devuelva (structured output en
+ * `generateInsightNarrative` + un campo por insight). OJO al hacerlo: el prompt vive en
+ * `platform_settings.insight_prompt_template`, así que cambiar `DEFAULT_INSIGHT_PROMPT` NO
+ * afecta a los entornos donde esa fila ya existe — hay que actualizar el parámetro desde
+ * Business parameters.
+ *
+ * ═══ QUÉ SÍ SE HACE ═══
+ *
+ * Separar en tarjetas es fiel al dato: el prompt pide "2-3 insights", así que los párrafos
+ * SON las unidades que el modelo emitió. Si no vinieran separados, esto degrada a una sola
+ * tarjeta con el texto completo — que es exactamente lo correcto, y no una división
+ * inventada a la mitad de una frase.
+ */
+function InsightCards({ narrative }: { narrative: string }) {
+  const insights = narrative
+    .split(/\n\s*\n|\n/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  // Un solo bloque: se pinta como venía. Partir por punto sería inventar el corte.
+  if (insights.length <= 1) {
+    return <p className="mt-3 whitespace-pre-wrap text-body">{narrative}</p>;
+  }
+
+  return (
+    <ul className="mt-3 flex flex-col gap-2">
+      {insights.map((texto, i) => (
+        <li
+          key={i}
+          /*
+           * Superficie tenue y filete, no una tarjeta con sombra: estas viven DENTRO de una
+           * Card que ya tiene la suya, y anidar dos sombras es lo que hace que un panel se
+           * vea inflado en vez de jerárquico.
+           */
+          className="rounded-md border border-border bg-soft px-3 py-2.5"
+        >
+          {/*
+            El número ordena sin nombrar. Es lo que se puede afirmar del dato —son el
+            insight 1, 2 y 3 de esta corrida— a diferencia de una categoría, que habría que
+            adivinar. Va en mono porque es un marcador, no una cifra de negocio.
+          */}
+          <span className="font-mono text-eyebrow text-faint">{i + 1}</span>
+          <p className="mt-0.5 whitespace-pre-wrap text-body">{texto}</p>
+        </li>
+      ))}
+    </ul>
   );
 }
 
