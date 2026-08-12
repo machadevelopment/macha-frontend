@@ -9,7 +9,11 @@ import { requestJson } from '@/lib/api/browser';
 import { formatNumber } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
-import type { InsightResponse, InsufficientCreditsResponse } from '@/lib/api/dashboard';
+import type {
+  InsightCategory,
+  InsightResponse,
+  InsufficientCreditsResponse,
+} from '@/lib/api/dashboard';
 
 // CU-868kfvabk: the hard block (criterio 3) is enforced server-side (POST
 // /insights) — this component only reflects whatever the backend decides, it
@@ -43,7 +47,7 @@ export function InsightPanel({
     | { status: 'idle' }
     | { status: 'loading' }
     | { status: 'error'; failure: Failure }
-    | { status: 'done'; narrative: string }
+    | { status: 'done'; insights: InsightResponse['insights']; narrative: string }
   >({ status: 'idle' });
 
   async function generate() {
@@ -58,7 +62,11 @@ export function InsightPanel({
       setState({ status: 'error', failure: classify(result.error.status, result.error.body) });
       return;
     }
-    setState({ status: 'done', narrative: result.data.narrative });
+    setState({
+      status: 'done',
+      insights: result.data.insights ?? [],
+      narrative: result.data.narrative,
+    });
     onCreditsUpdated(result.data.creditBalance);
   }
 
@@ -82,7 +90,9 @@ export function InsightPanel({
         </Button>
       </div>
 
-      {state.status === 'done' && <InsightCards narrative={state.narrative} />}
+      {state.status === 'done' && (
+        <InsightCards insights={state.insights} narrative={state.narrative} labels={labels} />
+      )}
 
       {state.status === 'error' && (
         <div className="mt-3 flex flex-col items-start gap-1">
@@ -121,67 +131,84 @@ export function InsightPanel({
 }
 
 /**
- * El consejo, partido en una tarjeta por insight (CU-868knx0vh).
+ * El consejo, en una tarjeta por insight y con su categoría (CU-868knx0vh).
  *
- * ═══ POR QUÉ NO HAY ETIQUETAS DE CATEGORÍA ═══
+ * ═══ LA CATEGORÍA VIENE DEL BACKEND, NO SE ADIVINA ═══
  *
- * El prompt de rediseño pide "tarjetas con etiqueta de categoría (Cobranza, Ventas,
- * Financiero)". NO SE IMPLEMENTAN, y no es por falta de ganas: `POST /insights` devuelve un
- * único `narrative` de TEXTO PLANO —el prompt del backend dice literalmente "Responde en
- * texto plano, sin markdown"— y no trae ningún campo de categoría.
+ * Una versión anterior de este componente NO ponía etiquetas, y por una buena razón:
+ * `POST /insights` devolvía un solo texto plano, y la única forma de rotularlo desde acá
+ * habría sido adivinar por palabras clave. Un insight sobre margen etiquetado "Cobranza" no
+ * es un detalle estético — es información falsa en la pantalla donde el dueño decide.
  *
- * La única forma de poner esas etiquetas desde acá sería adivinarlas por palabras clave del
- * texto. Eso es rotular el consejo financiero de un cliente con una categoría que nadie
- * calculó: un insight sobre margen etiquetado "Cobranza" no es un detalle estético, es
- * información falsa en la pantalla donde el dueño decide.
+ * Ahora el backend clasifica de verdad (herramienta con esquema, `lib/anthropic.ts`) y manda
+ * un CÓDIGO por insight. Acá solo se traduce con el diccionario, igual que se hace con
+ * `ruleKey` de las alertas: el backend clasifica, el diccionario nombra.
  *
- * Para tenerlas de verdad hace falta que el backend las devuelva (structured output en
- * `generateInsightNarrative` + un campo por insight). OJO al hacerlo: el prompt vive en
- * `platform_settings.insight_prompt_template`, así que cambiar `DEFAULT_INSIGHT_PROMPT` NO
- * afecta a los entornos donde esa fila ya existe — hay que actualizar el parámetro desde
- * Business parameters.
+ * ═══ DEGRADACIÓN ═══
  *
- * ═══ QUÉ SÍ SE HACE ═══
- *
- * Separar en tarjetas es fiel al dato: el prompt pide "2-3 insights", así que los párrafos
- * SON las unidades que el modelo emitió. Si no vinieran separados, esto degrada a una sola
- * tarjeta con el texto completo — que es exactamente lo correcto, y no una división
- * inventada a la mitad de una frase.
+ * Si `insights` viene vacío —el modelo contestó en prosa y no llamó a la herramienta— se
+ * cae al texto partido por párrafo, SIN etiquetas. Es exactamente el comportamiento
+ * anterior: preferible sin categoría que con la categoría equivocada.
  */
-function InsightCards({ narrative }: { narrative: string }) {
-  const insights = narrative
+function InsightCards({
+  insights,
+  narrative,
+  labels,
+}: {
+  insights: InsightResponse['insights'];
+  narrative: string;
+  labels: Dictionary['dashboard'];
+}) {
+  if (insights.length > 0) {
+    return (
+      <ul className="mt-3 flex flex-col gap-2">
+        {insights.map((insight, i) => (
+          <li key={i} className="rounded-md border border-border bg-soft px-3 py-2.5">
+            {/*
+              La categoría va en mono y en tenue: ordena y agrupa, pero el protagonista es
+              el consejo. Un chip de color acá competiría con los datos del dashboard — y
+              además el color en este producto significa estado financiero, no tema.
+            */}
+            <span className="font-mono text-eyebrow uppercase text-faint">
+              {categoria(insight.category, labels)}
+            </span>
+            <p className="mt-0.5 text-body">{insight.text}</p>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Sin clasificación: el camino de antes. Los párrafos son las unidades que el modelo
+  // emitió; si viene todo junto, se pinta tal cual en vez de inventar un corte.
+  const parrafos = narrative
     .split(/\n\s*\n|\n/)
     .map((t) => t.trim())
     .filter(Boolean);
 
-  // Un solo bloque: se pinta como venía. Partir por punto sería inventar el corte.
-  if (insights.length <= 1) {
+  if (parrafos.length <= 1) {
     return <p className="mt-3 whitespace-pre-wrap text-body">{narrative}</p>;
   }
 
   return (
     <ul className="mt-3 flex flex-col gap-2">
-      {insights.map((texto, i) => (
-        <li
-          key={i}
-          /*
-           * Superficie tenue y filete, no una tarjeta con sombra: estas viven DENTRO de una
-           * Card que ya tiene la suya, y anidar dos sombras es lo que hace que un panel se
-           * vea inflado en vez de jerárquico.
-           */
-          className="rounded-md border border-border bg-soft px-3 py-2.5"
-        >
-          {/*
-            El número ordena sin nombrar. Es lo que se puede afirmar del dato —son el
-            insight 1, 2 y 3 de esta corrida— a diferencia de una categoría, que habría que
-            adivinar. Va en mono porque es un marcador, no una cifra de negocio.
-          */}
+      {parrafos.map((texto, i) => (
+        <li key={i} className="rounded-md border border-border bg-soft px-3 py-2.5">
           <span className="font-mono text-eyebrow text-faint">{i + 1}</span>
           <p className="mt-0.5 whitespace-pre-wrap text-body">{texto}</p>
         </li>
       ))}
     </ul>
   );
+}
+
+/**
+ * Código → etiqueta. Una categoría que el backend agregue y el diccionario todavía no
+ * conozca se muestra CRUDA en vez de romper la tarjeta: mismo criterio que `isKnownRule`
+ * en las alertas.
+ */
+function categoria(code: InsightCategory, labels: Dictionary['dashboard']): string {
+  return labels.insightCategory[code] ?? code;
 }
 
 /**

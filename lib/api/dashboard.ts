@@ -44,7 +44,19 @@ export interface CreditsBalanceResponse {
   balance: number;
 }
 
+/**
+ * Categoría de un consejo. Son los CÓDIGOS que manda el backend, no etiquetas: la
+ * traducción a ES/EN vive en el diccionario, igual que con `ruleKey` de las alertas.
+ */
+export type InsightCategory = 'collections' | 'sales' | 'financial';
+
 export interface InsightResponse {
+  /**
+   * Los consejos ya separados y clasificados por el modelo. Puede venir VACÍO si el modelo
+   * respondió en prosa en vez de llamar a la herramienta; en ese caso `narrative` trae el
+   * texto y la pantalla degrada a mostrarlo sin categorías.
+   */
+  insights: Array<{ category: InsightCategory; text: string }>;
   narrative: string;
   creditBalance: number;
 }
