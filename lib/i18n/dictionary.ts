@@ -105,6 +105,14 @@ export interface Dictionary {
       colKind: string;
       colCost: string;
       colTokens: string;
+      /**
+       * Tasa de acierto del caché de prompt (migración backend 0025). Contesta "¿el caché
+       * está pegando?" sin abrir el código — la pregunta que el diagnóstico de costos del
+       * 2026-08-12 no pudo responder con un número.
+       */
+      colCache: string;
+      /** Cuando la empresa no tiene entrada registrada: "sin datos", no "0 %". */
+      cacheNone: string;
       colCalls: string;
     };
     companies: {
