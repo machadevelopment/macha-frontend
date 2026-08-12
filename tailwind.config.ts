@@ -81,6 +81,12 @@ export default {
           soft: 'var(--brand-soft)',
           bd: 'var(--brand-bd)',
           on: 'var(--brand-on)',
+          /**
+           * Tinta de marca sobre `brand-soft`, NO sobre el salvia (para eso está `on`).
+           * Existe porque `brand-on` es casi negra en los dos temas —el salvia no cambia
+           * de tono— y sobre el `brand-soft` oscuro se vuelve invisible. Ver globals.css.
+           */
+          ink: 'var(--brand-ink)',
         },
       },
       backgroundImage: {
@@ -115,6 +121,18 @@ export default {
       borderRadius: { sm: '5px', md: '8px', lg: '10px', xl: '11px', pill: '22px' },
       fontSize: {
         h1: ['27px', { lineHeight: '1.15', letterSpacing: '-0.03em', fontWeight: '700' }],
+        /**
+         * CU-868knx0vh (zona de vitrina): titular de las pantallas que ve un cliente nuevo
+         * o un inversionista (`/`, registro, invitación, 404, error).
+         *
+         * `h1` (27px) es el título de una pantalla DE PRODUCTO, donde compite con KPIs,
+         * tablas y una barra de acciones; en una vitrina —una sola columna centrada, sin un
+         * dato en pantalla— se lee timidísimo, y era literalmente lo que el ticket llamaba
+         * "falta jerarquía tipográfica". No se reusa `statbig` (38px) aunque el tamaño sea
+         * parecido: ese token significa "esto es una cifra grande" y su tracking está
+         * calibrado para dígitos, no para prosa.
+         */
+        display: ['38px', { lineHeight: '1.1', letterSpacing: '-0.035em', fontWeight: '700' }],
         cardh2: ['15px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }],
         body: ['14px', { lineHeight: '1.5' }],
         // Escala del prototipo "MVP Macha": la cifra de KPI baja de 29px/700 a 24px/600.

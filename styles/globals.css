@@ -95,6 +95,23 @@
      oscuro. Blanco sobre #A0AF9A no llega a AA (≈2.1:1). */
   --brand-on: #1c2419;
   /*
+   * Tinta de marca sobre superficies TENUES (`--brand-soft`), que NO es lo mismo que
+   * `--brand-on` (CU-868knx0vh, zona de vitrina).
+   *
+   * `--brand-on` es la tinta sobre el SALVIA, y por eso es casi negra en los dos temas —
+   * el salvia no cambia de tono. Sobre `--brand-soft` eso funciona en claro (#1C2419
+   * sobre #EEF1EC ≈ 12:1) y se rompe en oscuro: `--brand-soft` ahí es #191D17 y
+   * `--brand-on` #0F120E, o sea tinta casi negra sobre fondo casi negro — el chip
+   * desaparece. Faltaba el token, así que existe.
+   *
+   * NO contradice "el salvia nunca es tinta de texto pequeño": el salvia (#A0AF9A) es
+   * claro y de bajo contraste, y sigue prohibido como tinta. Esto es un salvia oscurecido
+   * en claro (#4A5745 sobre #EEF1EC ≈ 6.6:1) y aclarado en oscuro (#B4C1AF sobre #191D17
+   * ≈ 9.5:1): ambos AA con margen. Y como toda marca, jamás sobre un dato — es para
+   * eyebrows y chips de identidad de vitrina (ver `Badge variant="brand"`).
+   */
+  --brand-ink: #4a5745;
+  /*
    * Insight Point: radial salvia → claro, difuminado. Dos paradas y no tres, porque son
    * las dos que tiene el asset. `--brand-glow` es la versión MUY difuminada para fondos de
    * vitrina, donde el punto es atmósfera y no una figura: va con alfa para que se apoye
@@ -213,6 +230,9 @@
   --brand-soft: #191d17;
   --brand-bd: #2f3a2b;
   --brand-on: #0f120e;
+  /* Se invierte respecto a claro: sobre `--brand-soft` oscuro (#191D17) la tinta de marca
+     tiene que ser CLARA. Ver la nota extensa en `:root`. */
+  --brand-ink: #b4c1af;
   --brand-gradient: radial-gradient(circle at 32% 28%, #b4c1af 0%, #8b9c84 55%, #5d6b57 100%);
   /* Más tenue que en claro: sobre #121212 el mismo alfa se ve el doble. */
   --brand-glow: radial-gradient(
