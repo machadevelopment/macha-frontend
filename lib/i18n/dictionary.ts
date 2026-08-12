@@ -202,6 +202,8 @@ export interface Dictionary {
       readOnlyNote: string;
       /** Prefijo de la marca de tiempo bajo cada parámetro. */
       updatedAt: string;
+      /** Autor del último cambio (ticket B7). Se antepone al correo. */
+      updatedBy: string;
       /**
        * Etiqueta y descripción de cada `platform_settings.key` editable. Las claves son
        * los identificadores REALES del backend, no se traducen — se muestran tal cual
