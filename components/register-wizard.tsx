@@ -5,8 +5,10 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Card } from '@/components/ui/card';
 import { request, requestJson, errorMessage } from '@/lib/api/browser';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
+import { InsightPoint } from '@/components/ui/insight-point';
 import { Label } from '@/components/ui/label';
 import { formatMoney, formatNumber } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -100,7 +102,19 @@ export function RegisterWizard({
       <form onSubmit={submit} className="flex flex-col gap-4">
         {planes !== null && planes.length > 0 && (
           <fieldset className="flex flex-col gap-2">
-            <legend className="mb-1 text-cardh2">{labels.planTitle}</legend>
+            {/* CU-868knx0vh: la tarjeta era una lista plana de campos con dos títulos del
+                mismo peso. El eyebrow en mono nombra las dos secciones, que es lo que le da
+                al formulario una jerarquía legible sin partirlo en pasos (la decisión de B4
+                de no partirlo sigue en pie: son cuatro campos).
+
+                El eyebrow va DENTRO del `<legend>` y no antes: un `<legend>` solo cuenta
+                como tal si es el primer hijo del `<fieldset>`. */}
+            <legend className="mb-1 flex flex-col gap-1">
+              <span className="font-mono text-eyebrow uppercase text-faint">
+                {labels.planEyebrow}
+              </span>
+              <span className="text-cardh2">{labels.planTitle}</span>
+            </legend>
             <p className="mb-1 text-body text-muted-foreground">{labels.planSubtitle}</p>
 
             {/*
@@ -118,10 +132,18 @@ export function RegisterWizard({
                   <label
                     key={plan.code}
                     className={cn(
-                      'flex cursor-pointer flex-col gap-1 rounded-md border p-3 transition-colors',
-                      elegido
-                        ? 'border-foreground bg-card'
-                        : 'border-border bg-card hover:bg-muted',
+                      'flex cursor-pointer flex-col gap-1 rounded-md border bg-card p-3 transition-colors',
+                      /*
+                       * CU-868knx0vh: el borde del plan elegido pasa de tinta a SALVIA, y el
+                       * check viaja dentro de un Insight Point.
+                       *
+                       * Es vitrina y la marca manda, pero se queda en el BORDE y en el sello:
+                       * no se pinta la superficie de la tarjeta. Adentro hay un precio, y el
+                       * salvia no va sobre un dato ni debajo de uno — un fondo verdoso bajo
+                       * una cifra hace dudar de si el color pertenece al número. El precio se
+                       * queda en tinta neutra.
+                       */
+                      elegido ? 'border-brand' : 'border-border hover:bg-muted',
                     )}
                   >
                     <span className="flex items-start justify-between gap-2">
@@ -135,7 +157,9 @@ export function RegisterWizard({
                         className="sr-only"
                       />
                       {elegido && (
-                        <Check className="h-4 w-4 shrink-0" strokeWidth={2.2} aria-hidden />
+                        <InsightPoint size="sm">
+                          <Check className="h-3.5 w-3.5" strokeWidth={2.2} />
+                        </InsightPoint>
                       )}
                     </span>
 
@@ -150,17 +174,35 @@ export function RegisterWizard({
 
                     {/* El primero del catálogo es el recomendado. El ticket pedía destacar
                         uno, y el orden lo decide `sort_order` desde el backoffice: así la
-                        recomendación se cambia sin desplegar, como el resto del catálogo. */}
+                        recomendación se cambia sin desplegar, como el resto del catálogo.
+
+                        CU-868knx0vh: pasa de texto tenue a chip de MARCA. "Recomendado" es
+                        una opinión de Macha sobre su propio catálogo —"esto es lo que la casa
+                        sugiere"—, no un juicio sobre un dato del cliente: por eso salvia y no
+                        `success`. En `text-faint` sobre blanco además rozaba el mínimo de
+                        contraste. */}
                     {i === 0 && (
-                      <span className="mt-auto pt-1 font-mono text-eyebrow uppercase text-faint">
+                      <Badge variant="brand" className="mt-auto w-fit">
                         {labels.planRecommended}
-                      </span>
+                      </Badge>
                     )}
                   </label>
                 );
               })}
             </div>
           </fieldset>
+        )}
+
+        {/* Segunda sección. El separador y el eyebrow existen por lo mismo que arriba: el
+            plan es la decisión y esto es el trámite, y hasta ahora los dos bloques pesaban
+            igual en pantalla. */}
+        {planes !== null && planes.length > 0 && (
+          <div className="mt-1 flex flex-col gap-1 border-t border-soft pt-4">
+            <span className="font-mono text-eyebrow uppercase text-faint">
+              {labels.companyEyebrow}
+            </span>
+            <span className="text-cardh2">{labels.companyTitle}</span>
+          </div>
         )}
 
         <Field
@@ -208,7 +250,16 @@ export function RegisterWizard({
           </select>
         </div>
 
-        {error && <p className="text-body text-danger">{error}</p>}
+        {/* Tripleta texto+fondo+borde (design guide §1.3): el color de estado nunca va solo
+            como tinta. Era `text-danger` a secas sobre la tarjeta blanca. */}
+        {error && (
+          <p
+            role="alert"
+            className="rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-body text-danger"
+          >
+            {error}
+          </p>
+        )}
 
         <Button type="submit" disabled={submitting}>
           {submitting ? labels.submitting : irAPago ? labels.submit : labels.submitFree}
