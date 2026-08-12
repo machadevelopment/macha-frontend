@@ -1,29 +1,46 @@
 import { cn } from '@/lib/cn';
 
 /**
- * Insight Point — el gradiente radial salvia del Brand Book, como componente reutilizable
- * (CU-868knx0vh).
+ * Insight Point — el recurso gráfico del Brand Book que representa el origen de la
+ * información. El manual lo define como un gradiente radial salvia, difuminado.
  *
- * Es el único elemento del sistema que usa el verde de MARCA, y por eso existe como
+ * ⚠️ CORREGIDO al llegar los assets: el gradiente de la primera versión inventaba una
+ * tercera parada oscura (#7F9077) que no existe en el Brand Book. El degradado real va
+ * entre el salvia (#A1B09B) y el claro (#F4F4F2), y nada más — muestreado del isotipo.
+ *
+ * ES EL ÚNICO ELEMENTO DEL SISTEMA QUE USA EL VERDE DE MARCA, y por eso existe como
  * componente en vez de como una clase suelta: concentrar el salvia en un solo lugar es lo
- * que evita que se filtre a los datos. La regla de los dos verdes (ver `globals.css`) se
- * cae en el momento en que alguien escribe `bg-brand` sobre un KPI; teniendo el
- * componente, no hay razón para escribirlo.
+ * que evita que se filtre a los datos. La regla de los dos verdes se cae en el momento en
+ * que alguien escribe `bg-brand` sobre un KPI; teniendo el componente, no hay razón para
+ * escribirlo.
  *
- * DÓNDE VA: identidad y vitrina — el sello del asesor, la cabecera de reportes, las
- * pantallas de registro/login/invitación. NUNCA sobre un dato, un delta o un chip de
- * estado; ahí el color lo pone `success`/`danger`.
+ * ═══ DOS MODOS, Y LA DIFERENCIA IMPORTA ═══
  *
- * El gradiente vive en `--brand-gradient` y no acá, así que el degradado se ajusta en un
- * solo archivo y este componente solo decide tamaño y contenido.
+ * `figure` (default) — el punto como OBJETO: sello del asesor, avatar de marca, acento
+ * junto a un título. Opaco, con el degradado nítido.
+ *
+ * `ambient` — el punto como ATMÓSFERA: una mancha muy difuminada y con alfa, detrás de un
+ * bloque de vitrina. Se posiciona en absoluto y no captura el puntero.
+ *
+ * ═══ DÓNDE NO VA ═══
+ *
+ * **NUNCA detrás de una tabla o una gráfica.** Es instrucción explícita del prompt de
+ * rediseño y tiene una razón que va más allá del gusto: el salvia compite con el verde
+ * funcional de las series y los deltas, y un fondo verdoso bajo una cifra hace dudar de si
+ * el color pertenece al dato. Va en vitrina, en el estado vacío del dashboard, en la
+ * cabecera de reportes y como acento de marca.
+ *
+ * Tampoco va en `/admin/*`: el backoffice es premium sobrio, sin decoración de marca.
  */
 export function InsightPoint({
   size = 'md',
+  variant = 'figure',
   className,
   children,
   label,
 }: {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'figure' | 'ambient';
   className?: string;
   /** Un ícono, normalmente. Se pinta con `--brand-on`, la tinta legible sobre el salvia. */
   children?: React.ReactNode;
@@ -34,7 +51,25 @@ export function InsightPoint({
     sm: 'h-6 w-6',
     md: 'h-9 w-9',
     lg: 'h-14 w-14',
+    xl: 'h-20 w-20',
   }[size];
+
+  if (variant === 'ambient') {
+    return (
+      /*
+       * `aria-hidden` sin excepción y `pointer-events-none`: es atmósfera. Anunciarlo a un
+       * lector de pantalla o dejar que intercepte un clic serían las dos formas de que un
+       * fondo decorativo estorbe.
+       *
+       * Sin `overflow-hidden` propio: lo recorta el contenedor que lo posiciona, que es
+       * quien sabe hasta dónde debe llegar la mancha.
+       */
+      <span
+        aria-hidden
+        className={cn('pointer-events-none absolute bg-insight-glow blur-2xl', className)}
+      />
+    );
+  }
 
   return (
     <span
@@ -42,7 +77,6 @@ export function InsightPoint({
       aria-label={label}
       aria-hidden={label ? undefined : true}
       className={cn(
-        // `bg-insight` es la utilidad que expone `--brand-gradient` (tailwind.config).
         'inline-flex shrink-0 items-center justify-center rounded-pill bg-insight text-[var(--brand-on)]',
         dims,
         className,
