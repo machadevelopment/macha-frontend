@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, MessageSquare } from 'lucide-react';
+import { Download, ExternalLink, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -136,6 +136,27 @@ export function ReportDetail({
     window.open(result.data.url, '_blank', 'noopener,noreferrer');
   }
 
+  /**
+   * Descarga en PDF o Excel (ticket B2). Misma mecánica que `openRendered` y por la misma
+   * razón: el backend NO devuelve el binario sino una URL prefirmada de S3, de vida corta.
+   *
+   * Se comparte el manejo de fallo con `openRendered`, incluido el motivo original de
+   * CU-868kkg9z5: abrir `undefined` en una pestaña nueva le muestra al usuario una página
+   * en blanco, que lee como "el reporte salió vacío" en vez de "no se pudo descargar".
+   *
+   * Un 404 acá tiene un significado propio y esperable: el reporte existe pero su
+   * exportación todavía no — la generación es asíncrona. El texto del backend lo dice, y
+   * `errorMessage` lo conserva.
+   */
+  async function download(format: 'pdf' | 'xlsx') {
+    const result = await request<{ url: string }>(`/api/reports/${reportId}/export/${format}`);
+    if (!result.ok) {
+      setSaveError(errorMessage(result.error) ?? common.loadError.server);
+      return;
+    }
+    window.open(result.data.url, '_blank', 'noopener,noreferrer');
+  }
+
   // CU-868kh8uau: se manda `versionId` (el `report_versions.id` real), no `reportId`.
   // Antes iba el id del REPORTE en el campo que dice contener el de la VERSIÓN y, al no
   // haber FK, la referencia falsa se persistía en silencio. El backend ahora valida y
@@ -190,6 +211,26 @@ export function ReportDetail({
         <Button variant="outline" size="sm" className="gap-1.5" onClick={askInChat}>
           <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.7} />
           {labels.askInChat}
+        </Button>
+        {/* Ticket B2. Van junto a "Ver versión final" porque son la misma acción vista de
+            tres formas —abrir el reporte— y no una función aparte escondida en otro lado. */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => void download('pdf')}
+        >
+          <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+          {labels.downloadPdf}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => void download('xlsx')}
+        >
+          <Download className="h-3.5 w-3.5" strokeWidth={1.7} />
+          {labels.downloadExcel}
         </Button>
       </div>
 
