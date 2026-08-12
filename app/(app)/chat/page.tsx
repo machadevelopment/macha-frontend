@@ -11,7 +11,7 @@ export default function ChatPage() {
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <p className="font-mono text-eyebrow uppercase text-faint">{t.chat.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.chat.title}</h1>
+      <h1 className="mb-5 text-h1">{t.chat.title}</h1>
       {/* ChatClient reads ?thread= via useSearchParams() (deep-link from reports,
           CU-868kfvacr) — Next.js requires a Suspense boundary around that. */}
       <Suspense fallback={null}>

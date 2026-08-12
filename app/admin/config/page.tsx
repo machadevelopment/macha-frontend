@@ -21,7 +21,7 @@ export default async function AdminConfigPage() {
   return (
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.config.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.admin.config.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.config.title}</h1>
       <ConfigPanel labels={t.admin.config} common={t.admin.common} canEdit={canEdit} />
     </>
   );

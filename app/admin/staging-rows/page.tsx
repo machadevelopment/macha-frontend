@@ -7,7 +7,7 @@ export default function AdminStagingRowsPage() {
   return (
     <>
       <p className="font-mono text-eyebrow uppercase text-faint">{t.admin.stagingRows.eyebrow}</p>
-      <h1 className="mb-4 text-h1">{t.admin.stagingRows.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.stagingRows.title}</h1>
       <StagingRowsPanel labels={t.admin.stagingRows} common={t.admin.common} />
     </>
   );

@@ -9,7 +9,7 @@ export default function AdminIndustryTemplatesPage() {
       <p className="font-mono text-eyebrow uppercase text-faint">
         {t.admin.industryTemplates.eyebrow}
       </p>
-      <h1 className="mb-4 text-h1">{t.admin.industryTemplates.title}</h1>
+      <h1 className="mb-5 text-h1">{t.admin.industryTemplates.title}</h1>
       <IndustryTemplatesPanel labels={t.admin.industryTemplates} common={t.admin.common} />
     </>
   );
