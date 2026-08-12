@@ -141,6 +141,7 @@ export const es: Dictionary = {
       readOnlyNote:
         'Estos parámetros solo los edita un super_admin. Aquí se muestran en modo lectura.',
       updatedAt: 'Actualizado',
+      updatedBy: 'por',
       saveError: 'No se pudo guardar. El valor sigue siendo el anterior.',
       settings: {
         credit_to_tokens_ratio: {

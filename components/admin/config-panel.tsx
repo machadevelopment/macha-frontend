@@ -16,6 +16,12 @@ interface Setting {
   key: string;
   value: unknown;
   updatedAt: string;
+  /**
+   * Correo de quien lo cambió (ticket B7). `null` cuando la fila viene del seed o el staff
+   * que la tocó ya no existe — el backend hace `leftJoin` a propósito para que esas filas
+   * SIGAN apareciendo en vez de desaparecer del panel.
+   */
+  updatedByEmail: string | null;
 }
 
 /**
@@ -203,8 +209,19 @@ export function ConfigPanel({
             )}
 
             {s.updatedAt && (
+              /*
+               * Ticket B7: además de CUÁNDO, ahora dice QUIÉN. En una pantalla donde se
+               * edita el precio del crédito y la equivalencia crédito↔token, "cambió el 9
+               * de agosto" sin autor es la mitad del dato: cuando un número está mal, lo
+               * primero que se necesita saber es a quién preguntarle.
+               *
+               * Sin autor NO se escribe "por: —" ni se esconde la línea entera: se muestra
+               * solo la fecha, que es exactamente lo que se sabe. Una fila sembrada por el
+               * seed no tiene autor y eso no es un dato faltante, es que nadie la tocó.
+               */
               <p className="mt-1 font-mono text-eyebrow uppercase text-faint">
                 {labels.updatedAt} {formatDate(s.updatedAt)}
+                {s.updatedByEmail && ` · ${labels.updatedBy} ${s.updatedByEmail}`}
               </p>
             )}
             {canEdit && (

@@ -140,6 +140,7 @@ export const en: Dictionary = {
       invalidNumber: 'Enter a valid number.',
       readOnlyNote: 'Only a super_admin can edit these parameters. They are shown read-only here.',
       updatedAt: 'Updated',
+      updatedBy: 'by',
       saveError: 'Could not save. The value is still the previous one.',
       settings: {
         credit_to_tokens_ratio: {
