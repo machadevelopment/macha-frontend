@@ -620,6 +620,8 @@ export const en: Dictionary = {
     submitFree: 'Create my company',
     submitting: 'Creating…',
     error: "Registration couldn't be completed. Please try again.",
+    rateLimited:
+      "You've tried to create too many companies in a short time. Wait a few minutes and try again (or open the one you already have).",
     noMembershipsTitle: "You don't have a company yet",
     noMembershipsSubtitle: 'Finish registration to start using Macha Finance.',
     noMembershipsCta: 'Register my company',
