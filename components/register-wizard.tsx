@@ -88,7 +88,17 @@ export function RegisterWizard({
         // que el registro no está disponible en este entorno. El genérico decía "intenta
         // de nuevo", que ante un fallo de configuración es una instrucción falsa: la
         // persona reintenta contra un muro. Se guarda el texto, no un booleano.
-        setError(errorMessage(result.error) ?? labels.error);
+        //
+        // El bucket de alta (`register`, 3/hora) responde `{ error: 'rate_limited' }`.
+        // Sin mapearlo, el formulario imprimía literalmente "rate_limited" — o peor, el
+        // 429 del navegador sin contexto — y la persona no sabía si era el nombre, el
+        // plan o un techo de intentos.
+        const raw = errorMessage(result.error);
+        if (result.error.kind === 'http' && result.error.status === 429) {
+          setError(labels.rateLimited);
+          return;
+        }
+        setError(raw ?? labels.error);
         return;
       }
       // CU-868kmxu41: sin proveedor de pagos configurado no hay checkout al que ir. La
