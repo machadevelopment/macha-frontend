@@ -48,19 +48,21 @@ export function RegisterWizard({
     locale: 'es',
   });
   const [planes, setPlanes] = useState<RegisterPlan[] | null>(null);
+  const [planesError, setPlanesError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void request<RegisterPlan[]>('/api/register/plans').then((r) => {
       if (!r.ok) {
-        // El catálogo no es un requisito duro: el backend elige el plan de entrada si no
-        // le mandan `planCode`. Así que un fallo acá NO bloquea el alta — se esconde la
-        // sección y el formulario sigue funcionando. Bloquear el registro entero porque no
-        // se pudo pintar una lista de precios sería el peor intercambio posible.
+        // Fallo de red/API: se muestra aviso, no se esconde la sección. El POST sigue
+        // pudiendo tomar el plan de entrada en el backend, pero el usuario debe saber
+        // que la comparación de precios no cargó.
         setPlanes([]);
+        setPlanesError(true);
         return;
       }
+      setPlanesError(false);
       setPlanes(r.data);
       // Preselección: el primer plan por `sortOrder`, que es el de entrada. Es el mismo
       // que elegiría el backend si no mandáramos nada, así que la pantalla no miente
@@ -73,6 +75,7 @@ export function RegisterWizard({
   // El texto del botón cambia según haya cobro o no: "Continuar al pago" delante de un
   // plan gratuito es una promesa falsa.
   const irAPago = (planElegido?.amountUsdCents ?? 0) > 0;
+  const sinPlanes = planes !== null && planes.length === 0;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -193,6 +196,15 @@ export function RegisterWizard({
           </fieldset>
         )}
 
+        {(sinPlanes || planesError) && (
+          <p
+            role="status"
+            className="rounded-md border border-warning-bd bg-warning-bg px-3 py-2 text-body text-warning"
+          >
+            {labels.plansUnavailable}
+          </p>
+        )}
+
         {/* Segunda sección. El separador y el eyebrow existen por lo mismo que arriba: el
             plan es la decisión y esto es el trámite, y hasta ahora los dos bloques pesaban
             igual en pantalla. */}
@@ -261,7 +273,7 @@ export function RegisterWizard({
           </p>
         )}
 
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting || sinPlanes}>
           {submitting ? labels.submitting : irAPago ? labels.submit : labels.submitFree}
         </Button>
       </form>
