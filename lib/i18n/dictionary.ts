@@ -722,6 +722,8 @@ export interface Dictionary {
     submitFree: string;
     submitting: string;
     error: string;
+    /** 429 del bucket de alta (3/hora): el mensaje crudo es `rate_limited`. */
+    rateLimited: string;
     noMembershipsTitle: string;
     noMembershipsSubtitle: string;
     noMembershipsCta: string;

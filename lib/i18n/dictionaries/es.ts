@@ -635,6 +635,8 @@ export const es: Dictionary = {
     submitFree: 'Crear mi empresa',
     submitting: 'Creando…',
     error: 'No se pudo completar el registro. Intenta de nuevo.',
+    rateLimited:
+      'Has intentado crear demasiadas empresas seguidas. Espera unos minutos e inténtalo de nuevo (o entra a la que ya tienes).',
     noMembershipsTitle: 'Todavía no tienes una empresa',
     noMembershipsSubtitle: 'Completa el registro para empezar a usar Macha Finance.',
     noMembershipsCta: 'Registrar mi empresa',
