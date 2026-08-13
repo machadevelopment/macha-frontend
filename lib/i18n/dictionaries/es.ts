@@ -629,6 +629,8 @@ export const es: Dictionary = {
     planFree: 'Gratis',
     planPerMonth: 'al mes',
     planRecommended: 'Recomendado',
+    plansUnavailable:
+      'No hay planes disponibles ahora mismo. Escríbenos y te damos de alta, o recarga en un momento.',
     submit: 'Continuar al pago',
     submitFree: 'Crear mi empresa',
     submitting: 'Creando…',

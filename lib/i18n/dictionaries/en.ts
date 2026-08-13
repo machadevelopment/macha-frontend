@@ -614,6 +614,8 @@ export const en: Dictionary = {
     planFree: 'Free',
     planPerMonth: 'per month',
     planRecommended: 'Recommended',
+    plansUnavailable:
+      "No plans are available right now. Reach out and we'll set you up, or try again in a moment.",
     submit: 'Continue to payment',
     submitFree: 'Create my company',
     submitting: 'Creating…',
