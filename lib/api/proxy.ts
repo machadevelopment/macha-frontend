@@ -37,13 +37,20 @@ export async function proxyMutation(
     ...(opts.body === undefined ? {} : { body: opts.body }),
   });
 
-  // Un backend caído puede responder HTML (502 de proxy). Se traduce a un JSON con la
-  // forma que la UI ya sabe leer, en vez de reventar el `res.json()` del navegador.
+  // Un backend caído puede responder HTML (502 de proxy) o texto plano (Elysia a veces
+  // serializa el Error.message sin JSON). Se traduce a un JSON con la forma que la UI
+  // ya sabe leer, en vez de reventar el `res.json()` del navegador — y se PRESERVA el
+  // texto cuando lo hay, porque "El servicio respondió 500" sin más no deja depurar.
+  const raw = await res.text();
   let payload: unknown;
-  try {
-    payload = await res.json();
-  } catch {
+  if (raw.trim() === '') {
     payload = { error: `El servicio respondió ${res.status}.` };
+  } else {
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      payload = { error: raw.slice(0, 500) };
+    }
   }
   return NextResponse.json(payload, { status: res.status });
 }

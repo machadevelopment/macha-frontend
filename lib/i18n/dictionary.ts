@@ -715,6 +715,8 @@ export interface Dictionary {
     planFree: string;
     planPerMonth: string;
     planRecommended: string;
+    /** Catálogo vacío o endpoint caído: no se esconde el formulario en silencio. */
+    plansUnavailable: string;
     submit: string;
     /** "Continuar al pago" delante de un plan gratuito sería una promesa falsa. */
     submitFree: string;
