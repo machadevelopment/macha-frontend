@@ -9,7 +9,13 @@ export type DocumentStatus =
   | 'reverted'
   | 'failed'
   /** Terminal: el archivo no traía movimientos legibles. Reintentarlo da lo mismo. */
-  | 'unsupported';
+  | 'unsupported'
+  /**
+   * Terminal: el CLIENTE paró la carga. Deliberadamente distinto de `failed` — una carga que
+   * el usuario decidió parar no salió mal, y mezclarlas impediría ver en el panel si la
+   * ingesta está sana o si la gente está cancelando porque tarda.
+   */
+  | 'cancelled';
 
 const STEP_ORDER = ['queued', 'processing', 'review', 'promoted'] as const;
 type StepState = 'done' | 'now' | 'wait' | 'failed';

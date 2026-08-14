@@ -404,6 +404,10 @@ export interface Dictionary {
     revert: string;
     reverting: string;
     revertConfirm: string;
+    /** Parar una carga EN CURSO. Distinto de revertir, que deshace una ya terminada. */
+    cancel: string;
+    cancelling: string;
+    cancelConfirm: string;
     retry: string;
     retrying: string;
     loadMore: string;
@@ -427,6 +431,7 @@ export interface Dictionary {
       failed: string;
       /** Terminal: el archivo no se pudo leer. No es reintentable — ver `unsupportedCta`. */
       unsupported: string;
+      cancelled: string;
     };
     /** CTA que reemplaza a "Reintentar" en un documento `unsupported`. */
     unsupportedCta: string;
