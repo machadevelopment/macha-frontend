@@ -355,6 +355,10 @@ export const en: Dictionary = {
     unsupportedCta: 'Use the template',
     revertConfirm:
       'Revert this upload? Every transaction, invoice and bill it created will be removed. The action is recorded and cannot be undone from the app.',
+    cancel: 'Cancel',
+    cancelling: 'Cancelling…',
+    cancelConfirm:
+      'Cancel this upload? Whatever was already processed is saved, so if you upload the same file again only the rest will be charged.',
     loadMore: 'Load more',
     table: {
       file: 'File',
@@ -375,6 +379,7 @@ export const en: Dictionary = {
       reverted: 'Reverted',
       failed: 'Error',
       unsupported: 'Unreadable',
+      cancelled: 'Cancelled',
     },
   },
   dashboard: {

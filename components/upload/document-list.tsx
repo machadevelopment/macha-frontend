@@ -57,6 +57,7 @@ export function DocumentList({
   canRevert: boolean;
 }) {
   const [reverting, setReverting] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState<string | null>(null);
   const [retrying, setRetrying] = useState<string | null>(null);
 
   // CU-868kh913c: el backend truncaba a 50 en silencio y el documento 51 era inalcanzable.
@@ -115,6 +116,34 @@ export function DocumentList({
       refresh();
     } finally {
       setReverting(null);
+    }
+  }
+
+  /**
+   * Cancelar una carga EN CURSO.
+   *
+   * Se confirma antes porque interrumpe un trabajo a medias, pero el texto no amenaza: lo
+   * ya procesado queda guardado y volver a subir el archivo solo cobra lo que falte. Eso es
+   * lo que de verdad quiere saber quien está por cancelar algo a la mitad.
+   *
+   * La cancelación es cooperativa del lado del servidor —no se puede interrumpir una llamada
+   * al modelo ya en vuelo—, así que el estado puede tardar unos segundos en cambiar. El
+   * polling ya existente lo refleja solo.
+   */
+  async function cancel(id: string) {
+    if (!window.confirm(labels.cancelConfirm)) return;
+    setCancelling(id);
+    try {
+      const result = await requestJson(`/api/documents/${id}/cancel`, 'POST');
+      if (!result.ok) {
+        // 409 si la carga terminó entre que se pintó el botón y el clic — pasa de verdad
+        // con el polling de 4 s. Se muestra el motivo real en vez de fallar en silencio.
+        toast.error(errorMessage(result.error) ?? common.loadError.server);
+        return;
+      }
+      refresh();
+    } finally {
+      setCancelling(null);
     }
   }
 
@@ -227,6 +256,19 @@ export function DocumentList({
                     disabled={reverting === doc.id}
                   >
                     {reverting === doc.id ? labels.reverting : labels.revert}
+                  </Button>
+                )}
+                {/* Solo mientras la carga está en curso. `review` NO lo ofrece: ahí el
+                  trabajo del modelo ya terminó y lo que queda es revisión interna, así que
+                  cancelar no ahorraría nada y solo tiraría lo ya pagado. */}
+                {canRevert && (doc.status === 'queued' || doc.status === 'processing') && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => cancel(doc.id)}
+                    disabled={cancelling === doc.id}
+                  >
+                    {cancelling === doc.id ? labels.cancelling : labels.cancel}
                   </Button>
                 )}
                 {doc.status === 'failed' && (
