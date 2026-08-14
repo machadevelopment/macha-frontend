@@ -363,6 +363,10 @@ export const es: Dictionary = {
     unsupportedCta: 'Usar la plantilla',
     revertConfirm:
       '¿Revertir esta carga? Se eliminarán todos los movimientos, facturas y cuentas por pagar que generó. La acción queda registrada y no se puede deshacer desde la aplicación.',
+    cancel: 'Cancelar',
+    cancelling: 'Cancelando…',
+    cancelConfirm:
+      '¿Cancelar esta carga? Lo que ya se procesó queda guardado, así que si vuelves a subir el mismo archivo solo se cobrará lo que falte.',
     loadMore: 'Cargar más',
     table: {
       file: 'Archivo',
@@ -386,6 +390,7 @@ export const es: Dictionary = {
       // pueda leer. Culpar al archivo del cliente por algo que no es una falla suya
       // invita a reintentar, que es justo lo que no sirve acá.
       unsupported: 'No legible',
+      cancelled: 'Cancelado',
     },
   },
   dashboard: {

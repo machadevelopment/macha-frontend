@@ -9,7 +9,7 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
 interface DocumentRow {
   id: string;
   originalFilename: string;
-  status: 'queued' | 'processing' | 'review' | 'promoted' | 'reverted' | 'failed';
+  status: 'queued' | 'processing' | 'review' | 'promoted' | 'reverted' | 'failed' | 'cancelled';
   rowCount: number | null;
   flaggedCount: number | null;
 }
