@@ -413,6 +413,11 @@ export const en: Dictionary = {
       customReversed: 'The end date cannot be earlier than the start date.',
       customFuture: 'You cannot pick future dates.',
     },
+    emptyPeriod: {
+      outsideRange:
+        'No activity in this period. Yours runs from {from} to {to} — change the filter to see it.',
+      noDataAtAll: 'No activity in this account yet. Import an Excel file to get started.',
+    },
     topProduct: {
       title: 'Top selling product',
       emptyNoSales: 'No sales in this period.',

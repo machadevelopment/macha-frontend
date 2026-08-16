@@ -425,6 +425,11 @@ export const es: Dictionary = {
       customReversed: 'La fecha final no puede ser anterior a la inicial.',
       customFuture: 'No puedes elegir fechas futuras.',
     },
+    emptyPeriod: {
+      outsideRange:
+        'No hay movimientos en este período. Los tuyos van del {from} al {to} — cambia el filtro para verlos.',
+      noDataAtAll: 'Todavía no hay movimientos en esta cuenta. Importa un Excel para empezar.',
+    },
     topProduct: {
       title: 'Producto que más vendió',
       emptyNoSales: 'No hubo ventas en este período.',

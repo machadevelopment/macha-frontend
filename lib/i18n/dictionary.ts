@@ -470,6 +470,16 @@ export interface Dictionary {
       customReversed: string;
       customFuture: string;
     };
+    /**
+     * CU-868krn2up: por qué el período elegido está en cero. Distingue "hay datos, pero en
+     * otras fechas" de "no hay datos en toda la cuenta" — sin esa distinción, un cero
+     * correcto se lee como un producto roto. Ver `period-empty-note.tsx`.
+     */
+    emptyPeriod: {
+      /** Lleva `{from}` y `{to}`, ya formateados por el locale. */
+      outsideRange: string;
+      noDataAtAll: string;
+    };
     /** El vacío distingue "no hubo ventas" de "hubo ventas sin producto identificado". */
     topProduct: {
       title: string;
