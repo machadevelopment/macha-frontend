@@ -818,7 +818,9 @@ export const en: Dictionary = {
     discontinueConfirm:
       'Discontinue this item? It stops showing in the list, but its movement history is kept.',
     empty: 'No inventory items yet.',
-    emptyHint: 'Add the first one to start tracking stock.',
+    // CU-868krkfrh: ver la nota del mismo campo en es.ts.
+    emptyHint:
+      'Inventory is managed here, not imported from Excel: add your first item to start tracking stock.',
     movementsEmpty: 'No movements recorded yet.',
     genericError: 'Could not complete the action. Please try again.',
     movement: { in: 'In', out: 'Out', adjustment: 'Adjustment' },

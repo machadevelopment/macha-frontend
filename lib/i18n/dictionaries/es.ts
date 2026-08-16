@@ -839,7 +839,12 @@ export const es: Dictionary = {
     discontinueConfirm:
       '¿Dar de baja este artículo? Deja de aparecer en la lista, pero su historial de movimientos se conserva.',
     empty: 'Todavía no tienes artículos en inventario.',
-    emptyHint: 'Agrega el primero para llevar el control de existencias.',
+    // CU-868krkfrh: la frase clave es "no se importa del Excel". Macha subió archivo tras
+    // archivo esperando que el inventario se llenara solo, porque nada en la pantalla decía
+    // que este módulo se administra a mano. El vacío tiene que cerrar esa pregunta, no
+    // limitarse a constatar que está vacío.
+    emptyHint:
+      'El inventario se administra aquí, no se importa del Excel: agrega tu primer artículo para llevar el control de existencias.',
     movementsEmpty: 'Aún no hay movimientos registrados.',
     genericError: 'No se pudo completar la acción. Intenta de nuevo.',
     movement: { in: 'Entrada', out: 'Salida', adjustment: 'Ajuste' },
