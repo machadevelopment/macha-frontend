@@ -8,7 +8,7 @@ CFO-layer SaaS for SMEs. Multi-tenant, **sensitive financial data**. Two separat
 - **ORM is Drizzle, not Prisma.** Never introduce Prisma.
 - **No passwords/secrets in the DB.** Identity is WorkOS/AuthKit; there is no password/hash column anywhere.
 - **AI provider is Anthropic Claude only, under a signed ZDR contract.** No OpenAI/other vendors. Never persist prompts or customer financial data in the provider. Re-verify ZDR eligibility on any model change. Initial model: `claude-sonnet-5`.
-- **Append-only ledgers** (`ai_usage_events`, `credit_transactions`, `admin_audit_log`, `report_versions`, `industry_template_versions`, `payments`, `inventory_movements`): insert only, never UPDATE/DELETE. Corrections are compensating rows. This is only a real DB-level guarantee if the app connects as `macha_app`, not the owner role — Postgres table owners always retain implicit UPDATE/DELETE regardless of `REVOKE ... FROM PUBLIC` (verified; there is no "FORCE" for privileges the way there is for RLS).
+- **Append-only ledgers** (`ai_usage_events`, `credit_transactions`, `admin_audit_log`, `report_versions`, `industry_template_versions`, `payments`, `inventory_movements`, `company_column_profiles`): insert only, never UPDATE/DELETE. Corrections are compensating rows. This is only a real DB-level guarantee if the app connects as `macha_app`, not the owner role — Postgres table owners always retain implicit UPDATE/DELETE regardless of `REVOKE ... FROM PUBLIC` (verified; there is no "FORCE" for privileges the way there is for RLS).
 - **Money is `numeric`, never float.** Store original amount+currency AND converted `amount_base`; FX rate is snapshotted per row.
 - Secrets are platform-native (Vercel/Railway env). **Non-prod credentials are fully separate** (WorkOS, Anthropic, S3, Redis). Never point staging/preview at prod services.
 
@@ -56,10 +56,19 @@ Conventions & gotchas:
      nombres de columna repetidos). Los reportes con bloques a lo ancho —una fila = un cliente
      con doce meses al lado— no son movimientos y solo devuelven filas marcadas.
   3. **Pre-filtro por encabezados** (`lib/sheet-classifier.ts`): las hojas de catálogo
-     (clientes, proveedores, inventario, productos, tiendas) no llegan al modelo. Los archivos
+     (clientes, proveedores, productos, tiendas) no llegan al modelo. Los archivos
      reales de PYME son volcados operativos completos, no exportes contables: ~31% de las filas.
      El sesgo es deliberado hacia PAGAR DE MÁS — `unknown` siempre va al modelo, porque
      descartar de más pierde contabilidad del cliente en silencio.
+     **EXCEPCIÓN: la firma `existencias` ya no se tira** (CU-868krkfrh, 2026-08-16). Seguía el
+     mismo camino que el resto y era el bug "Inventario no carga datos con ningún archivo":
+     producción descartaba 211 filas de inventario por carga, en cada una de las tres empresas.
+     Ahora `firmaDeCatalogo()` dice CUÁL catálogo es y esa hoja va a `lib/inventory-import.ts`,
+     **sin pasar por el modelo** — sus encabezados son predecibles y mandarla a la IA desharía
+     lo que este mismo filtro vino a lograr. La cantidad del archivo se trata como un CONTEO,
+     no como un movimiento: SKU nuevo → alta con existencia inicial, SKU conocido → ajuste por
+     la diferencia, sin diferencia → no se escribe nada. Por eso resubir el archivo semanal no
+     duplica el stock. Todo pasa por `recordMovement`, nunca se escribe `quantity_on_hand`.
   4. **Cabecera y detalle del mismo dinero** (`lib/sheet-duplication.ts`, 2026-08-14). Un archivo
      real trae `OrdenesCompra` (60 filas, Q 2.707.318) y `LineasOC` (220 filas, Q 2.707.318):
      **la misma plata a dos granularidades**. Si las dos producen movimientos, las compras del
