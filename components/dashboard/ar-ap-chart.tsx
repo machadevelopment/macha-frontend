@@ -65,11 +65,34 @@ export function ArApChart({
           no es tiempo sino tramos de antigüedad — una curva entre "31-60" y "61-90"
           sugeriría una continuidad que no existe. Lo que sí se comparte con la tendencia
           es el cromo: eje, grid, cursor y leyenda salen del mismo lugar. */}
+      {/*
+        CU-868krkcwn — POR COBRAR VA EN VERDE FUNCIONAL, NO EN NEUTRO.
+
+        Iba `chartColors.neutral` y fallaba las dos mitades de la regla de los dos verdes
+        (design guide §2.6): decía NADA donde el dato sí tiene signo —lo que entra frente a
+        lo que sale— y además desaparecía. En la captura que reportó Macha la serie roja de
+        "Payable" domina el chart y la de "Receivable" es un hilo gris de 3px sobre el
+        lienzo blanco: el gris neutro de Tremor sobre `--background` no tiene contraste
+        suficiente para leerse como una barra.
+
+        El salvia de marca NO es la respuesta: es identidad, no señal, y sobre un dato está
+        prohibido. El verde funcional (`emerald`) sí, y hace par con el rojo que ya lleva
+        "Payable".
+
+        MATIZ QUE SE ACEPTA A SABIENDAS: una cuenta por cobrar de 90+ días no es una buena
+        noticia. Pero el color acá califica la SERIE (dinero que entra vs. dinero que sale),
+        que es lo que dice la leyenda; la alarma por antigüedad la lleva el eje X, que ya
+        ordena los tramos de reciente a vencido. Pintar cada barra según su tramo mezclaría
+        las dos lecturas en un solo canal.
+
+        Los dos colores ya están en el `safelist` de tailwind.config.ts (emerald y rose), así
+        que este cambio no necesita tocarlo — si algún día se agrega un tercero, sí.
+      */}
       <CategoryBars
         data={chartData}
         index="bucket"
         categories={[arLabel, apLabel]}
-        colors={[chartColors.neutral, chartColors.negative]}
+        colors={[chartColors.positive, chartColors.negative]}
         currency={currency}
         locale={locale}
         yAxisWidth={72}

@@ -1,0 +1,51 @@
+<!--
+  Favicon de la app (CU-868krkxxn).
+
+  QUÉ ERA LA "V" QUE REPORTÓ MACHA. No era un placeholder nuestro: el proyecto NO tenía
+  ningún `app/icon.*` ni `public/favicon.ico`, así que la pestaña caía al ícono por defecto
+  de Vercel — un cuadrado gris con una "V". Por eso no aparecía en ninguna búsqueda de la
+  interfaz: el ícono nunca estuvo en nuestro código, estaba en su ausencia.
+
+  Basta con existir: el App Router de Next sirve `app/icon.svg` como favicon y emite su
+  `<link rel="icon">` solo, sin registrarlo en ningún lado.
+
+  NO se agrega `apple-icon` en el mismo cambio a propósito: Next solo acepta .png/.jpg para
+  ese slot (no SVG), así que exigiría rasterizar o un `apple-icon.tsx` con `next/og`. El bug
+  reportado es la pestaña del navegador, y eso lo cierra este archivo; el ícono de pantalla
+  de inicio en iOS es otro trabajo y merece su propio ticket.
+
+  POR QUÉ HEX LITERAL ACÁ Y NO TOKENS. Es la única excepción a "nunca hex" del design guide,
+  y es forzosa: el navegador pinta el favicon FUERA del documento, así que no hay `:root`
+  donde resolver `var(--brand)`. Los valores son copia exacta de `styles/globals.css`
+  (`--brand-light` #F4F4F2, `--brand` #A1B09B, `--brand-on` #1C2419); si cambian allá, hay
+  que cambiarlos acá a mano.
+
+  POR QUÉ SOBRE TILE OSCURO Y NO TRANSPARENTE. El isotipo va de #F4F4F2 a salvia, y su
+  extremo claro es casi blanco: sobre la barra de pestañas en modo claro la mitad superior
+  de las barras desaparece. El tile #1C2419 es `--brand-on`, la tinta que el Brand Book ya
+  define para acompañar al salvia, y da un ícono legible en pestaña clara y oscura por
+  igual. No es recolorear el isotipo — el isotipo conserva su degradado; lo que cambia es
+  la superficie sobre la que se posa, que es el uso "sobre fondo oscuro" que el manual sí
+  contempla.
+
+  La geometría es la misma de `components/ui/macha-mark.tsx`, escalada al tile: tres barras
+  de igual ancho y altura completa, con el degradado de la CENTRAL invertido.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F4F4F2" />
+      <stop offset="100%" stop-color="#A1B09B" />
+    </linearGradient>
+    <linearGradient id="bi" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#A1B09B" />
+      <stop offset="100%" stop-color="#F4F4F2" />
+    </linearGradient>
+  </defs>
+
+  <rect width="32" height="32" rx="7" fill="#1C2419" />
+
+  <rect x="7.2" y="7" width="4.6" height="18" rx="0.9" fill="url(#b)" />
+  <rect x="13.7" y="7" width="4.6" height="18" rx="0.9" fill="url(#bi)" />
+  <rect x="20.2" y="7" width="4.6" height="18" rx="0.9" fill="url(#b)" />
+</svg>

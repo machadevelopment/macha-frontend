@@ -388,7 +388,14 @@ export const en: Dictionary = {
     greetingMorning: 'Good morning',
     greetingAfternoon: 'Good afternoon',
     greetingEvening: 'Good evening',
-    greetingSubtitle: "Here's how your business is doing this month.",
+    greetingSubtitle: "Here's how your business is doing {period}.",
+    greetingPeriod: {
+      today: 'today',
+      week: 'this week',
+      month: 'this month',
+      year: 'this year',
+      custom: 'in the selected range',
+    },
     importCta: 'Import Excel',
     period: {
       label: 'Period',
@@ -406,6 +413,11 @@ export const en: Dictionary = {
       customReversed: 'The end date cannot be earlier than the start date.',
       customFuture: 'You cannot pick future dates.',
     },
+    emptyPeriod: {
+      outsideRange:
+        'No activity in this period. Yours runs from {from} to {to} — change the filter to see it.',
+      noDataAtAll: 'No activity in this account yet. Import an Excel file to get started.',
+    },
     topProduct: {
       title: 'Top selling product',
       emptyNoSales: 'No sales in this period.',
@@ -421,7 +433,8 @@ export const en: Dictionary = {
       grossProfitHint: 'Sales minus direct cost.',
       cashFlow: 'Period result',
       cashFlowHint: 'Sales minus all expenses.',
-      vsPrevious: 'vs. last month',
+      // CU-868krkqh2: ver la nota del mismo campo en es.ts.
+      vsPrevious: 'vs. previous period',
       cogs: 'Direct cost of sales',
       margin: 'Gross margin',
       marginHint: 'What you keep from each sale before fixed expenses.',
@@ -805,7 +818,9 @@ export const en: Dictionary = {
     discontinueConfirm:
       'Discontinue this item? It stops showing in the list, but its movement history is kept.',
     empty: 'No inventory items yet.',
-    emptyHint: 'Add the first one to start tracking stock.',
+    // CU-868krkfrh: ver la nota del mismo campo en es.ts.
+    emptyHint:
+      'Inventory is managed here, not imported from Excel: add your first item to start tracking stock.',
     movementsEmpty: 'No movements recorded yet.',
     genericError: 'Could not complete the action. Please try again.',
     movement: { in: 'In', out: 'Out', adjustment: 'Adjustment' },

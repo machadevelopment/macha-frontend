@@ -399,7 +399,15 @@ export const es: Dictionary = {
     greetingMorning: 'Buenos días',
     greetingAfternoon: 'Buenas tardes',
     greetingEvening: 'Buenas noches',
-    greetingSubtitle: 'Así va tu negocio este mes.',
+    greetingSubtitle: 'Así va tu negocio {period}.',
+    greetingPeriod: {
+      today: 'hoy',
+      week: 'esta semana',
+      month: 'este mes',
+      year: 'este año',
+      // Con preposición: "Así va tu negocio el rango elegido" no se lee.
+      custom: 'en el rango elegido',
+    },
     importCta: 'Importar Excel',
     period: {
       label: 'Período',
@@ -417,6 +425,11 @@ export const es: Dictionary = {
       customReversed: 'La fecha final no puede ser anterior a la inicial.',
       customFuture: 'No puedes elegir fechas futuras.',
     },
+    emptyPeriod: {
+      outsideRange:
+        'No hay movimientos en este período. Los tuyos van del {from} al {to} — cambia el filtro para verlos.',
+      noDataAtAll: 'Todavía no hay movimientos en esta cuenta. Importa un Excel para empezar.',
+    },
     topProduct: {
       title: 'Producto que más vendió',
       emptyNoSales: 'No hubo ventas en este período.',
@@ -432,7 +445,12 @@ export const es: Dictionary = {
       grossProfitHint: 'Ventas menos costo directo.',
       cashFlow: 'Resultado del período',
       cashFlowHint: 'Ventas menos todos los gastos.',
-      vsPrevious: 'vs. mes anterior',
+      // CU-868krkqh2: decía "vs. mes anterior" SIEMPRE, incluso con el filtro en "Este año"
+      // (se ve en la captura del reporte de Macha). El backend nunca compara contra el mes
+      // pasado: compara contra la ventana del MISMO tamaño justo anterior — un año contra el
+      // año previo, un día contra el día previo (ver `ventanaAnterior` en el backend). El pie
+      // afirmaba una comparación que el número no era.
+      vsPrevious: 'vs. período anterior',
       // CU-868kh8y58: "directo" no es adorno — la decisión de Jose define `cogs` como
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
@@ -821,7 +839,12 @@ export const es: Dictionary = {
     discontinueConfirm:
       '¿Dar de baja este artículo? Deja de aparecer en la lista, pero su historial de movimientos se conserva.',
     empty: 'Todavía no tienes artículos en inventario.',
-    emptyHint: 'Agrega el primero para llevar el control de existencias.',
+    // CU-868krkfrh: la frase clave es "no se importa del Excel". Macha subió archivo tras
+    // archivo esperando que el inventario se llenara solo, porque nada en la pantalla decía
+    // que este módulo se administra a mano. El vacío tiene que cerrar esa pregunta, no
+    // limitarse a constatar que está vacío.
+    emptyHint:
+      'El inventario se administra aquí, no se importa del Excel: agrega tu primer artículo para llevar el control de existencias.',
     movementsEmpty: 'Aún no hay movimientos registrados.',
     genericError: 'No se pudo completar la acción. Intenta de nuevo.',
     movement: { in: 'Entrada', out: 'Salida', adjustment: 'Ajuste' },
