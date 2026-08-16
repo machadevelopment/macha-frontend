@@ -443,7 +443,13 @@ export interface Dictionary {
     greetingMorning: string;
     greetingAfternoon: string;
     greetingEvening: string;
+    /**
+     * CU-868krkqh2: plantilla con `{period}`, no una frase cerrada. Antes decía "este mes"
+     * pasara lo que pasara con el filtro. Ver `dashboard-greeting.tsx`.
+     */
     greetingSubtitle: string;
+    /** Las cinco formas que puede tomar `{period}`. Cubre todas las `PeriodKey`. */
+    greetingPeriod: Record<'today' | 'week' | 'month' | 'year' | 'custom', string>;
     importCta: string;
     /** Filtro de período. "Personalizado" aún no existe: ver period-filter.tsx. */
     period: {

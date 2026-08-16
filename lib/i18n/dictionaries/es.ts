@@ -399,7 +399,15 @@ export const es: Dictionary = {
     greetingMorning: 'Buenos días',
     greetingAfternoon: 'Buenas tardes',
     greetingEvening: 'Buenas noches',
-    greetingSubtitle: 'Así va tu negocio este mes.',
+    greetingSubtitle: 'Así va tu negocio {period}.',
+    greetingPeriod: {
+      today: 'hoy',
+      week: 'esta semana',
+      month: 'este mes',
+      year: 'este año',
+      // Con preposición: "Así va tu negocio el rango elegido" no se lee.
+      custom: 'en el rango elegido',
+    },
     importCta: 'Importar Excel',
     period: {
       label: 'Período',
@@ -432,7 +440,12 @@ export const es: Dictionary = {
       grossProfitHint: 'Ventas menos costo directo.',
       cashFlow: 'Resultado del período',
       cashFlowHint: 'Ventas menos todos los gastos.',
-      vsPrevious: 'vs. mes anterior',
+      // CU-868krkqh2: decía "vs. mes anterior" SIEMPRE, incluso con el filtro en "Este año"
+      // (se ve en la captura del reporte de Macha). El backend nunca compara contra el mes
+      // pasado: compara contra la ventana del MISMO tamaño justo anterior — un año contra el
+      // año previo, un día contra el día previo (ver `ventanaAnterior` en el backend). El pie
+      // afirmaba una comparación que el número no era.
+      vsPrevious: 'vs. período anterior',
       // CU-868kh8y58: "directo" no es adorno — la decisión de Jose define `cogs` como
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.

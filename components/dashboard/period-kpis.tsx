@@ -5,8 +5,9 @@ import { DollarSign, Receipt, PiggyBank, Percent, Wallet } from 'lucide-react';
 import { KpiCard } from '@/components/charts/kpi-card';
 import { LoadError } from '@/components/ui/load-error';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
+import { usePeriodScope } from '@/components/dashboard/period-scope';
 import { request, type RequestError } from '@/lib/api/browser';
-import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
+import type { DateRange } from '@/lib/period';
 import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
 import { delta, gastos, margenBruto, resultado, utilidadBruta } from '@/lib/metrics/period-totals';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -30,6 +31,11 @@ import type {
  * Los deltas se calculan contra `previous`, la ventana del MISMO tamaño inmediatamente
  * anterior que devuelve el backend. No se compara contra "el mes pasado" a secas: para
  * "hoy" eso sería absurdo.
+ *
+ * CU-868krkqh2: el estado del período ya NO vive acá, vive en `PeriodScope`. El saludo del
+ * dashboard también lo necesita y está en otra rama del árbol; ver la cabecera de
+ * `period-scope.tsx`. Este componente sigue siendo quien MONTA el filtro — solo que ahora
+ * escribe en el contexto en vez de en un `useState` propio.
  */
 export function PeriodKpis({
   locale,
@@ -40,8 +46,7 @@ export function PeriodKpis({
   labels: Dictionary['dashboard'];
   common: Dictionary['common'];
 }) {
-  const [periodo, setPeriodo] = useState<PeriodKey>('month');
-  const [rango, setRango] = useState<DateRange>(() => computeRange('month', new Date()));
+  const { periodo, rango, cambiar } = usePeriodScope();
   const [data, setData] = useState<PeriodMetricsResponse | null>(null);
   const [productos, setProductos] = useState<ProductRevenueResponse | null>(null);
   const [error, setError] = useState<RequestError | null>(null);
@@ -86,10 +91,7 @@ export function PeriodKpis({
     <PeriodFilter
       value={periodo}
       range={rango}
-      onChange={(key, r) => {
-        setPeriodo(key);
-        setRango(r);
-      }}
+      onChange={cambiar}
       locale={locale}
       labels={labels.period}
     />

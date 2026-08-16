@@ -388,7 +388,14 @@ export const en: Dictionary = {
     greetingMorning: 'Good morning',
     greetingAfternoon: 'Good afternoon',
     greetingEvening: 'Good evening',
-    greetingSubtitle: "Here's how your business is doing this month.",
+    greetingSubtitle: "Here's how your business is doing {period}.",
+    greetingPeriod: {
+      today: 'today',
+      week: 'this week',
+      month: 'this month',
+      year: 'this year',
+      custom: 'in the selected range',
+    },
     importCta: 'Import Excel',
     period: {
       label: 'Period',
@@ -421,7 +428,8 @@ export const en: Dictionary = {
       grossProfitHint: 'Sales minus direct cost.',
       cashFlow: 'Period result',
       cashFlowHint: 'Sales minus all expenses.',
-      vsPrevious: 'vs. last month',
+      // CU-868krkqh2: ver la nota del mismo campo en es.ts.
+      vsPrevious: 'vs. previous period',
       cogs: 'Direct cost of sales',
       margin: 'Gross margin',
       marginHint: 'What you keep from each sale before fixed expenses.',
