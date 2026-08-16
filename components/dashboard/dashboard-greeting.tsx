@@ -3,6 +3,7 @@
 import { UploadCloud } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { usePeriodScope } from '@/components/dashboard/period-scope';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -17,6 +18,17 @@ import type { Locale } from '@/lib/i18n/config';
  *
  * La fecha se formatea con `Intl` vía el locale de la app y no con una plantilla propia:
  * el orden de día y mes cambia entre es-GT y en-US.
+ *
+ * CU-868krkqh2 — EL SUBTÍTULO SIGUE AL PERÍODO. Antes era la constante
+ * `greetingSubtitle: 'Así va tu negocio este mes.'`, así que al pasar el filtro a "Este año"
+ * el saludo seguía afirmando "este mes" sobre cifras anuales. No era un texto desactualizado:
+ * era la pantalla contradiciéndose consigo misma dos líneas más abajo, donde la línea de
+ * "Mostrando" sí decía el rango correcto.
+ *
+ * La frase se arma por interpolación de `{period}` y no concatenando trozos: en inglés el
+ * período va al final ("...doing this year") y en español también, pero un rango
+ * personalizado necesita preposición ("en el rango elegido" / "in the selected range") y eso
+ * no sale de pegar palabras sueltas.
  */
 export function DashboardGreeting({
   locale,
@@ -25,6 +37,7 @@ export function DashboardGreeting({
   locale: Locale;
   labels: Dictionary['dashboard'];
 }) {
+  const { periodo } = usePeriodScope();
   const ahora = new Date();
   const hora = ahora.getHours();
   const saludo =
@@ -40,12 +53,14 @@ export function DashboardGreeting({
     day: 'numeric',
   }).format(ahora);
 
+  const subtitulo = labels.greetingSubtitle.replace('{period}', labels.greetingPeriod[periodo]);
+
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
         <p className="font-mono text-eyebrow uppercase text-faint">{fecha}</p>
         <h1 className="mt-1 text-h1">{saludo}</h1>
-        <p className="mt-1 text-body text-muted-foreground">{labels.greetingSubtitle}</p>
+        <p className="mt-1 text-body text-muted-foreground">{subtitulo}</p>
       </div>
       <Button asChild variant="outline" size="sm">
         <Link href="/upload">

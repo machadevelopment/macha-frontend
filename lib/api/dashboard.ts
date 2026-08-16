@@ -88,6 +88,15 @@ export interface PeriodMetricsResponse {
   /** Mismo tamaño de ventana, justo antes. Es contra esto que se calcula cada delta. */
   previous: PeriodTotals;
   series: PeriodPoint[];
+  /**
+   * CU-868krn2up: primer y último día con movimientos de la empresa, ignorando el rango
+   * pedido. `null` = la empresa no tiene ni una transacción.
+   *
+   * Sirve para que un período en cero se pueda EXPLICAR. Sin esto, "Q 0,00" con un delta
+   * de −100 % es indistinguible de un producto roto — que es exactamente cómo lo leyó
+   * Macha al ver el filtro anual con Q 101.380 y el mensual en cero.
+   */
+  dataRange: { from: string; to: string } | null;
 }
 
 /** `GET /metrics/products` — desempeño por producto en un rango. */
