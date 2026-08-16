@@ -615,6 +615,23 @@ export const en: Dictionary = {
       },
     },
   },
+  onboarding: {
+    eyebrow: 'SETUP',
+    title: 'Show us what your files look like',
+    subtitle:
+      'Upload the spreadsheet you already keep your finances in. We learn how its columns are laid out once, and from then on every upload is read the same way.',
+    whyTitle: 'Why start here',
+    why1: 'We learn your columns once. Later uploads no longer have to guess.',
+    why2: "If they ever move, we'll tell you — instead of silently reading the wrong number.",
+    why3: "It's the same file you'd upload later anyway. Not an extra step: the first one.",
+    uploadedTitle: "Got it, we're processing it now",
+    uploadedBody:
+      "You can head to your dashboard; we'll let you know when it's done. If the file has several sheets, each one is analysed separately.",
+    goToDashboard: 'Go to my dashboard',
+    skip: 'Skip for now',
+    skipHint:
+      "Don't keep your finances in a spreadsheet yet? Come in and upload it later from Data upload.",
+  },
   register: {
     eyebrow: 'REGISTER',
     title: 'Create your company',
