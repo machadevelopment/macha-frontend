@@ -136,7 +136,7 @@ export function ChatClient({
       { role: 'user', content, createdAt: new Date().toISOString() },
     ]);
     try {
-      const result = await requestJson<{ content: string }>(
+      const result = await requestJson<{ content: string; title: string }>(
         `/api/chats/${threadId}/messages`,
         'POST',
         { content },
@@ -160,6 +160,25 @@ export function ChatClient({
         ...prev,
         { role: 'assistant', content: result.data.content, createdAt: new Date().toISOString() },
       ]);
+
+      /*
+       * CU-868krkw4p: el backend nombra el hilo con la primera pregunta, y devuelve el
+       * título efectivo en esta misma respuesta. Se sincroniza acá y no con un refetch de
+       * `/api/chats` por dos razones: una petición menos en el camino más caliente, y
+       * sobre todo porque un refetch pisaría el orden de la lista mientras el usuario la
+       * está mirando.
+       *
+       * La asignación es incondicional a propósito — el backend manda el título tal cual
+       * quedó, cambie o no, así que acá no hay que decidir nada. Y `title` va aparte de
+       * `updatedAt`: reordenar la lista en cada mensaje movería el hilo activo bajo el
+       * cursor, que es otro problema y no el de este ticket.
+       */
+      // `prev` es null mientras la lista no cargó. Se deja como está en vez de inventar un
+      // arreglo de un elemento: la carga en curso lo pisaría igual, y un hilo suelto en la
+      // lista mientras el resto llega se ve como un parpadeo.
+      setThreads((prev) =>
+        prev ? prev.map((t) => (t.id === threadId ? { ...t, title: result.data.title } : t)) : prev,
+      );
     } finally {
       setSending(false);
     }
