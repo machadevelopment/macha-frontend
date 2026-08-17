@@ -480,6 +480,7 @@ export const en: Dictionary = {
     },
     insightCta: 'Generate insight',
     insightLoading: 'Generating…',
+    insightIdle: 'Macha reads your last three months and tells you what to do about what it finds.',
     insightInsufficientCredits: 'Insufficient credit balance to generate an insight.',
     insightError: {
       insufficientDetail: 'You need {required} credits and have {balance}.',
