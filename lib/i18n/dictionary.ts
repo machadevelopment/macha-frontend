@@ -663,6 +663,20 @@ export interface Dictionary {
       period: string;
       frequency: string;
       updated: string;
+      /** CU-868krw2wn: columna de estado. Un reporte que no se completó lo DICE. */
+      status: string;
+    };
+    /**
+     * Estado de un reporte en la lista (CU-868krw2wn).
+     *
+     * La fila de `reports` se crea antes de generar la narrativa, así que una generación
+     * fallida dejaba una fila sin contenido que se veía IGUAL que una buena — y al abrirla
+     * daba "no encontrado". `notGenerated` es lo que se muestra en su lugar.
+     */
+    status: {
+      ready: string;
+      notGenerated: string;
+      notGeneratedHint: string;
     };
   };
   alerts: {

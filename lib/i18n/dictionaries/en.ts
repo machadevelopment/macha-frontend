@@ -564,6 +564,12 @@ export const en: Dictionary = {
       period: 'Period',
       frequency: 'Frequency',
       updated: 'Updated',
+      status: 'Status',
+    },
+    status: {
+      ready: 'Ready',
+      notGenerated: "Didn't finish",
+      notGeneratedHint: 'Generate it again to get this period.',
     },
   },
   alerts: {
