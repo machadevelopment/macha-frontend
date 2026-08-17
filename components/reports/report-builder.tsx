@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Check, Circle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -186,11 +186,27 @@ export function ReportBuilder({
             labels={periodLabels}
           />
 
-          <fieldset className="flex flex-col gap-2">
-            <legend className="font-mono text-eyebrow uppercase text-faint">
+          {/*
+            CU-868krvrxy + CU-868kt2hw3 — "Qué incluir" estaba muy apretada.
+
+            Tres cambios, y ninguno es solo aire:
+
+              · `gap-3` entre la etiqueta y las opciones, y `gap-2` entre pills. Con
+                `gap-1.5` las siete opciones se leían como un bloque continuo y había que
+                fijarse para separar dónde termina una y empieza la otra.
+              · `py-1.5` en vez de `py-1`: el área de toque de una pill de `py-1` queda por
+                debajo de lo cómodo en un teléfono, que es donde más se toca este control.
+              · Y sobre todo el ÍCONO DE ESTADO. Antes la única señal de "seleccionada" era
+                la inversión de color. Eso obliga a comparar unas pills contra otras para
+                saber cuáles están puestas, y en modo oscuro la diferencia se estrecha. El
+                check/círculo lo dice por sí solo, sin comparar y sin depender del color —
+                que es además la regla del design guide: el color nunca es la única señal.
+          */}
+          <fieldset className="flex flex-col gap-3">
+            <legend className="mb-1 font-mono text-eyebrow uppercase text-faint">
               {labels.sectionsLabel}
             </legend>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {catalogo.sections.map((s) => {
                 const activa = secciones.includes(s.section);
                 return (
@@ -200,12 +216,19 @@ export function ReportBuilder({
                     onClick={() => alternarSeccion(s.section)}
                     aria-pressed={activa}
                     className={cn(
-                      'rounded-pill border px-3 py-1 text-body transition-colors',
+                      'inline-flex items-center gap-1.5 rounded-pill border px-3 py-1.5 text-body transition-colors',
                       activa
                         ? 'border-foreground bg-foreground text-background'
                         : 'border-border bg-card text-muted-foreground hover:text-foreground',
                     )}
                   >
+                    {/* `aria-hidden`: el estado ya lo anuncia `aria-pressed`, y un lector de
+                        pantalla que además leyera el ícono diría el mismo dato dos veces. */}
+                    {activa ? (
+                      <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden />
+                    ) : (
+                      <Circle className="h-3.5 w-3.5 shrink-0" strokeWidth={1.7} aria-hidden />
+                    )}
                     {etiquetaSeccion(s)}
                   </button>
                 );
@@ -220,9 +243,12 @@ export function ReportBuilder({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="report-instructions">{labels.instructionsLabel}</Label>
+            {/* `rows={4}` y no 2: con dos renglones el campo se leía como una nota al pie y
+                no como algo que de verdad se espera que el usuario llene. El tope real lo
+                pone `maxInstructionsLength`, que viene del backend. */}
             <Textarea
               id="report-instructions"
-              rows={2}
+              rows={4}
               maxLength={catalogo.maxInstructionsLength}
               placeholder={labels.instructionsPlaceholder}
               value={instrucciones}
@@ -231,7 +257,14 @@ export function ReportBuilder({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={generar} disabled={estado.tipo === 'generando' || !secciones.length}>
+            {/* El destello acompaña al botón, igual que al título: es la acción que invoca a
+                la IA, y el mismo sello que marca el resto de lo que escribe Macha. */}
+            <Button
+              onClick={generar}
+              disabled={estado.tipo === 'generando' || !secciones.length}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" strokeWidth={1.8} aria-hidden />
               {estado.tipo === 'generando' ? labels.generating : labels.generate}
             </Button>
 

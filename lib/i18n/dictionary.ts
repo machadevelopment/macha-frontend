@@ -680,6 +680,20 @@ export interface Dictionary {
       monthly: string;
       quarterly: string;
     };
+    /**
+     * CU-868krvrxy — cabecera de descarga del prototipo de Lovable.
+     *
+     * El prototipo pone "Descargar Excel / Descargar PDF" arriba de todo. Acá bajan el
+     * ÚLTIMO reporte generado, no un export de datos en crudo: ese export directo no
+     * existe en el backend, y prometerlo en el texto sería vender algo que no se entrega.
+     * Ver la nota de `ReportsHeader`.
+     */
+    downloadHeader: {
+      title: string;
+      subtitle: string;
+      /** Cuando la empresa todavía no ha generado ningún reporte descargable. */
+      empty: string;
+    };
     baseCurrencyLabel: string;
     table: {
       period: string;

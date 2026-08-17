@@ -565,6 +565,11 @@ export const en: Dictionary = {
       monthly: 'Monthly',
       quarterly: 'Quarterly',
     },
+    downloadHeader: {
+      title: 'Download your latest report',
+      subtitle: 'Get the most recent report you generated, as PDF or Excel.',
+      empty: 'Generate a report below and you can download it from here.',
+    },
     baseCurrencyLabel: 'Base currency',
     table: {
       period: 'Period',
