@@ -34,6 +34,28 @@ interface DocumentRow {
 }
 
 const IN_FLIGHT: DocumentStatus[] = ['queued', 'processing', 'review'];
+
+/**
+ * A partir de cuándo una carga en curso se considera COLGADA (CU — reporte de Jose,
+ * 2026-08-14: *"ahorita se quedó trabada la ingesta"*).
+ *
+ * Un documento puede quedarse en `processing` para siempre: pg-boss vence el job y abandona
+ * la promesa del worker, así que el `catch` que escribiría `failed` nunca corre. Sin esto, ese
+ * documento no ofrece NINGUNA acción —no se puede revertir, ni cancelar, ni reintentar— y el
+ * cliente se queda mirando un "procesando" eterno.
+ *
+ * Es una hora porque es el `expireInSeconds` de la cola de ingesta: pasado ese punto pg-boss
+ * ya dio el job por muerto. El número está DUPLICADO aquí a propósito y es aceptable: el
+ * backend es el gate de verdad y responde 409 si la carga sigue viva, así que lo peor que
+ * puede pasar si este umbral se desincroniza es que el botón aparezca antes de tiempo y el
+ * servidor diga que no. Ver `RETRY_POLICY` en macha-backend/src/queue/index.ts.
+ */
+const COLGADA_MS = 60 * 60 * 1000;
+
+function pareceColgada(doc: DocumentRow): boolean {
+  if (doc.status !== 'processing' && doc.status !== 'queued') return false;
+  return Date.now() - new Date(doc.createdAt).getTime() > COLGADA_MS;
+}
 const POLL_MS = 4000;
 const PAGE_SIZE = 50;
 /** Techo que el backend aplica a `limit` (CU-868kh913c). */
@@ -294,7 +316,11 @@ export function DocumentList({
                     {cancelling === doc.id ? labels.cancelling : labels.cancel}
                   </Button>
                 )}
-                {doc.status === 'failed' && (
+                {/* También en una carga COLGADA: sin esto, el arreglo del backend que
+                    permite desatascarla no lo puede alcanzar nadie. Es seguro porque el
+                    worker es reanudable — se salta los lotes ya confirmados antes de volver
+                    a llamar al modelo. */}
+                {(doc.status === 'failed' || pareceColgada(doc)) && (
                   <Button
                     size="sm"
                     variant="outline"
