@@ -583,6 +583,12 @@ export const es: Dictionary = {
       period: 'Periodo',
       frequency: 'Frecuencia',
       updated: 'Actualizado',
+      status: 'Estado',
+    },
+    status: {
+      ready: 'Listo',
+      notGenerated: 'No se completó',
+      notGeneratedHint: 'Vuelve a generarlo para tener este periodo.',
     },
   },
   alerts: {
