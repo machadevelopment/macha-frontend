@@ -504,6 +504,11 @@ export const en: Dictionary = {
     placeholder: 'Ask about your finances…',
     send: 'Send',
     sending: 'Sending…',
+    threads: 'Conversations',
+    openThreads: 'View conversations',
+    noThreads: 'No conversations yet.',
+    composerHint: 'Enter sends · Shift+Enter for a new line',
+    thinking: 'Macha is thinking…',
     welcome: {
       title: 'What do you want to know about your business?',
       subtitle:

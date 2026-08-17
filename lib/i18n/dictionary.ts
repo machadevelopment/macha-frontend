@@ -597,6 +597,20 @@ export interface Dictionary {
     send: string;
     sending: string;
     /**
+     * CU-868krvtya — el chat salió del "frame".
+     *
+     * `threads` titula el riel de conversaciones, que en escritorio es una columna y bajo
+     * 1080px pasa a un drawer con `openThreads` de disparador (necesita nombre accesible:
+     * es un botón de solo ícono). `composerHint` explica Enter vs Mayús+Enter, que dejó de
+     * ser obvio al cambiar el input de una línea por un área que crece.
+     */
+    threads: string;
+    openThreads: string;
+    noThreads: string;
+    composerHint: string;
+    /** Mientras el asesor responde. Antes solo cambiaba el rótulo del botón. */
+    thinking: string;
+    /**
      * Estado vacío del asesor (CU-868knx189). Sustituye a la antigua `chat.empty`, que era
      * una sola línea gris — se borra en vez de dejarla huérfana en el diccionario.
      */
