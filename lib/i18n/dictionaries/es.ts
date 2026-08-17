@@ -522,6 +522,11 @@ export const es: Dictionary = {
     placeholder: 'Pregunta sobre tus finanzas…',
     send: 'Enviar',
     sending: 'Enviando…',
+    threads: 'Conversaciones',
+    openThreads: 'Ver conversaciones',
+    noThreads: 'Todavía no tienes conversaciones.',
+    composerHint: 'Enter envía · Mayús+Enter salta de línea',
+    thinking: 'Macha está pensando…',
     welcome: {
       title: '¿Qué quieres saber de tu negocio?',
       subtitle:

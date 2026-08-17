@@ -114,6 +114,22 @@ export function AppShell({
           // (§4.4); colapsado deja un riel de solo íconos en vez de esconder la nav.
           'grid-cols-1',
           collapsed ? 'app:grid-cols-[56px_1fr]' : 'app:grid-cols-[212px_1fr]',
+          /*
+           * FILAS EXPLÍCITAS (CU-868krvtya). Bajo 1080px el grid tiene dos hijos visibles
+           * —la topbar móvil y el contenido— y sus filas eran `auto`. Con `align-content`
+           * en su valor por defecto, el espacio sobrante de un contenedor más alto que su
+           * contenido se reparte ENTRE LAS FILAS AUTO: la topbar se inflaría junto con el
+           * contenido en cualquier pantalla que no llene el alto.
+           *
+           * Nunca se notó porque todas las pantallas llenaban de sobra. El chat a pantalla
+           * completa es la primera que puede no hacerlo, y era una bomba puesta para
+           * cualquiera que agregara otra. `auto` para la topbar, `1fr` para el contenido:
+           * el sobrante va entero donde tiene que ir.
+           *
+           * Arriba de 1080px la topbar es `display: none` y queda UNA fila con dos
+           * columnas, así que se declara una sola pista.
+           */
+          'grid-rows-[auto_1fr] app:grid-rows-[1fr]',
         )}
       >
         <aside className="hidden min-h-0 flex-col border-r border-border bg-card app:flex">
@@ -156,8 +172,17 @@ export function AppShell({
           </div>
         </div>
 
-        {/* `min-w-0` para que las tablas/charts anchos no estiren el grid (design guide.md §7). */}
-        <div className="min-w-0 overflow-hidden">{children}</div>
+        {/*
+          `min-w-0` para que las tablas/charts anchos no estiren el grid (design guide.md §7).
+
+          `flex flex-col min-h-0` es de CU-868krvtya, y no cambia nada para las pantallas
+          que ya existían: en una columna flex un hijo conserva su alto de contenido salvo
+          que pida crecer. Lo que habilita es que una pantalla SÍ pueda pedirlo con `flex-1`
+          —el chat, que ocupa el alto completo y scrollea adentro— sin depender de que
+          `height: 100%` resuelva contra una celda de grid cuyo alto sale de un `min-height`.
+          Con `flex-1` el alto lo reparte el contenedor y no hay porcentaje que resolver.
+        */}
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">{children}</div>
       </div>
     </div>
   );
