@@ -393,6 +393,27 @@ export interface Dictionary {
     authError: string;
   };
   upload: {
+    /**
+     * CU-868krmrcj — "qué entendimos de tu archivo". Es lo que vuelve visibles los dos fallos
+     * silenciosos de la ingesta: leer la columna equivocada y descartar hojas sin decirlo.
+     * Ver `components/upload/read-summary.tsx`.
+     */
+    readSummary: {
+      cta: string;
+      /** Cargas anteriores a esta función, o que nunca llegaron a procesarse. */
+      empty: string;
+      /** Lleva `{n}`. */
+      sheetMovements: string;
+      /** Lleva `{creados}` y `{ajustados}`. */
+      sheetInventory: string;
+      /** Por qué una hoja no produjo movimientos. Todos llevan `{n}`. */
+      reason: Record<
+        'catalogo' | 'reporte' | 'duplica_otra_hoja' | 'ya_ingerida' | 'vacia',
+        string
+      >;
+      /** Lleva `{movimientos}` y `{descartadas}`. */
+      totals: string;
+    };
     eyebrow: string;
     title: string;
     subtitle: string;

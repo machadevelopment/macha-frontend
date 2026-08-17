@@ -339,6 +339,22 @@ export const en: Dictionary = {
     authError: "We couldn't complete your sign-in. Please try again.",
   },
   upload: {
+    readSummary: {
+      cta: 'See what we understood from your file',
+      empty: "This upload predates this feature, so we didn't keep the details.",
+      sheetMovements: '· {n} transactions',
+      sheetInventory: '· {creados} new items, {ajustados} adjusted',
+      reason: {
+        catalogo:
+          '· not read: it describes your customers, products or suppliers, not transactions ({n} rows)',
+        reporte: '· not read: it is a report with data laid out across, not a table ({n} rows)',
+        duplica_otra_hoja:
+          '· not read: it repeats the same money as another sheet, and counting it twice would inflate your figures ({n} rows)',
+        ya_ingerida: '· we already had it in full from an earlier upload ({n} rows)',
+        vacia: '· it has no rows to read',
+      },
+      totals: '{movimientos} transactions came through. {descartadas} rows were not read.',
+    },
     eyebrow: 'INGESTION',
     title: 'Upload data',
     subtitle: 'Upload your accounting Excel/CSV and track its processing.',
