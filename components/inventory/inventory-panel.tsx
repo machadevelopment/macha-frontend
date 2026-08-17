@@ -202,10 +202,33 @@ export function InventoryPanel({
                       {formatNumber(item.reorderPoint, locale)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {formatMoney(
-                        item.unitCostOriginal,
-                        item.unitCostCurrency as 'GTQ' | 'USD',
-                        locale,
+                      {/*
+                        CU-868kt25ev: cuando el archivo del cliente no trae costo, el backend
+                        lo deduce del costo promedio de lo que ya vendió de ese producto y lo
+                        manda en `unitCostBase` con `unitCostIsDerived`.
+
+                        Antes esta celda leía SIEMPRE `unitCostOriginal`, que es lo que dijo
+                        el archivo — o sea 0 para esas empresas, y por eso el valor del
+                        inventario salía en cero.
+
+                        La deducción va en moneda BASE (es un promedio sobre movimientos ya
+                        convertidos); el costo del archivo conserva la suya, que puede ser
+                        distinta.
+                      */}
+                      {item.unitCostIsDerived
+                        ? formatMoney(item.unitCostBase, moneda, locale)
+                        : formatMoney(
+                            item.unitCostOriginal,
+                            item.unitCostCurrency as 'GTQ' | 'USD',
+                            locale,
+                          )}
+                      {/* Se MARCA, no se presenta como dato del cliente: la cifra es
+                          correcta pero la dedujimos nosotros, y quien audite el número
+                          necesita saber que no está en su Excel. */}
+                      {item.unitCostIsDerived && (
+                        <Badge variant="neutral" className="ml-1.5" title={labels.derivedCost.hint}>
+                          {labels.derivedCost.badge}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">

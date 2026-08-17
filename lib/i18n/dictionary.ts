@@ -1025,6 +1025,14 @@ export interface Dictionary {
   };
   /** Inventario. */
   inventory: {
+    /**
+     * CU-868kt25ev — marca del costo DEDUCIDO.
+     *
+     * Cuando la hoja de existencias del cliente no trae columna de costo, el backend lo
+     * deduce del costo promedio de lo que ya vendió de ese producto. La cifra es correcta,
+     * pero no salió del archivo — y en un producto financiero esa diferencia importa.
+     */
+    derivedCost: { badge: string; hint: string };
     eyebrow: string;
     title: string;
     subtitle: string;

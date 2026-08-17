@@ -203,6 +203,15 @@ export interface InventoryItem {
   unitCostOriginal: number;
   unitCostCurrency: string;
   unitCostBase: number;
+  /**
+   * CU-868kt25ev: el costo NO vino del archivo — se dedujo del costo promedio de lo que la
+   * empresa ya vendió de ese producto. La pantalla lo marca en vez de presentarlo como un
+   * dato del cliente.
+   *
+   * Opcional por si la respuesta viene de un backend anterior al despliegue: ausente se lee
+   * como "vino del archivo", que es el comportamiento de antes.
+   */
+  unitCostIsDerived?: boolean;
   /** Existencia × costo unitario, en moneda base. Lo calcula el backend para que el valor
    *  del inventario sea el mismo número en pantalla, en un reporte y en el chat. */
   stockValueBase: number;

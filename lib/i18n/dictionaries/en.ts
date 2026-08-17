@@ -856,6 +856,10 @@ export const en: Dictionary = {
     trend: { up: 'Up', down: 'Down', flat: 'Flat' },
   },
   inventory: {
+    derivedCost: {
+      badge: 'derived',
+      hint: "Your stock file has no cost column. This is the average cost of what you've already sold of that product.",
+    },
     eyebrow: 'INVENTORY',
     title: 'Inventory',
     subtitle: 'What you have in stock, what it is worth, and what needs restocking.',

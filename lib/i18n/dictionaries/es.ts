@@ -877,6 +877,10 @@ export const es: Dictionary = {
     trend: { up: 'Sube', down: 'Baja', flat: 'Estable' },
   },
   inventory: {
+    derivedCost: {
+      badge: 'deducido',
+      hint: 'Tu archivo de existencias no trae costo. Este es el costo promedio de lo que ya vendiste de ese producto.',
+    },
     eyebrow: 'INVENTARIO',
     title: 'Inventario',
     subtitle: 'Qué tienes en bodega, cuánto vale y qué hay que reponer.',
