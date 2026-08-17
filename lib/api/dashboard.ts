@@ -40,6 +40,43 @@ export interface ArApResponse {
   ap: AgingBuckets;
 }
 
+/** Nombre de un tramo de antigüedad. Son las claves que manda el backend, no etiquetas. */
+export type AgingBucket = keyof AgingBuckets;
+
+/**
+ * Concentración de la cartera por contraparte — `GET /ar-ap/counterparties` (CU-868kt29t0).
+ *
+ * Lo que los tabs de Por cobrar y Por pagar necesitan además de la antigüedad: **a quién
+ * cobrarle primero**. El total ya lo daba `/ar-ap`, y es el número que el dueño de la PYME
+ * ya conoce.
+ */
+export interface CounterpartyRow {
+  counterparty: string;
+  total: number;
+  /** La parte con fecha de vencimiento pasada. NO es el total; confundirlos reporta mora inexistente. */
+  overdue: number;
+  invoiceCount: number;
+  /** Tramo de la parte más vieja. Es lo que decide el color del renglón. */
+  worstBucket: AgingBucket;
+}
+
+export interface CounterpartyConcentration {
+  top: CounterpartyRow[];
+  /**
+   * Lo que no entró en `top`, agregado. Viene en cero —no ausente— cuando la cartera cabe
+   * entera en el tope, y existe para que la suma de la tabla CIERRE contra el total de
+   * `/ar-ap`: dos cifras que no cuadran en la misma pantalla se leen como un error de
+   * cálculo aunque las dos estén bien.
+   */
+  resto: { total: number; counterpartyCount: number };
+}
+
+export interface ArApCounterpartiesResponse {
+  baseCurrency: string;
+  ar: CounterpartyConcentration;
+  ap: CounterpartyConcentration;
+}
+
 export interface CreditsBalanceResponse {
   balance: number;
 }
