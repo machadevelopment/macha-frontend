@@ -499,6 +499,7 @@ export const es: Dictionary = {
     },
     insightCta: 'Generar insight',
     insightLoading: 'Generando…',
+    insightIdle: 'Macha lee tus últimos tres meses y te dice qué hacer con lo que encuentre.',
     insightInsufficientCredits: 'Saldo de créditos insuficiente para generar un insight.',
     insightError: {
       insufficientDetail: 'Necesitas {required} créditos y tienes {balance}.',
@@ -522,6 +523,11 @@ export const es: Dictionary = {
     placeholder: 'Pregunta sobre tus finanzas…',
     send: 'Enviar',
     sending: 'Enviando…',
+    threads: 'Conversaciones',
+    openThreads: 'Ver conversaciones',
+    noThreads: 'Todavía no tienes conversaciones.',
+    composerHint: 'Enter envía · Mayús+Enter salta de línea',
+    thinking: 'Macha está pensando…',
     welcome: {
       title: '¿Qué quieres saber de tu negocio?',
       subtitle:
@@ -871,6 +877,10 @@ export const es: Dictionary = {
     trend: { up: 'Sube', down: 'Baja', flat: 'Estable' },
   },
   inventory: {
+    derivedCost: {
+      badge: 'deducido',
+      hint: 'Tu archivo de existencias no trae costo. Este es el costo promedio de lo que ya vendiste de ese producto.',
+    },
     eyebrow: 'INVENTARIO',
     title: 'Inventario',
     subtitle: 'Qué tienes en bodega, cuánto vale y qué hay que reponer.',

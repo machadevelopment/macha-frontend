@@ -555,6 +555,14 @@ export interface Dictionary {
     insightCategory: { collections: string; sales: string; financial: string };
     insightCta: string;
     insightLoading: string;
+    /**
+     * CU-868krvtjw: qué hace el botón, antes de apretarlo.
+     *
+     * El panel en reposo era un rótulo "IA" y un botón, sin una línea que dijera qué va a
+     * pasar ni sobre qué datos. Un botón que gasta créditos de la empresa no puede ser una
+     * incógnita.
+     */
+    insightIdle: string;
     insightInsufficientCredits: string;
     /**
      * CU-868kkgav2: el panel colapsaba TODO fallo en "créditos insuficientes" — un 500,
@@ -588,6 +596,20 @@ export interface Dictionary {
     placeholder: string;
     send: string;
     sending: string;
+    /**
+     * CU-868krvtya — el chat salió del "frame".
+     *
+     * `threads` titula el riel de conversaciones, que en escritorio es una columna y bajo
+     * 1080px pasa a un drawer con `openThreads` de disparador (necesita nombre accesible:
+     * es un botón de solo ícono). `composerHint` explica Enter vs Mayús+Enter, que dejó de
+     * ser obvio al cambiar el input de una línea por un área que crece.
+     */
+    threads: string;
+    openThreads: string;
+    noThreads: string;
+    composerHint: string;
+    /** Mientras el asesor responde. Antes solo cambiaba el rótulo del botón. */
+    thinking: string;
     /**
      * Estado vacío del asesor (CU-868knx189). Sustituye a la antigua `chat.empty`, que era
      * una sola línea gris — se borra en vez de dejarla huérfana en el diccionario.
@@ -1003,6 +1025,14 @@ export interface Dictionary {
   };
   /** Inventario. */
   inventory: {
+    /**
+     * CU-868kt25ev — marca del costo DEDUCIDO.
+     *
+     * Cuando la hoja de existencias del cliente no trae columna de costo, el backend lo
+     * deduce del costo promedio de lo que ya vendió de ese producto. La cifra es correcta,
+     * pero no salió del archivo — y en un producto financiero esa diferencia importa.
+     */
+    derivedCost: { badge: string; hint: string };
     eyebrow: string;
     title: string;
     subtitle: string;

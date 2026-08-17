@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { MessagesSquare, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { LoadError } from '@/components/ui/load-error';
 import { MarkdownMessage } from '@/components/chat/markdown-message';
 import { ChatWelcome } from '@/components/chat/chat-welcome';
@@ -48,6 +48,24 @@ export function ChatClient({
   const [sendError, setSendError] = useState<RequestError | null>(null);
   /** Hilos creados en esta sesión, cuyos mensajes NO hay que ir a buscar (ver el efecto). */
   const hilosNuevos = useRef<Set<string>>(new Set());
+  /** Drawer de conversaciones, solo bajo 1080px (CU-868krvtya). */
+  const [hilosAbiertos, setHilosAbiertos] = useState(false);
+  const finDeLaConversacion = useRef<HTMLDivElement>(null);
+
+  /*
+   * CU-868krvtya: la conversación se queda abajo.
+   *
+   * Con la tarjeta de alto fijo esto no hacía falta porque casi nada desbordaba. Ahora el
+   * área de lectura ocupa toda la pantalla, así que sin esto la respuesta del asesor
+   * aparece FUERA de la vista y el usuario cree que no pasó nada — el mismo síntoma que el
+   * bug del asesor mudo, pero de maquetación.
+   *
+   * `sending` está en las dependencias además de `messages` para que el aviso de "está
+   * pensando" también arrastre la vista: es lo que confirma que el envío salió.
+   */
+  useEffect(() => {
+    finDeLaConversacion.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  }, [messages, sending]);
 
   // CU-868kkgb3c: los tres fetch de esta pantalla iban sin manejo de fallo.
   useEffect(() => {
@@ -193,80 +211,176 @@ export function ChatClient({
     );
   }
 
-  return (
-    <div className="grid grid-cols-1 gap-4 app:grid-cols-[212px_1fr]">
-      <div className="flex flex-col gap-2">
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void createChat()}>
-          <Plus className="h-3.5 w-3.5" strokeWidth={1.7} />
-          {labels.newChat}
-        </Button>
-        <div className="flex flex-col gap-1">
-          {threads?.map((thread) => (
-            <button
-              key={thread.id}
-              onClick={() => setActiveId(thread.id)}
-              className={`rounded-md px-2 py-1.5 text-left text-body ${
-                thread.id === activeId ? 'bg-muted' : 'hover:bg-muted'
-              }`}
-            >
+  /** Lista de hilos. Se monta dos veces —riel en escritorio, drawer en móvil— y se escribe una. */
+  const listaDeHilos = (
+    <div className="flex min-h-0 flex-col gap-2">
+      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void createChat()}>
+        <Plus className="h-3.5 w-3.5" strokeWidth={1.7} />
+        {labels.newChat}
+      </Button>
+      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
+        {threads?.length === 0 && <p className="px-2 text-body text-faint">{labels.noThreads}</p>}
+        {threads?.map((thread) => (
+          <button
+            key={thread.id}
+            onClick={() => {
+              setActiveId(thread.id);
+              setHilosAbiertos(false);
+            }}
+            className={`rounded-md px-2 py-1.5 text-left text-body ${
+              thread.id === activeId ? 'bg-muted' : 'hover:bg-muted'
+            }`}
+          >
+            {/* `truncate` y `title`: los hilos se nombran solos con la primera pregunta
+                (CU-868krkw4p), así que hay títulos largos y sin él rompían el riel. */}
+            <span className="block truncate" title={thread.title}>
               {thread.title}
-              <span className="block font-mono text-eyebrow text-faint">
-                {formatDate(thread.updatedAt, locale)}
-              </span>
-            </button>
-          ))}
+            </span>
+            <span className="block font-mono text-eyebrow text-faint">
+              {formatDate(thread.updatedAt, locale)}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-0 flex-1">
+      {/*
+        Riel de conversaciones. Bajo 1080px pasa al drawer de abajo, igual que la navegación
+        del shell: dos columnas de lista sobre un teléfono no dejan ancho para leer.
+      */}
+      <aside className="hidden w-[240px] shrink-0 flex-col border-r border-border p-3 app:flex">
+        <p className="mb-2 px-2 font-mono text-eyebrow uppercase text-faint">{labels.threads}</p>
+        {listaDeHilos}
+      </aside>
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {/* Barra de solo-móvil con el acceso a los hilos. En escritorio no existe: el riel
+            de la izquierda ya está siempre visible y una barra más solo restaría alto. */}
+        <div className="flex items-center gap-2 border-b border-border px-3 py-2 app:hidden">
+          <Sheet open={hilosAbiertos} onOpenChange={setHilosAbiertos}>
+            <SheetTrigger asChild>
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <MessagesSquare className="h-3.5 w-3.5" strokeWidth={1.7} />
+                {labels.threads}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" closeLabel={common.close} className="flex flex-col p-3">
+              <SheetTitle className="mb-2 px-2 font-mono text-eyebrow uppercase text-faint">
+                {labels.threads}
+              </SheetTitle>
+              {listaDeHilos}
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/*
+          ÁREA DE LECTURA. `min-h-0` es lo que hace que scrollee acá adentro en vez de
+          empujar al padre y sacar el composer de la pantalla — sin él, `flex-1` no puede
+          encogerse por debajo del alto de su contenido.
+        */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+          {/*
+            Columna centrada y acotada. El ancho no es decorativo: una línea de texto de más
+            de ~75 caracteres se vuelve incómoda de leer porque el ojo pierde el renglón al
+            volver. Que la conversación NO ocupe los 1400px del shell es justamente lo que la
+            hace parecer una herramienta de lectura y no una tabla.
+          */}
+          <div className="mx-auto flex w-full max-w-[46rem] flex-col gap-4">
+            {messages.length === 0 && (
+              <ChatWelcome labels={labels.welcome} onAsk={(q) => void send(q)} disabled={sending} />
+            )}
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={
+                  m.role === 'user'
+                    ? 'max-w-[85%] self-end rounded-md bg-primary px-3 py-2 text-body text-primary-foreground'
+                    : /*
+                       * La respuesta del asesor va a ANCHO COMPLETO y sin burbuja.
+                       *
+                       * Antes era una burbuja gris al 90%. Su contenido ya no es una línea de
+                       * texto —lleva listas y tablas (CU-868knx181)— y una tabla dentro de una
+                       * burbuja al 90% entra en scroll horizontal aunque sobre espacio al lado.
+                       * Sin caja, el texto usa la columna entera y se lee como un documento,
+                       * que es lo que la referencia del prototipo hace. La burbuja se queda
+                       * solo del lado del usuario, donde sí distingue quién habla.
+                       */
+                      'max-w-full text-body'
+                }
+              >
+                {/*
+                  CU-868knx181: solo el asesor se renderiza como Markdown. Lo que escribe el
+                  usuario se pinta tal cual — si alguien pregunta por un SKU llamado `*ABC*`
+                  no hay razón para que la app se lo coma y le muestre `ABC` en cursiva.
+                  `role === 'tool'` (que el esquema admite aunque hoy no se persista) tampoco
+                  pasa por Markdown: es salida de herramienta, no prosa.
+                */}
+                {m.role === 'assistant' ? <MarkdownMessage content={m.content} /> : m.content}
+              </div>
+            ))}
+
+            {/* Que el asesor está trabajando, en la conversación y no solo en el botón: con
+                el composer abajo del todo, un rótulo que cambia allá se sale del punto donde
+                el usuario está mirando después de mandar. */}
+            {sending && <p className="text-body text-faint">{labels.thinking}</p>}
+
+            {/* Ancla del auto-scroll. Ver el efecto de arriba. */}
+            <div ref={finDeLaConversacion} />
+          </div>
+        </div>
+
+        {/* COMPOSER anclado abajo, alineado con la columna de lectura. */}
+        <div className="border-t border-border px-3 py-3">
+          <div className="mx-auto w-full max-w-[46rem]">
+            {sendError && (
+              <div className="mb-2">
+                <LoadError error={sendError} labels={common.loadError} />
+              </div>
+            )}
+            <div className="flex items-end gap-2">
+              <Textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  /*
+                   * Enter envía, Mayús+Enter salta de línea — lo que hace cualquier
+                   * herramienta de conversación, y lo que antes era imposible: el campo era
+                   * un `<input>` de una línea, así que preguntar algo de dos renglones no
+                   * tenía forma.
+                   *
+                   * `isComposing` NO es un detalle: con un teclado de composición (acentos
+                   * en algunos IME, japonés, chino) el Enter que CONFIRMA la palabra
+                   * dispararía el envío a mitad de la frase.
+                   */
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    void send();
+                  }
+                }}
+                placeholder={labels.placeholder}
+                rows={1}
+                // Crece con el texto hasta ~8 renglones y de ahí scrollea: sin tope, pegar
+                // un texto largo empujaría la conversación entera fuera de la pantalla.
+                className="max-h-[12rem] min-h-[2.5rem] resize-none"
+                /*
+                 * Ya no se exige un hilo abierto para escribir. `send()` lo crea al vuelo,
+                 * así que la condición vieja (`!activeId`) dejaba el campo muerto justo para
+                 * el usuario que entra por primera vez — y habría sido incoherente que las
+                 * preguntas rápidas funcionaran y la caja de al lado no.
+                 */
+                disabled={sending}
+              />
+              <Button onClick={() => void send()} disabled={sending}>
+                {sending ? labels.sending : labels.send}
+              </Button>
+            </div>
+            <p className="mt-1.5 text-eyebrow text-faint">{labels.composerHint}</p>
+          </div>
         </div>
       </div>
-
-      <Card className="flex h-[560px] flex-col justify-between">
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
-          {messages.length === 0 && (
-            <ChatWelcome labels={labels.welcome} onAsk={(q) => void send(q)} disabled={sending} />
-          )}
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={
-                m.role === 'user'
-                  ? 'max-w-[80%] self-end rounded-md bg-primary px-3 py-2 text-body text-primary-foreground'
-                  : // La burbuja del asesor va más ancha que la del usuario (90% vs 80%)
-                    // porque su contenido ya no es una línea de texto: lleva listas y
-                    // tablas, y a 80% una tabla de cuatro columnas entra directo en
-                    // scroll horizontal aunque hubiera espacio de sobra al lado.
-                    'max-w-[90%] self-start rounded-md bg-muted px-3 py-2 text-body'
-              }
-            >
-              {/*
-                CU-868knx181: solo el asesor se renderiza como Markdown. Lo que escribe el
-                usuario se pinta tal cual — si alguien pregunta por un SKU llamado `*ABC*`
-                no hay razón para que la app se lo coma y le muestre `ABC` en cursiva.
-                `role === 'tool'` (que el esquema admite aunque hoy no se persista) tampoco
-                pasa por Markdown: es salida de herramienta, no prosa.
-              */}
-              {m.role === 'assistant' ? <MarkdownMessage content={m.content} /> : m.content}
-            </div>
-          ))}
-        </div>
-        {sendError && <LoadError error={sendError} labels={common.loadError} />}
-        <div className="mt-3 flex gap-2">
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && void send()}
-            placeholder={labels.placeholder}
-            /*
-             * Ya no se exige un hilo abierto para escribir. `send()` lo crea al vuelo, así
-             * que la condición vieja (`!activeId`) dejaba el input muerto justo para el
-             * usuario que entra por primera vez — y habría sido incoherente que las
-             * preguntas rápidas funcionaran y la caja de al lado no.
-             */
-            disabled={sending}
-          />
-          <Button onClick={() => void send()} disabled={sending}>
-            {sending ? labels.sending : labels.send}
-          </Button>
-        </div>
-      </Card>
     </div>
   );
 }

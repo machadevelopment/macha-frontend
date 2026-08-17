@@ -480,6 +480,7 @@ export const en: Dictionary = {
     },
     insightCta: 'Generate insight',
     insightLoading: 'Generating…',
+    insightIdle: 'Macha reads your last three months and tells you what to do about what it finds.',
     insightInsufficientCredits: 'Insufficient credit balance to generate an insight.',
     insightError: {
       insufficientDetail: 'You need {required} credits and have {balance}.',
@@ -503,6 +504,11 @@ export const en: Dictionary = {
     placeholder: 'Ask about your finances…',
     send: 'Send',
     sending: 'Sending…',
+    threads: 'Conversations',
+    openThreads: 'View conversations',
+    noThreads: 'No conversations yet.',
+    composerHint: 'Enter sends · Shift+Enter for a new line',
+    thinking: 'Macha is thinking…',
     welcome: {
       title: 'What do you want to know about your business?',
       subtitle:
@@ -850,6 +856,10 @@ export const en: Dictionary = {
     trend: { up: 'Up', down: 'Down', flat: 'Flat' },
   },
   inventory: {
+    derivedCost: {
+      badge: 'derived',
+      hint: "Your stock file has no cost column. This is the average cost of what you've already sold of that product.",
+    },
     eyebrow: 'INVENTORY',
     title: 'Inventory',
     subtitle: 'What you have in stock, what it is worth, and what needs restocking.',

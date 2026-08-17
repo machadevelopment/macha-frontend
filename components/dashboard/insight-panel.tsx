@@ -90,6 +90,21 @@ export function InsightPanel({
         </Button>
       </div>
 
+      {/*
+        CU-868krvtjw: qué hace el botón, ANTES de apretarlo.
+
+        En reposo el panel era un rótulo "IA" y un botón, sin una línea que dijera qué va a
+        pasar ni sobre qué datos. Un botón que gasta créditos de la empresa no puede ser una
+        incógnita — y la frase también fija la expectativa de lo que va a devolver, que es
+        parte de que el resultado se lea como una respuesta y no como texto suelto.
+
+        Desaparece en cuanto hay algo que mostrar: una vez que el consejo está en pantalla,
+        explicar lo que el botón hace es ruido sobre el contenido.
+      */}
+      {state.status === 'idle' && (
+        <p className="mt-2 text-body text-muted-foreground">{labels.insightIdle}</p>
+      )}
+
       {state.status === 'done' && (
         <InsightCards insights={state.insights} narrative={state.narrative} labels={labels} />
       )}
