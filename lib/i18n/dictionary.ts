@@ -711,6 +711,30 @@ export interface Dictionary {
       description: Record<keyof Dictionary['alerts']['rule'], string>;
     };
   };
+  /**
+   * CU-868krmrcj fase C: el paso de configuración de archivos, justo después del alta.
+   * Pantalla de vitrina — ver `app/onboarding/page.tsx`.
+   */
+  onboarding: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    /** Las tres razones de por qué conviene subirlo ahora y no después. */
+    whyTitle: string;
+    why1: string;
+    why2: string;
+    why3: string;
+    /** Estado posterior a la subida. No sigue el procesamiento: eso vive en Carga de datos. */
+    uploadedTitle: string;
+    uploadedBody: string;
+    goToDashboard: string;
+    /**
+     * La salida para quien todavía no lleva sus finanzas en un Excel. Sin ella, el
+     * onboarding es un muro para justo el cliente que más necesita entrar y mirar.
+     */
+    skip: string;
+    skipHint: string;
+  };
   register: {
     eyebrow: string;
     title: string;

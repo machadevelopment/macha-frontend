@@ -635,6 +635,23 @@ export const es: Dictionary = {
       },
     },
   },
+  onboarding: {
+    eyebrow: 'CONFIGURACIÓN',
+    title: 'Enséñanos cómo son tus archivos',
+    subtitle:
+      'Sube el Excel con el que ya llevas tus finanzas. Aprendemos cómo están armadas sus columnas una sola vez, y a partir de ahí cada carga se lee igual.',
+    whyTitle: 'Por qué empezar por aquí',
+    why1: 'Aprendemos tus columnas una vez. Las cargas siguientes ya no tienen que adivinar.',
+    why2: 'Si algún día cambian de lugar, te avisamos — en vez de leer el número equivocado en silencio.',
+    why3: 'Es el mismo archivo que subirías después. No es un paso extra: es el primero.',
+    uploadedTitle: 'Listo, ya lo estamos procesando',
+    uploadedBody:
+      'Puedes seguir a tu panel; te avisamos cuando termine. Si el archivo trae varias hojas, cada una se analiza por separado.',
+    goToDashboard: 'Ir a mi panel',
+    skip: 'Omitir por ahora',
+    skipHint:
+      '¿Todavía no llevas tus finanzas en un Excel? Entra y súbelo cuando lo tengas, desde Carga de datos.',
+  },
   register: {
     eyebrow: 'REGISTRO',
     title: 'Crea tu empresa',
