@@ -344,6 +344,22 @@ export const es: Dictionary = {
     authError: 'No se pudo completar el inicio de sesión. Vuelve a intentarlo.',
   },
   upload: {
+    readSummary: {
+      cta: 'Ver qué entendimos de tu archivo',
+      empty: 'Esta carga es anterior a esta función, así que no guardamos el detalle.',
+      sheetMovements: '· {n} movimientos',
+      sheetInventory: '· {creados} artículos nuevos, {ajustados} ajustados',
+      reason: {
+        catalogo:
+          '· no se leyó: describe tus clientes, productos o proveedores, no movimientos ({n} filas)',
+        reporte: '· no se leyó: es un reporte con los datos a lo ancho, no una tabla ({n} filas)',
+        duplica_otra_hoja:
+          '· no se leyó: repite el mismo dinero que otra hoja, y contarlo dos veces inflaría tus cifras ({n} filas)',
+        ya_ingerida: '· ya la teníamos completa de una carga anterior ({n} filas)',
+        vacia: '· no tiene filas que leer',
+      },
+      totals: 'Entraron {movimientos} movimientos. No se leyeron {descartadas} filas.',
+    },
     eyebrow: 'INGESTA',
     title: 'Cargar datos',
     subtitle: 'Sube tu Excel/CSV contable y sigue su procesamiento.',

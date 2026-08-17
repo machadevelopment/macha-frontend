@@ -18,6 +18,7 @@ import { DocumentPipeline, type DocumentStatus } from '@/components/upload/pipel
 import { cn } from '@/lib/cn';
 import { errorMessage, request, requestJson } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
+import { ReadSummary } from '@/components/upload/read-summary';
 import { formatDate } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -240,6 +241,28 @@ export function DocumentList({
                   >
                     {doc.errorReason}
                   </p>
+                )}
+
+                {/*
+                  CU-868krmrcj — "qué entendimos de tu archivo".
+
+                  Se ofrece en cuanto la carga TERMINÓ de procesarse, sea cual sea el
+                  desenlace. Justamente en `unsupported` y en `review` es donde el cliente más
+                  necesita saber qué leímos: un archivo que no produjo nada y no explica por
+                  qué es el problema que este resumen viene a eliminar.
+
+                  No se ofrece mientras está en vuelo porque todavía no hay nada que contar, y
+                  un panel vacío que se llena solo confundiría más que ayudar.
+                */}
+                {!IN_FLIGHT.includes(doc.status) && doc.status !== 'cancelled' && (
+                  <div className="mt-1.5">
+                    <ReadSummary
+                      documentId={doc.id}
+                      labels={labels.readSummary}
+                      common={common}
+                      locale={locale}
+                    />
+                  </div>
                 )}
               </TableCell>
               <TableCell className="tabular-nums text-muted-foreground">
