@@ -555,6 +555,14 @@ export interface Dictionary {
     insightCategory: { collections: string; sales: string; financial: string };
     insightCta: string;
     insightLoading: string;
+    /**
+     * CU-868krvtjw: qué hace el botón, antes de apretarlo.
+     *
+     * El panel en reposo era un rótulo "IA" y un botón, sin una línea que dijera qué va a
+     * pasar ni sobre qué datos. Un botón que gasta créditos de la empresa no puede ser una
+     * incógnita.
+     */
+    insightIdle: string;
     insightInsufficientCredits: string;
     /**
      * CU-868kkgav2: el panel colapsaba TODO fallo en "créditos insuficientes" — un 500,
