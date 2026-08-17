@@ -393,6 +393,27 @@ export interface Dictionary {
     authError: string;
   };
   upload: {
+    /**
+     * CU-868krmrcj — "qué entendimos de tu archivo". Es lo que vuelve visibles los dos fallos
+     * silenciosos de la ingesta: leer la columna equivocada y descartar hojas sin decirlo.
+     * Ver `components/upload/read-summary.tsx`.
+     */
+    readSummary: {
+      cta: string;
+      /** Cargas anteriores a esta función, o que nunca llegaron a procesarse. */
+      empty: string;
+      /** Lleva `{n}`. */
+      sheetMovements: string;
+      /** Lleva `{creados}` y `{ajustados}`. */
+      sheetInventory: string;
+      /** Por qué una hoja no produjo movimientos. Todos llevan `{n}`. */
+      reason: Record<
+        'catalogo' | 'reporte' | 'duplica_otra_hoja' | 'ya_ingerida' | 'vacia',
+        string
+      >;
+      /** Lleva `{movimientos}` y `{descartadas}`. */
+      totals: string;
+    };
     eyebrow: string;
     title: string;
     subtitle: string;
@@ -710,6 +731,30 @@ export interface Dictionary {
       /** Una por regla; las mismas seis claves que `alerts.rule`. */
       description: Record<keyof Dictionary['alerts']['rule'], string>;
     };
+  };
+  /**
+   * CU-868krmrcj fase C: el paso de configuración de archivos, justo después del alta.
+   * Pantalla de vitrina — ver `app/onboarding/page.tsx`.
+   */
+  onboarding: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    /** Las tres razones de por qué conviene subirlo ahora y no después. */
+    whyTitle: string;
+    why1: string;
+    why2: string;
+    why3: string;
+    /** Estado posterior a la subida. No sigue el procesamiento: eso vive en Carga de datos. */
+    uploadedTitle: string;
+    uploadedBody: string;
+    goToDashboard: string;
+    /**
+     * La salida para quien todavía no lleva sus finanzas en un Excel. Sin ella, el
+     * onboarding es un muro para justo el cliente que más necesita entrar y mirar.
+     */
+    skip: string;
+    skipHint: string;
   };
   register: {
     eyebrow: string;

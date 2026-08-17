@@ -344,6 +344,22 @@ export const es: Dictionary = {
     authError: 'No se pudo completar el inicio de sesión. Vuelve a intentarlo.',
   },
   upload: {
+    readSummary: {
+      cta: 'Ver qué entendimos de tu archivo',
+      empty: 'Esta carga es anterior a esta función, así que no guardamos el detalle.',
+      sheetMovements: '· {n} movimientos',
+      sheetInventory: '· {creados} artículos nuevos, {ajustados} ajustados',
+      reason: {
+        catalogo:
+          '· no se leyó: describe tus clientes, productos o proveedores, no movimientos ({n} filas)',
+        reporte: '· no se leyó: es un reporte con los datos a lo ancho, no una tabla ({n} filas)',
+        duplica_otra_hoja:
+          '· no se leyó: repite el mismo dinero que otra hoja, y contarlo dos veces inflaría tus cifras ({n} filas)',
+        ya_ingerida: '· ya la teníamos completa de una carga anterior ({n} filas)',
+        vacia: '· no tiene filas que leer',
+      },
+      totals: 'Entraron {movimientos} movimientos. No se leyeron {descartadas} filas.',
+    },
     eyebrow: 'INGESTA',
     title: 'Cargar datos',
     subtitle: 'Sube tu Excel/CSV contable y sigue su procesamiento.',
@@ -634,6 +650,23 @@ export const es: Dictionary = {
           'Te avisamos cuando te queda menos de este porcentaje de los créditos de tu asignación mensual.',
       },
     },
+  },
+  onboarding: {
+    eyebrow: 'CONFIGURACIÓN',
+    title: 'Enséñanos cómo son tus archivos',
+    subtitle:
+      'Sube el Excel con el que ya llevas tus finanzas. Aprendemos cómo están armadas sus columnas una sola vez, y a partir de ahí cada carga se lee igual.',
+    whyTitle: 'Por qué empezar por aquí',
+    why1: 'Aprendemos tus columnas una vez. Las cargas siguientes ya no tienen que adivinar.',
+    why2: 'Si algún día cambian de lugar, te avisamos — en vez de leer el número equivocado en silencio.',
+    why3: 'Es el mismo archivo que subirías después. No es un paso extra: es el primero.',
+    uploadedTitle: 'Listo, ya lo estamos procesando',
+    uploadedBody:
+      'Puedes seguir a tu panel; te avisamos cuando termine. Si el archivo trae varias hojas, cada una se analiza por separado.',
+    goToDashboard: 'Ir a mi panel',
+    skip: 'Omitir por ahora',
+    skipHint:
+      '¿Todavía no llevas tus finanzas en un Excel? Entra y súbelo cuando lo tengas, desde Carga de datos.',
   },
   register: {
     eyebrow: 'REGISTRO',

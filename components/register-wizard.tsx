@@ -101,10 +101,22 @@ export function RegisterWizard({
         setError(raw ?? labels.error);
         return;
       }
-      // CU-868kmxu41: sin proveedor de pagos configurado no hay checkout al que ir. La
-      // empresa YA quedó creada, así que se entra a la app; redirigir a `null` dejaba al
-      // usuario en una URL rota justo después de un alta exitosa.
-      window.location.href = result.data.checkoutUrl ?? '/dashboard';
+      /*
+       * CU-868kmxu41: sin proveedor de pagos configurado no hay checkout al que ir. La
+       * empresa YA quedó creada, así que se entra a la app; redirigir a `null` dejaba al
+       * usuario en una URL rota justo después de un alta exitosa.
+       *
+       * CU-868krmrcj (fase C): ese destino pasa de `/dashboard` a `/onboarding`. Entrar
+       * directo al panel significaba estrenar el producto con seis pantallas en cero, y
+       * dejaba la subida del primer archivo para cuando a la persona se le ocurriera —
+       * que es justo cuando el perfil de columnas ya no puede ahorrarle nada.
+       *
+       * El camino CON cobro no se toca acá porque no lo decide el frontend: su destino es
+       * el `successUrl` que arma el backend (`modules/billing/register.ts`), y se cambió
+       * allá. Si solo se hubiera cambiado esta línea, los clientes que PAGAN serían los
+       * únicos que se saltan el onboarding.
+       */
+      window.location.href = result.data.checkoutUrl ?? '/onboarding';
     } finally {
       setSubmitting(false);
     }
