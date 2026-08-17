@@ -663,6 +663,20 @@ export interface Dictionary {
       period: string;
       frequency: string;
       updated: string;
+      /** CU-868krw2wn: columna de estado. Un reporte que no se completó lo DICE. */
+      status: string;
+    };
+    /**
+     * Estado de un reporte en la lista (CU-868krw2wn).
+     *
+     * La fila de `reports` se crea antes de generar la narrativa, así que una generación
+     * fallida dejaba una fila sin contenido que se veía IGUAL que una buena — y al abrirla
+     * daba "no encontrado". `notGenerated` es lo que se muestra en su lugar.
+     */
+    status: {
+      ready: string;
+      notGenerated: string;
+      notGeneratedHint: string;
     };
   };
   alerts: {
@@ -897,6 +911,58 @@ export interface Dictionary {
     empty: string;
     emptyHint: string;
     type: { revenue: string; cogs: string; opex: string; other: string };
+    /**
+     * CU-868kt29t0 — los seis tabs del prototipo. Las claves son los `value` de Radix, así
+     * que renombrarlas cambia el estado del tab: no son solo texto.
+     */
+    tabs: {
+      overview: string;
+      revenue: string;
+      cashFlow: string;
+      costs: string;
+      receivables: string;
+      payables: string;
+    };
+    /**
+     * Fila de KPIs del encabezado, común a todos los tabs.
+     *
+     * `netMargin` va como CONTEXTO del margen bruto y no como tarjeta propia, igual que en
+     * el prototipo ("Net: X%"): son el mismo indicador con dos alcances, y separarlos en dos
+     * tarjetas invita a leer uno como el otro.
+     */
+    header: {
+      grossMargin: string;
+      netMargin: string;
+      result: string;
+      resultHint: string;
+      growth: string;
+      growthHint: string;
+      arOpen: string;
+      arOpenHint: string;
+    };
+    /** Cuentas por cobrar y por pagar (tabs 5 y 6). */
+    arAp: {
+      agingTitle: string;
+      concentrationTitle: string;
+      /** `{n}` = cuántas contrapartes quedaron fuera del top. */
+      rest: string;
+      colCounterparty: string;
+      colOverdue: string;
+      colInvoices: string;
+      colOldest: string;
+      totalOpen: string;
+      overdueTotal: string;
+      emptyAr: string;
+      emptyAp: string;
+      /** Rótulos de los cinco tramos de antigüedad, tal como los nombra el backend. */
+      bucket: {
+        current: string;
+        '1_30': string;
+        '31_60': string;
+        '61_90': string;
+        '90_plus': string;
+      };
+    };
   };
   /** Ventas por producto. */
   productSales: {
