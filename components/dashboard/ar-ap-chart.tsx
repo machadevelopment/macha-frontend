@@ -50,8 +50,25 @@ export function ArApChart({
   const data = state.data;
   const currency = data.baseCurrency as 'GTQ' | 'USD';
 
+  /*
+   * CU-868kt2eh8 — los tramos se ETIQUETAN, no se muestran crudos.
+   *
+   * El eje decía `1_30`, `31_60`, `90_plus`: las claves que manda el backend, tal cual.
+   * Macha lo reportó textual — "no se entiende qué son los números de abajo". Y con razón:
+   * ni el guion bajo ni el rango sin unidad dicen que son DÍAS DE VENCIMIENTO.
+   *
+   * Los rótulos salen de `common.agingBucket`, que comparten esta gráfica y los tabs de
+   * cartera de Analítica. Con dos copias, una diría "1–30 días" y la otra "1 a 30 días" —
+   * que es de donde viene este ticket.
+   *
+   * `etiqueta` reemplaza a `bucket` como índice del chart: Tremor pinta el eje X con el
+   * valor de esa clave, así que la traducción tiene que pasar acá y no en un formateador
+   * del eje (ver la nota de `chart-theme.ts` sobre por qué las props de estilo no llegan
+   * al SVG). `bucket` se conserva en la fila para la tabla accesible y para las claves.
+   */
   const chartData = BUCKET_ORDER.map((bucket) => ({
     bucket,
+    etiqueta: common.agingBucket[bucket],
     [arLabel]: data.ar[bucket],
     [apLabel]: data.ap[bucket],
   }));
@@ -61,6 +78,10 @@ export function ArApChart({
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
+      {/* CU-868kt2eh8: qué representa el eje. Sin esta línea las barras son montos sin
+          unidad — el usuario ve cifras agrupadas y no sabe que el criterio son los días
+          que llevan vencidas. */}
+      <p className="text-body text-muted-foreground">{common.agingAxisLabel}</p>
       {/* CU-868knx0vh: ver nota en trend-chart.tsx. Barras y no área porque el eje X acá
           no es tiempo sino tramos de antigüedad — una curva entre "31-60" y "61-90"
           sugeriría una continuidad que no existe. Lo que sí se comparte con la tendencia
@@ -90,7 +111,7 @@ export function ArApChart({
       */}
       <CategoryBars
         data={chartData}
-        index="bucket"
+        index="etiqueta"
         categories={[arLabel, apLabel]}
         colors={[chartColors.positive, chartColors.negative]}
         currency={currency}
@@ -113,7 +134,9 @@ export function ArApChart({
         <tbody>
           {chartData.map((row) => (
             <tr key={row.bucket}>
-              <td>{row.bucket}</td>
+              {/* La clave cruda tampoco sirve para un lector de pantalla: "guion bajo
+                  treinta" no es un tramo de antigüedad. */}
+              <td>{row.etiqueta}</td>
               <td>{formatMoney(row[arLabel] as number, currency, locale)}</td>
               <td>{formatMoney(row[apLabel] as number, currency, locale)}</td>
             </tr>
