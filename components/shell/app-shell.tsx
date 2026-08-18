@@ -7,6 +7,29 @@ import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MachaMark } from '@/components/ui/macha-mark';
+
+/**
+ * El wordmark oficial — CU-868kt32ae.
+ *
+ * Macha señaló el logo del sidebar. Decía **"Macha"**, y el logotipo del Brand Book es
+ * **"Macha Finance"**: isotipo de tres barras + el nombre completo
+ * (`LOGO/WORDMARK/PNG/MACHA FINANCE EXPORT-09.png`). Abreviar el nombre de la marca en el
+ * único lugar donde aparece en toda la aplicación no es un detalle de espacio — es la
+ * identidad a medias, y en la pantalla que un inversionista mira primero.
+ *
+ * Va como TEXTO y no como imagen a propósito, y no es una concesión: el wordmark del Brand
+ * Book está compuesto en **SF Pro Display**, que esta aplicación ya auto-hospeda
+ * (`lib/fonts.ts`). Renderizarlo con la propia tipografía lo reproduce con fidelidad y
+ * además escala, respeta el modo oscuro, no pesa y no cuesta una request — todo lo que un
+ * PNG de 1600px no hace. Es el mismo razonamiento que ya documenta `MachaMark` sobre por
+ * qué el isotipo es SVG inline y no el PNG del manual.
+ *
+ * Constante y no texto suelto porque aparece en DOS lugares (la topbar móvil y el sidebar):
+ * dos literales es como uno se corrige y el otro no.
+ *
+ * NO va al diccionario i18n: es un nombre propio, y no se traduce.
+ */
+const WORDMARK = 'Macha Finance';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { OrgSwitcher } from '@/components/org-switcher';
 import { LocaleSwitcher } from '@/components/locale-switcher';
@@ -164,7 +187,7 @@ export function AppShell({
             className="flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
           >
             <MachaMark />
-            Macha
+            {WORDMARK}
           </Link>
           <div className="ml-auto flex items-center">
             <LocaleSwitcher locale={locale} />
@@ -243,8 +266,11 @@ function SidebarBody({
             collapsed && 'app:justify-center',
           )}
         >
-          <MachaMark label={collapsed ? 'Macha' : undefined} />
-          <span className={cn(collapsed && 'app:hidden')}>Macha</span>
+          {/* Colapsado, el isotipo lleva el nombre completo como nombre ACCESIBLE aunque
+              el texto no se vea: un lector de pantalla tiene que anunciar la marca, no una
+              abreviatura que solo existe por falta de ancho. */}
+          <MachaMark label={collapsed ? WORDMARK : undefined} />
+          <span className={cn(collapsed && 'app:hidden')}>{WORDMARK}</span>
         </Link>
         <button
           type="button"

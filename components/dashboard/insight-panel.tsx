@@ -83,7 +83,10 @@ export function InsightPanel({
           <InsightPoint size="sm">
             <Sparkles className="h-3 w-3" strokeWidth={1.9} />
           </InsightPoint>
-          IA
+          {/* CU-868kt8bg0: "Consejo Financiero Diario", no "IA". El nombre dice lo que el
+              usuario recibe, no con qué está hecho. Y sale del diccionario: estaba quemado,
+              así que en inglés también decía "IA". */}
+          {labels.insightTitle}
         </p>
         <Button size="sm" onClick={generate} disabled={state.status === 'loading'}>
           {state.status === 'loading' ? labels.insightLoading : labels.insightCta}
