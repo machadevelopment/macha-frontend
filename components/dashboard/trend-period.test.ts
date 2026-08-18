@@ -10,10 +10,18 @@ import { utilidadBruta } from '@/lib/metrics/period-totals';
  * `/api/metrics?months=12` y **no leía el filtro en absoluto**. Mostraba los últimos doce
  * meses pasara lo que pasara — así que "hoy" y "este año" pintaban la misma curva.
  *
- * Ahora usa `/api/metrics/period`, que devuelve una serie DIARIA del rango exacto. La
- * granularidad sale sola del rango, así que no hay lógica de granularidad que mantener.
- * Lo que se prueba acá es esa premisa: que cada preset produzca un rango de tamaño
- * distinto, que es lo único que hace que la curva cambie.
+ * Ahora usa `/api/metrics/period`, que devuelve una serie DIARIA del rango exacto. Lo que
+ * se prueba acá es la premisa de la que depende TODO lo demás: que cada preset produzca un
+ * rango de tamaño distinto.
+ *
+ * ═══ CORRECCIÓN (CU-868ktm0re) ═══
+ *
+ * La versión anterior de este comentario decía "la granularidad sale sola del rango, cero
+ * lógica que mantener" — y eso era falso: la serie diaria se pintaba TAL CUAL llegaba, así
+ * que "este año" mostraba 365 puntos en un eje que solo tiene espacio legible para una
+ * docena. La lógica de agrupación SÍ existe y vive en `lib/metrics/series-grouping.ts`
+ * (`agruparSerieDeTendencia`), con sus propios tests — este archivo se queda con la premisa
+ * de tamaños que la justifica, no con la agrupación en sí.
  */
 
 const HOY = new Date(2026, 7, 15); // 15 de agosto de 2026

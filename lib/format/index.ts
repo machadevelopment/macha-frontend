@@ -124,6 +124,43 @@ export function formatDate(date: Date | string, locale: Locale = 'es'): string {
   }).format(d);
 }
 
+/**
+ * Etiqueta CORTA de fecha para el eje de un chart de tendencia — CU-868kt8yy6.
+ *
+ * `formatDate` (arriba) usa `dateStyle: 'medium'` a propósito: es para donde el usuario LEE
+ * una fecha puntual ("Vence el 15 de junio de 2026") y ahí sobra ancho. Un eje X no es ese
+ * caso — son hasta 45 marcas seguidas (el `UMBRAL_DIAS_MENSUAL` de
+ * `lib/metrics/series-grouping.ts`) y "15 de junio de 2026" repetido esas veces es
+ * ilegible mucho antes de que se encimen: es exactamente la queja de Macha ("poner la
+ * fecha más fácil de entender").
+ *
+ * `granularidad` decide la forma, no un flag de estilo aparte: un punto DIARIO se lee
+ * "día + mes" (`15 jun`, dentro de un rango de un mes no hace falta el año) y un punto
+ * MENSUAL (ya agrupado por `agruparPorMes`) se lee "mes" solo — mostrar el `01` que le puso
+ * la agrupación como si fuera el día de una venta sería inventarle precisión al dato que no
+ * tiene: el punto es TODO agosto, no el 1 de agosto.
+ *
+ * `conAnio` es la excepción, no la regla: los presets fijos (semana/mes/trimestre/año)
+ * nunca cruzan un límite de año hacia atrás y adelante a la vez, pero un rango
+ * PERSONALIZADO sí puede (de nov-2025 a mar-2026), y ahí dos eneros sin año serían
+ * ambiguos. El llamador decide comparando el año de `from` contra el de `to`.
+ */
+export function formatDateAxis(
+  date: string,
+  locale: Locale = 'es',
+  granularidad: 'day' | 'month' = 'day',
+  options: { conAnio?: boolean } = {},
+): string {
+  const { conAnio = false } = options;
+  const d = new Date(`${date}T00:00:00Z`);
+  return new Intl.DateTimeFormat(intlLocale[locale], {
+    timeZone: 'UTC',
+    day: granularidad === 'day' ? 'numeric' : undefined,
+    month: 'short',
+    year: conAnio ? '2-digit' : undefined,
+  }).format(d);
+}
+
 export function formatPct(value: number, locale: Locale = 'es', fractionDigits = 1): string {
   return new Intl.NumberFormat(intlLocale[locale], {
     style: 'percent',

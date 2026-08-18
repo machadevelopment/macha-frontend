@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { formatDate, formatMoney, formatNumber, formatPct } from './index';
+import { formatDate, formatDateAxis, formatMoney, formatNumber, formatPct } from './index';
 
 describe('formatMoney', () => {
   test('always shows the explicit currency code (design guide §11.5)', () => {
@@ -81,6 +81,51 @@ describe('formatDate', () => {
     expect(formatDate('2026-06-15T14:30:00Z', 'es')).toBe(
       formatDate(new Date('2026-06-15T14:30:00Z'), 'es'),
     );
+  });
+});
+
+// CU-868kt8yy6: el eje de la gráfica de tendencia mostraba la fecha ISO cruda
+// (`2026-08-18`). Estos son los formatos cortos que la reemplazan.
+describe('formatDateAxis', () => {
+  test('día: incluye día y mes, sin año', () => {
+    const out = formatDateAxis('2026-08-18', 'en', 'day');
+    expect(out).toContain('18');
+    expect(out).toMatch(/Aug/i);
+    expect(out).not.toContain('2026');
+  });
+
+  test('mes: solo el mes, sin el día que le puso la agrupación', () => {
+    // `agruparPorMes` marca cada punto con el día 1 (`YYYY-MM-01`); mostrarlo confundiría
+    // "todo agosto" con "el 1 de agosto".
+    const out = formatDateAxis('2026-08-01', 'en', 'month');
+    expect(out).not.toContain('1');
+    expect(out).toMatch(/Aug/i);
+  });
+
+  test('conAnio desambigua un rango personalizado que cruza años', () => {
+    const enero26 = formatDateAxis('2026-01-01', 'en', 'month', { conAnio: true });
+    const enero25 = formatDateAxis('2025-01-01', 'en', 'month', { conAnio: true });
+    expect(enero26).not.toBe(enero25);
+    expect(enero26).toContain('26');
+    expect(enero25).toContain('25');
+  });
+
+  test('sin conAnio (default), dos eneros de años distintos se ven iguales', () => {
+    // Es la premisa que justifica que el llamador decida `conAnio` comparando años, no un
+    // default siempre-true: los presets fijos nunca cruzan un año y agregarlo ahí sería
+    // ruido en las doce etiquetas de la vista anual.
+    expect(formatDateAxis('2026-01-01', 'en', 'month')).toBe(
+      formatDateAxis('2025-01-01', 'en', 'month'),
+    );
+  });
+
+  test('una fecha date-only no retrocede un día (mismo cuidado que formatDate)', () => {
+    expect(formatDateAxis('2026-06-01', 'en', 'day')).toContain('1');
+    expect(formatDateAxis('2026-06-30', 'en', 'day')).toContain('30');
+  });
+
+  test('es-GT produce un mes abreviado en español', () => {
+    expect(formatDateAxis('2026-08-01', 'es', 'month').toLowerCase()).toContain('ago');
   });
 });
 
