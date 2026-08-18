@@ -161,7 +161,7 @@ export function OrgSwitcher({
         ))}
         {staffTier && (
           <DropdownMenuItem onSelect={() => router.push('/admin')} className="text-faint">
-            <Building2 className="h-4 w-4" />
+            <Building2 className="h-4 w-4" strokeWidth={1.7} />
             {labels.machaInternal}
           </DropdownMenuItem>
         )}

@@ -229,11 +229,11 @@ export function PanelProductos({
                 {/* Tinta neutra, no verde: la cuota de un producto no dice "va bien o mal",
                     solo cuánto pesa. `aria-hidden` porque el porcentaje va en texto al lado. */}
                 <div
-                  className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-[5px] bg-muted"
+                  className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-sm bg-muted"
                   aria-hidden="true"
                 >
                   <div
-                    className="h-full rounded-[5px] bg-foreground"
+                    className="h-full rounded-sm bg-foreground"
                     style={{ width: `${Math.min(100, Math.max(0, p.revenueSharePct))}%` }}
                   />
                 </div>

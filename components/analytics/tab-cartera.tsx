@@ -131,16 +131,16 @@ export function TabCartera({
                     {/* `aria-hidden` porque el porcentaje va en texto al lado: un lector de
                         pantalla que anunciara la barra leería el mismo dato dos veces. */}
                     <div
-                      className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-[5px] bg-muted"
+                      className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-sm bg-muted"
                       aria-hidden="true"
                     >
                       <div
                         className={
                           VARIANTE[b] === 'danger'
-                            ? 'h-full rounded-[5px] bg-danger'
+                            ? 'h-full rounded-sm bg-danger'
                             : VARIANTE[b] === 'warning'
-                              ? 'h-full rounded-[5px] bg-warning'
-                              : 'h-full rounded-[5px] bg-foreground'
+                              ? 'h-full rounded-sm bg-warning'
+                              : 'h-full rounded-sm bg-foreground'
                         }
                         // Único estilo inline: es un ancho calculado por fila, no una clase
                         // que Tailwind pueda generar de antemano.

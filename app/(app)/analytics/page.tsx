@@ -1,3 +1,5 @@
+import { BarChart3 } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { AnalyticsClient } from '@/components/analytics/analytics-client';
@@ -13,9 +15,7 @@ export default function AnalyticsPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.analytics.eyebrow}</p>
-      <h1 className="text-h1">{t.analytics.title}</h1>
-      <p className="mb-4 text-body text-muted-foreground">{t.analytics.subtitle}</p>
+      <PageHeader icon={BarChart3} title={t.analytics.title} subtitle={t.analytics.subtitle} />
       <AnalyticsClient
         locale={locale}
         labels={t.analytics}

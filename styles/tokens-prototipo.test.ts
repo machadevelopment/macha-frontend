@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -110,5 +110,82 @@ describe('la regla de los dos verdes sobrevive a la alineación', () => {
     // 27 puntos de luminosidad entre ambos. Se exige holgadamente menos para no romperse
     // por un redondeo, pero lo bastante como para que acercarlos de verdad falle.
     expect(Math.abs(lum(salvia) - lum(funcional))).toBeGreaterThan(0.15);
+  });
+});
+
+/**
+ * CU-868kt8bg0 · LA CURVA DE ANIMACIÓN ES UNA SOLA.
+ *
+ * El prototipo define `ease: [0.2, 0, 0, 1]` a 0,2 s una vez y la reusa en cada componente.
+ * Acá vive como el DEFAULT de Tailwind, no como una clase opcional, para que
+ * `transition-colors` a secas ya la traiga. Si alguien la mueve a una clase con nombre,
+ * las veinte transiciones del producto vuelven en silencio a la curva de fábrica
+ * (`cubic-bezier(0.4,0,0.2,1)` a 150 ms) y nada lo delata en pantalla salvo la sensación
+ * de que "no es tan suave como el prototipo", que es justo el reporte original.
+ */
+describe('curva de animación del prototipo', () => {
+  const config = readFileSync(join(import.meta.dir, '..', 'tailwind.config.ts'), 'utf-8');
+
+  test('la curva del prototipo es el DEFAULT, no una clase aparte', () => {
+    expect(config).toContain("transitionTimingFunction: { DEFAULT: 'cubic-bezier(0.2, 0, 0, 1)' }");
+  });
+
+  test('la duración por defecto es la del prototipo (200 ms, no los 150 de fábrica)', () => {
+    expect(config).toContain("transitionDuration: { DEFAULT: '200ms' }");
+  });
+});
+
+/**
+ * CU-868kt8bg0 · "MANTENER EL MISMO REDONDEADO EN TODOS LOS COMPONENTES".
+ *
+ * La escala de radios es 5/8/10/11/22 px (`tailwind.config.ts`). Antes de este ticket había
+ * seis lugares con el radio escrito a mano en la clase, y dos de ellos —`rounded-[7px]` en
+ * los ítems del menú y `rounded-[6px]` en dos controles del shell— no eran NINGUNO de los
+ * cinco valores de la escala. Un radio de 7 junto a uno de 8 no se ve mal: se ve
+ * ligeramente descuidado, sin que nadie pueda señalar qué.
+ *
+ * El ticket lo pide dos veces: "mismo redondeado en todos los componentes" y "no
+ * hardcodear valores en los componentes, todo va al sistema de tokens".
+ */
+describe('los radios salen de la escala, no de la clase', () => {
+  function archivos(dir: string): string[] {
+    const salida: string[] = [];
+    for (const entrada of readdirSync(dir)) {
+      const ruta = join(dir, entrada);
+      if (statSync(ruta).isDirectory()) salida.push(...archivos(ruta));
+      else if (entrada.endsWith('.tsx')) salida.push(ruta);
+    }
+    return salida;
+  }
+
+  const RAIZ = join(import.meta.dir, '..');
+  const FUENTES = [...archivos(join(RAIZ, 'components')), ...archivos(join(RAIZ, 'app'))];
+
+  test('el recorrido encuentra el frontend (no se rompió en silencio)', () => {
+    expect(FUENTES.length).toBeGreaterThan(50);
+  });
+
+  /**
+   * Los comentarios se quitan ANTES de buscar. Varias cabeceras NOMBRAN el radio viejo al
+   * explicar por qué se fue (`rounded-[7px]` en `app-shell`), y sin este paso documentar la
+   * decisión rompería el test — que es la forma más segura de que la próxima persona borre
+   * la explicación en vez de arreglar el código.
+   */
+  const sinComentarios = (fuente: string) =>
+    fuente.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+  test('ningún componente escribe un radio en píxeles', () => {
+    const culpables = FUENTES.filter((f) =>
+      /rounded-\[\d+px\]/.test(sinComentarios(readFileSync(f, 'utf-8'))),
+    ).map((f) => f.slice(RAIZ.length + 1));
+    expect(culpables).toEqual([]);
+  });
+
+  test('...y el test lo detectaría si volviera a aparecer', () => {
+    // Solo se quitan bloques `/* */` y líneas ENTERAS de `//`. Un `//` a media línea no se
+    // toca a propósito: distinguirlo de un `https://` o de una barra dentro de una cadena
+    // pide un parser, y el precio de equivocarse es borrar código real antes de buscar.
+    expect(sinComentarios('    // rounded-[7px]')).not.toContain('rounded-[7px]');
+    expect(sinComentarios('<div className="rounded-[7px]" />')).toContain('rounded-[7px]');
   });
 });

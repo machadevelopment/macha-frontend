@@ -79,9 +79,13 @@ export function KpiCard({
     // La elevación al pasar el cursor viene del prototipo. Con transform+transition de
     // CSS y no con framer-motion: es una dependencia entera para un desplazamiento de
     // 2px, y CLAUDE.md pide verificar compatibilidad con Bun antes de sumar librerías.
-    <Card
-      className={cn('transition-transform duration-200 ease-out hover:-translate-y-0.5', className)}
-    >
+    //
+    // CU-868kt8bg0: la duración y la curva ya NO se escriben acá. Eran `duration-200
+    // ease-out`, que se parecía a la del prototipo sin serlo; ahora la curva exacta
+    // (`cubic-bezier(0.2,0,0,1)` a 200 ms) es el DEFAULT de Tailwind en `tailwind.config`,
+    // así que `transition-transform` a secas ya la trae — y la comparte con las otras
+    // veinte transiciones del producto en vez de ser un ajuste suelto de esta tarjeta.
+    <Card className={cn('transition-transform hover:-translate-y-0.5', className)}>
       <div className="flex items-start justify-between gap-2">
         <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
         {icon && <span className="shrink-0 text-faint">{icon}</span>}

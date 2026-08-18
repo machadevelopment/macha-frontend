@@ -39,7 +39,7 @@ export function LoadError({
         <button
           type="button"
           onClick={onRetry}
-          className="inline-flex items-center gap-1.5 rounded-[7px] border border-border px-2.5 py-1.5 text-body text-foreground transition-colors hover:bg-muted"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-body text-foreground transition-colors hover:bg-muted"
         >
           <RotateCw className="h-3.5 w-3.5" strokeWidth={1.7} />
           {labels.retry}
