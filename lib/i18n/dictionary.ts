@@ -656,6 +656,14 @@ export interface Dictionary {
     /** Mientras el asesor responde. Antes solo cambiaba el rótulo del botón. */
     thinking: string;
     /**
+     * CU-868ktmdex. Dice "dejar de esperar", NO "cancelar": el turno no es cancelable en el
+     * servidor, así que el botón suelta al usuario de la espera pero no detiene el trabajo.
+     * Un rótulo que prometiera cancelación sería peor que no tener botón.
+     */
+    stopWaiting: string;
+    stoppedWaiting: string;
+    refreshThread: string;
+    /**
      * Estado vacío del asesor (CU-868knx189). Sustituye a la antigua `chat.empty`, que era
      * una sola línea gris — se borra en vez de dejarla huérfana en el diccionario.
      */
