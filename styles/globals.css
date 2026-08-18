@@ -511,10 +511,23 @@
     letter-spacing: 0;
   }
 
-  /* Cuadrícula: `--soft`, un paso más tenue que el borde de la tarjeta. Recharts pinta
-     `stroke="#ccc"` por atributo y el selector de clase lo gana. */
+  /*
+   * Cuadrícula: el MISMO gris que el borde de la tarjeta. Recharts pinta `stroke="#ccc"`
+   * por atributo y el selector de clase lo gana.
+   *
+   * CU-868kt8bg0: era `--soft`, "un paso más tenue que el borde". El razonamiento valía
+   * cuando el lienzo era `#f9f9f9` — la cuadrícula tenía que ceder ante una tarjeta que ya
+   * destacaba sobre un fondo gris. Con el lienzo del prototipo (blanco puro) la tarjeta es
+   * blanca sobre blanco, y una cuadrícula a `#f5f5f5` sobre `#ffffff` prácticamente no
+   * existe: la gráfica pierde las líneas de referencia que dejan LEER un valor, no solo
+   * ver una forma. El prototipo usa `hsl(var(--border))` y por eso sus gráficas se ven
+   * "más profesionales", que es el reporte textual del ticket.
+   *
+   * Es un ejemplo de por qué los primitivos no se cambian de a uno: mover el lienzo
+   * invalidó la razón por la que este token era el que era, sin tocar esta línea.
+   */
   .macha-chart .recharts-cartesian-grid line {
-    stroke: var(--soft);
+    stroke: var(--border);
   }
 
   /*

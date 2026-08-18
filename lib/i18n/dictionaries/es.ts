@@ -569,6 +569,11 @@ export const es: Dictionary = {
       sectionsRequired: 'Elige al menos una sección.',
       instructionsLabel: 'Algo más que quieras pedirle (opcional)',
       instructionsPlaceholder: 'Enfócate en el margen de la línea de bebidas.',
+      // CU-868kt96fw: `{sections}` se rellena con los nombres de las secciones SIN marcar.
+      instructionsScope:
+        'Lo que pidas solo puede salir de las secciones marcadas arriba. Ahora mismo están sin marcar: {sections}.',
+      instructionsScopeAll:
+        'Están marcadas todas las secciones, así que puedes pedir sobre cualquiera.',
       generate: 'Generar reporte',
       generating: 'Enviando…',
       queued: 'Tu reporte quedó en cola y usó {n} créditos. Aparecerá abajo en cuanto esté listo.',

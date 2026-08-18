@@ -99,6 +99,13 @@ export function ReportBuilder({
   const etiquetaSeccion = (s: Catalogo['sections'][number]) =>
     locale === 'es' ? s.labelEs : s.labelEn;
 
+  // Las secciones que el usuario NO marcó, con su nombre visible. Es lo único que la
+  // instrucción no va a poder cubrir, y se calcula acá para que el renglón de abajo no
+  // tenga lógica adentro.
+  const sinMarcar = catalogo.sections
+    .filter((s) => !secciones.includes(s.section))
+    .map(etiquetaSeccion);
+
   function alternarSeccion(section: string) {
     setEstado({ tipo: 'idle' });
     setSecciones((prev) =>
@@ -243,6 +250,38 @@ export function ReportBuilder({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="report-instructions">{labels.instructionsLabel}</Label>
+            {/*
+              CU-868kt96fw — EL ALCANCE DE LA INSTRUCCIÓN, ANTES DE ESCRIBIRLA.
+
+              Macha reportó que este campo "se ignora por completo". Se revisaron los
+              payloads reales de pg-boss en producción: el texto NUNCA se perdió. Las
+              cuatro instrucciones que se escribieron llegaron enteras al prompt.
+
+                "Incluye ventas por producto"                         → ["kpis"]
+                "…por producto con costo y venta total por producto"  → ["kpis"]
+                "sales by product this month"                         → ["kpis","recommendations"]
+                "Agrega una gráfica de mis ventas por mes…"           → ["kpis","recommendations"]
+
+              Las CUATRO piden datos por producto, y en las cuatro "Productos top" estaba
+              sin marcar. El snapshot no traía un solo producto, así que el modelo no tenía
+              con qué responder — y la regla de la casa es no inventar. Se calló. Desde el
+              otro lado de la pantalla, eso se ve exactamente igual que un campo roto.
+
+              Este renglón es la mitad de la corrección (la otra vive en el prompt: si lo
+              pedido no está en el snapshot, la narrativa tiene que decirlo y nombrar la
+              sección que falta). Acá se ataca antes: el usuario ve QUÉ no está marcado en
+              el momento de escribir, que es cuando todavía puede arreglarlo con un clic.
+
+              NO hay adivinanza de palabras clave. Buscar "producto"/"product" en el texto
+              sería frágil en dos idiomas, con typos y con sinónimos, y un aviso que a veces
+              no aparece enseña a ignorarlo. Se listan las secciones sin marcar y ya: es
+              determinista, y habría prevenido los cuatro casos observados.
+            */}
+            <p className="text-caption text-muted-foreground">
+              {sinMarcar.length === 0
+                ? labels.instructionsScopeAll
+                : labels.instructionsScope.replace('{sections}', sinMarcar.join(', '))}
+            </p>
             {/* `rows={4}` y no 2: con dos renglones el campo se leía como una nota al pie y
                 no como algo que de verdad se espera que el usuario llene. El tope real lo
                 pone `maxInstructionsLength`, que viene del backend. */}

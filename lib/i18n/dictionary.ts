@@ -693,6 +693,9 @@ export interface Dictionary {
       sectionsRequired: string;
       instructionsLabel: string;
       instructionsPlaceholder: string;
+      /** CU-868kt96fw. `{sections}` se rellena con las secciones SIN marcar. */
+      instructionsScope: string;
+      instructionsScopeAll: string;
       generate: string;
       generating: string;
       /** `{n}` = créditos que costó. Dice "en cola", nunca "listo". */
