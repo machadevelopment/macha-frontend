@@ -8,6 +8,7 @@ import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
 import { formatDate, formatNumber } from '@/lib/format';
 import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
+import { unaPorRegla } from '@/components/dashboard/una-por-regla';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
@@ -41,6 +42,25 @@ interface AlertRow {
 /** Cuántas caben en el rail sin volverlo un listado. El histórico completo vive en `/alerts`. */
 const CUANTAS = 4;
 
+/**
+ * Cuántas se piden para poder quedarse con CUANTAS **reglas distintas** — CU-868ktkp9w.
+ *
+ * El motor de alertas registra un evento en CADA evaluación, también cuando la ventana de
+ * no-repetición de 7 días le impide notificar: `alert_events` es el historial completo, a
+ * propósito. Como se evalúa tras cada carga de Excel, la misma regla acumula varias filas
+ * casi idénticas en pocos días.
+ *
+ * Para `/alerts`, que ES el historial, eso está bien. Para este rail no: pedir las 4 más
+ * recientes mostraba "Caída de ingresos" y "Margen bajo" DOS VECES cada una, con la misma
+ * fecha y el mismo valor (así salió en el reporte de QA). El dueño lee cuatro problemas
+ * donde hay dos, y el rail deja de ser un resumen para volverse un eco.
+ *
+ * Se sobre-pide y se deduplica en el cliente en vez de tocar el endpoint porque `/alerts`
+ * comparte esa ruta y ahí las repeticiones son el dato. El factor es deliberadamente
+ * pequeño: cubre el caso real (varias cargas en la misma semana) sin traerse el historial.
+ */
+const A_PEDIR = CUANTAS * 4;
+
 export function KeyAlertsCard({
   locale,
   labels,
@@ -54,9 +74,11 @@ export function KeyAlertsCard({
   common: Dictionary['common'];
 }) {
   const { state } = useResource<{ items: AlertRow[]; hasMore: boolean }>(
-    () => request<{ items: AlertRow[]; hasMore: boolean }>(`/api/alerts?limit=${CUANTAS}&offset=0`),
+    () => request<{ items: AlertRow[]; hasMore: boolean }>(`/api/alerts?limit=${A_PEDIR}&offset=0`),
     [],
   );
+
+  const aMostrar = state.status === 'ready' ? unaPorRegla(state.data.items).slice(0, CUANTAS) : [];
 
   return (
     <Card>
@@ -72,19 +94,33 @@ export function KeyAlertsCard({
           posibles en un producto financiero. Mismo criterio que `/alerts`. */}
       {state.status === 'error' && <p className="text-body text-danger">{labels.loadFailed}</p>}
 
-      {state.status === 'ready' && state.data.items.length === 0 && (
+      {state.status === 'ready' && aMostrar.length === 0 && (
         <p className="text-body text-faint">{labels.empty}</p>
       )}
 
-      {state.status === 'ready' && state.data.items.length > 0 && (
+      {state.status === 'ready' && aMostrar.length > 0 && (
         <ul className="flex flex-col gap-2">
-          {state.data.items.map((a) => (
+          {aMostrar.map((a) => (
             <li key={a.id} className="border-t border-border pt-2 first:border-t-0 first:pt-0">
               <Link href={`/alerts/${a.id}`} className="group block">
                 <div className="flex items-center justify-between gap-2">
                   {/* Una regla que exista en el backend pero todavía no en el diccionario se
                       degrada a mostrar su clave cruda, nunca a romper la fila. */}
-                  <Badge variant="danger" className="normal-case">
+                  {/*
+                   * `font-ui` junto a `normal-case` — CU-868ktkp9w.
+                   *
+                   * El chip trae `font-mono` de fábrica, y ahí está bien: la regla mono lo
+                   * reserva para etiquetas EN MAYÚSCULA CON TRACKING, que es lo que un chip
+                   * normalmente es. Pero acá se le pasaba `normal-case`, que cancela las
+                   * mayúsculas y deja la monoespaciada suelta: "Revenue drop" en caja normal
+                   * y en mono, que es un nombre en prosa vestido de dato. Eso es lo que QA
+                   * leyó como "muy grande" y "robótico" — no era el tamaño (14px), era la
+                   * familia.
+                   *
+                   * `DeltaBadge` sí conserva mono con `normal-case` y no es incoherente: lo
+                   * que lleva dentro es una CIFRA corta, no una frase.
+                   */}
+                  <Badge variant="danger" className="font-ui normal-case">
                     {isKnownRule(a.ruleKey) ? alertLabels.rule[a.ruleKey] : a.ruleKey}
                   </Badge>
                   <span className="tabular-nums text-eyebrow text-faint">
@@ -106,7 +142,7 @@ export function KeyAlertsCard({
         </ul>
       )}
 
-      {state.status === 'ready' && state.data.items.length > 0 && (
+      {state.status === 'ready' && aMostrar.length > 0 && (
         <Link
           href="/alerts"
           className="mt-3 inline-block font-ui text-body text-muted-foreground underline hover:text-foreground"

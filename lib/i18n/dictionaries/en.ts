@@ -782,7 +782,6 @@ export const en: Dictionary = {
   analytics: {
     eyebrow: 'ANALYTICS',
     title: 'How your business is doing',
-    subtitle: 'How your revenue, costs and cash moved over the period.',
     revenueTrend: 'Revenue trend',
     cashFlow: 'Cash in and out',
     costByCategory: 'Cost by category',
@@ -840,7 +839,6 @@ export const en: Dictionary = {
   productSales: {
     eyebrow: 'PRODUCTS',
     title: 'Product sales',
-    subtitle: 'What sells, what it earns you, and what is sitting still.',
     topProduct: 'Top product',
     unitsSold: 'Units sold',
     avgTicket: 'Average ticket',
