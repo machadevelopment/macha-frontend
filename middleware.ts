@@ -7,10 +7,20 @@ import { authkitProxy } from '@workos-inc/authkit-nextjs';
 // `/login` es la tercera pública y tiene que serlo: es el Route Handler que arma la URL
 // de la hosted UI y escribe la cookie PKCE (app/login/route.ts). Exigirle sesión a la
 // puerta de entrada dejaría a quien no ha entrado sin forma de entrar.
+//
+// CU-868ktkq8r — `/invitations/accept` es la CUARTA, y es un cambio de criterio.
+// Exigirle sesión se había decidido a propósito: el enlace del correo llevaba a AuthKit
+// primero y volvía con el `?token=` intacto. Eso sirve para quien ya tiene cuenta y
+// falla justo para el caso normal de esa ruta, el invitado NUEVO: clic en el correo y,
+// sin una palabra de explicación, la pantalla genérica de "Sign up" de WorkOS pidiendo
+// nombre y apellido. Es la captura del ticket. La ruta ahora explica que hay una
+// invitación a una empresa que ya existe ANTES de mandar a nadie a autenticarse, y ella
+// misma manda a `/login?returnTo=…` conservando el token. El middleware no protege nada
+// al exigir sesión aquí: la aceptación la sigue exigiendo el BFF y el backend.
 export default authkitProxy({
   middlewareAuth: {
     enabled: true,
-    unauthenticatedPaths: ['/', '/login', '/callback'],
+    unauthenticatedPaths: ['/', '/login', '/callback', '/invitations/accept'],
   },
 });
 
