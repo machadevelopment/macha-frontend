@@ -972,7 +972,6 @@ export interface Dictionary {
   analytics: {
     eyebrow: string;
     title: string;
-    subtitle: string;
     revenueTrend: string;
     cashFlow: string;
     costByCategory: string;
@@ -1044,7 +1043,6 @@ export interface Dictionary {
   productSales: {
     eyebrow: string;
     title: string;
-    subtitle: string;
     topProduct: string;
     unitsSold: string;
     avgTicket: string;
