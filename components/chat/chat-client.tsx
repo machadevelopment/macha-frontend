@@ -1,5 +1,6 @@
 'use client';
 
+import { comportamientoDeScroll, estaPegadoAlFondo } from '@/lib/chat/auto-scroll';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MessagesSquare, Plus } from 'lucide-react';
@@ -51,21 +52,59 @@ export function ChatClient({
   /** Drawer de conversaciones, solo bajo 1080px (CU-868krvtya). */
   const [hilosAbiertos, setHilosAbiertos] = useState(false);
   const finDeLaConversacion = useRef<HTMLDivElement>(null);
+  /** El contenedor que scrollea. Se lee para saber si el usuario subió a leer. */
+  const areaDeLectura = useRef<HTMLDivElement>(null);
+  /**
+   * El hilo cuyo scroll inicial ya se resolvió. Es un `ref` y no estado a propósito: solo
+   * decide DENTRO del efecto y no debe provocar un render — con estado, actualizarlo
+   * volvería a correr el efecto y el "salto de apertura" se dispararía dos veces.
+   */
+  const hiloYaPosicionado = useRef<string | null>(null);
 
   /*
-   * CU-868krvtya: la conversación se queda abajo.
+   * CU-868krvtya: la conversación se queda abajo. CU-868kt9e92: pero no siempre.
    *
    * Con la tarjeta de alto fijo esto no hacía falta porque casi nada desbordaba. Ahora el
    * área de lectura ocupa toda la pantalla, así que sin esto la respuesta del asesor
    * aparece FUERA de la vista y el usuario cree que no pasó nada — el mismo síntoma que el
    * bug del asesor mudo, pero de maquetación.
    *
-   * `sending` está en las dependencias además de `messages` para que el aviso de "está
-   * pensando" también arrastre la vista: es lo que confirma que el envío salió.
+   * Lo que agrega CU-868kt9e92 son las dos distinciones que faltaban (la aritmética y su
+   * porqué están en `lib/chat/auto-scroll.ts`, con tests):
+   *
+   *   · ABRIR un hilo SALTA (`behavior: 'auto'`). Antes animaba siempre, y una animación
+   *     de miles de píxeles se cancela sola en cuanto el documento crece debajo de ella
+   *     —que es lo que hace el Markdown al maquetarse—, dejando al usuario a mitad del
+   *     hilo. Eso es exactamente lo que se reportó como "se queda en la primera pregunta".
+   *   · Si el usuario SUBIÓ a leer, no se le mueve nada.
+   *
+   * `sending` sigue en las dependencias para que el aviso de "está pensando" también
+   * arrastre la vista: es lo que confirma que el envío salió.
    */
   useEffect(() => {
-    finDeLaConversacion.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
-  }, [messages, sending]);
+    const ancla = finDeLaConversacion.current;
+    const area = areaDeLectura.current;
+    if (!ancla || !area) return;
+
+    const abriendo = hiloYaPosicionado.current !== activeId;
+    const comportamiento = comportamientoDeScroll({
+      abriendo,
+      pegadoAlFondo: estaPegadoAlFondo(area),
+    });
+    // `null` = el usuario está leyendo arriba. No se toca.
+    if (!comportamiento) return;
+
+    // El hilo se marca como posicionado SOLO cuando ya tiene mensajes en pantalla.
+    //
+    // Sin esta condición el arreglo se anula solo: al abrir un hilo, `messages` pasa por
+    // `[]` un instante antes de que llegue la respuesta del fetch. Ese primer render
+    // marcaría el hilo como ya posicionado —sin haber nada que posicionar— y el render
+    // siguiente, el que sí trae la conversación, entraría por la rama de "mensaje nuevo
+    // estando abajo" y ANIMARÍA desde arriba: exactamente el bug que este ticket corrige,
+    // reintroducido por la carrera.
+    if (abriendo && messages.length > 0) hiloYaPosicionado.current = activeId;
+    ancla.scrollIntoView({ block: 'end', behavior: comportamiento });
+  }, [messages, sending, activeId]);
 
   // CU-868kkgb3c: los tres fetch de esta pantalla iban sin manejo de fallo.
   useEffect(() => {
@@ -281,7 +320,7 @@ export function ChatClient({
           empujar al padre y sacar el composer de la pantalla — sin él, `flex-1` no puede
           encogerse por debajo del alto de su contenido.
         */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+        <div ref={areaDeLectura} className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
           {/*
             Columna centrada y acotada. El ancho no es decorativo: una línea de texto de más
             de ~75 caracteres se vuelve incómoda de leer porque el ojo pierde el renglón al
