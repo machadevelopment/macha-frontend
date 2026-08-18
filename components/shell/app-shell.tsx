@@ -191,7 +191,9 @@ export function AppShell({
             href={home}
             className="flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
           >
-            <MachaMark />
+            {/* CU-868ktkwqn: monocromo en el chrome de navegación — ver la nota junto al
+                otro montaje, en SidebarBody, sobre por qué acá no aplica el salvia de marca. */}
+            <MachaMark monochrome />
             {WORDMARK}
           </Link>
           <div className="ml-auto flex items-center">
@@ -274,7 +276,19 @@ function SidebarBody({
           {/* Colapsado, el isotipo lleva el nombre completo como nombre ACCESIBLE aunque
               el texto no se vea: un lector de pantalla tiene que anunciar la marca, no una
               abreviatura que solo existe por falta de ancho. */}
-          <MachaMark label={collapsed ? WORDMARK : undefined} />
+          {/*
+            CU-868ktkwqn — QA de Macha: "las 3 líneas del logo que sean solo negras o
+            blancas según el tema". El isotipo salvia (degradado de marca, `MachaMark` sin
+            `monochrome`) sigue siendo el correcto para vitrina (`app/page.tsx`,
+            `components/ui/showcase.tsx`, la regla de los DOS VERDES en CLAUDE.md lo dice
+            explícito: "Insight Point, acentos, pantallas de vitrina"). El riel de
+            navegación no es vitrina — conviven ahí con texto e íconos que sí siguen el
+            tema (`text-foreground`), y el salvia fijo desentonaba en modo oscuro y no
+            respondía al tema en ninguno de los dos. `monochrome` ya existía para esto
+            exacto (heredar `currentColor` desde el `Link` que ya trae `text-foreground`)
+            — no hace falta un segundo SVG ni un hex nuevo.
+          */}
+          <MachaMark monochrome label={collapsed ? WORDMARK : undefined} />
           <span className={cn(collapsed && 'app:hidden')}>{WORDMARK}</span>
         </Link>
         <button
