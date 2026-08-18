@@ -15,7 +15,7 @@ export default function AnalyticsPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <PageHeader icon={BarChart3} title={t.analytics.title} subtitle={t.analytics.subtitle} />
+      <PageHeader icon={BarChart3} title={t.analytics.title} />
       <AnalyticsClient
         locale={locale}
         labels={t.analytics}

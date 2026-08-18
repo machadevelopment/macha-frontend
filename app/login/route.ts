@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getSignInUrl } from '@workos-inc/authkit-nextjs';
+import { getSignInUrl, getSignUpUrl } from '@workos-inc/authkit-nextjs';
 import type { NextRequest } from 'next/server';
 import { destinoSeguro } from '@/lib/auth/return-to';
 
@@ -25,8 +25,16 @@ import { destinoSeguro } from '@/lib/auth/return-to';
  *
  * El SDK lo expone como `returnTo` y lo guarda en la cookie PKCE; el callback lo prefiere
  * sobre su `returnPathname` por defecto.
+ *
+ * CU-868ktkq8r: `?screenHint=sign-up` abre la hosted UI en CREAR CUENTA en vez de en
+ * entrar. Lo usa la pantalla de invitación, y no es un detalle estético: el invitado que
+ * llega de un correo casi nunca tiene cuenta todavía, y `getSignInUrl` lo deja frente a
+ * un formulario de "entrar" en el que no puede entrar, con el enlace de registro en letra
+ * pequeña. Es un `hint` y no una imposición — las dos pantallas de WorkOS se enlazan entre
+ * sí—, así que el usuario que sí tenía cuenta no queda atrapado.
  */
 export async function GET(request: NextRequest) {
   const returnTo = destinoSeguro(request.nextUrl.searchParams.get('returnTo'));
-  redirect(await getSignInUrl({ returnTo }));
+  const quiereRegistrarse = request.nextUrl.searchParams.get('screenHint') === 'sign-up';
+  redirect(await (quiereRegistrarse ? getSignUpUrl({ returnTo }) : getSignInUrl({ returnTo })));
 }

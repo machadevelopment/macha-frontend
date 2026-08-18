@@ -18,6 +18,17 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
 /** La regla del componente, en una línea, tal como la evalúa al pintar cada fila. */
 const esNavegable = (ready?: boolean) => ready !== false;
 
+/**
+ * La derivación de estado del componente — CU-868ktkuq0.
+ *
+ * `ready` solo tenía dos salidas y su ausencia significaba dos cosas: "todavía se está
+ * generando" y "ya no se va a generar". La lista elegía FALLÓ para ese caso, así que todo
+ * reporte recién pedido salía en rojo — y como la fila se crea ANTES de encolar el job, ese
+ * es el estado normal de cualquier reporte, no el excepcional.
+ */
+const estadoDeFila = (r: { ready?: boolean; status?: 'ready' | 'generating' | 'failed' }) =>
+  r.status ?? (r.ready !== false ? 'ready' : 'failed');
+
 describe('estado de una fila de reporte', () => {
   test('un reporte con versión es navegable', () => {
     expect(esNavegable(true)).toBe(true);
@@ -38,6 +49,31 @@ describe('estado de una fila de reporte', () => {
   });
 });
 
+describe('los tres estados de un reporte (CU-868ktkuq0)', () => {
+  test('el backend nuevo manda el estado y se usa tal cual', () => {
+    expect(estadoDeFila({ status: 'generating' })).toBe('generating');
+    expect(estadoDeFila({ status: 'failed' })).toBe('failed');
+    expect(estadoDeFila({ status: 'ready' })).toBe('ready');
+  });
+
+  test('generándose NO es fallido — es el caso que se estaba pintando en rojo', () => {
+    // El bug entero, en una línea: `ready: false` con `status: 'generating'` tiene que
+    // leerse como generándose. Antes solo existía el booleano y decía "falló".
+    expect(estadoDeFila({ ready: false, status: 'generating' })).toBe('generating');
+  });
+
+  test('sin `status` se cae al booleano de siempre, no a "generándose"', () => {
+    /*
+     * La ventana de despliegue en que el frontend va adelante del backend. Suponer
+     * "generándose" ahí dejaría un reporte que de verdad falló mostrándose como si
+     * estuviera por llegar, para siempre. Sin dato, se conserva el comportamiento conocido.
+     */
+    expect(estadoDeFila({ ready: false })).toBe('failed');
+    expect(estadoDeFila({ ready: true })).toBe('ready');
+    expect(estadoDeFila({})).toBe('ready');
+  });
+});
+
 describe('textos de estado', () => {
   // Paridad ES/EN la cubre `lib/i18n/parity.test.ts` sobre el diccionario entero; acá lo que
   // se comprueba es que las claves que el componente usa existan y digan algo — una clave
@@ -51,6 +87,12 @@ describe('textos de estado', () => {
       expect(d.status.notGenerated.length).toBeGreaterThan(0);
       // La pista dice qué HACER, así que no puede ser una sola palabra.
       expect(d.status.notGeneratedHint.split(' ').length).toBeGreaterThan(2);
+
+      // CU-868ktkuq0: el tercer estado, con su propia pista. Reusar `notGeneratedHint`
+      // ("vuelve a generarlo") sobre un reporte que SÍ viene en camino mandaría al usuario
+      // a gastar créditos por gusto.
+      expect(d.status.generating.length).toBeGreaterThan(0);
+      expect(d.status.generatingHint.split(' ').length).toBeGreaterThan(2);
     });
   }
 });

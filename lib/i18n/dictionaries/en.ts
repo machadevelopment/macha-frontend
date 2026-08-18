@@ -595,6 +595,8 @@ export const en: Dictionary = {
     },
     status: {
       ready: 'Ready',
+      generating: 'Generating',
+      generatingHint: "We're writing this report. It will show up here when it's done.",
       notGenerated: "Didn't finish",
       notGeneratedHint: 'Generate it again to get this period.',
     },
@@ -777,12 +779,33 @@ export const en: Dictionary = {
       accepted: 'Done',
       missingToken: 'The link has no token. Ask the owner for a new invitation.',
       genericError: 'The invitation could not be accepted. Try again.',
+      signedOutTitle: "You've been invited to a company on Macha Finance",
+      signedOutSubtitle:
+        "Sign in to join. You won't be creating a company: you're joining one that already exists, with the role you were given.",
+      signedOutCreateAccount: 'Create my account and join',
+      signedOutSignIn: 'I already have an account',
+      emailHint: 'Use the same email the invitation was sent to — that’s how we verify it.',
+      asRole: 'You join as {role}',
+      join: 'Join',
+      noPending:
+        'We found no pending invitation for your account. You may have accepted it already, it may have expired, or it was sent to a different email. Ask whoever invited you for a new one.',
+      unavailable: "We couldn't check your invitations right now. Try again in a moment.",
+      rejection: {
+        invalid:
+          "We couldn't use this invitation. You may have accepted it already, it may have been revoked, or it was sent to an email other than your account's. Check which email you signed in with, or ask whoever invited you for a new one.",
+        expired: 'The invitation expired. Ask whoever invited you for a new one.',
+        wrongRecipient:
+          'This invitation is not for your account. Sign in with the email it was sent to.',
+      },
+      pendingTitle: 'You have a pending invitation',
+      pendingSubtitle: '{company} invited you to their Macha Finance account.',
+      pendingSubtitleMany: "You've been invited to more than one company. Pick which one to join.",
+      pendingCta: 'See my invitation',
     },
   },
   analytics: {
     eyebrow: 'ANALYTICS',
     title: 'How your business is doing',
-    subtitle: 'How your revenue, costs and cash moved over the period.',
     revenueTrend: 'Revenue trend',
     cashFlow: 'Cash in and out',
     costByCategory: 'Cost by category',
@@ -840,7 +863,6 @@ export const en: Dictionary = {
   productSales: {
     eyebrow: 'PRODUCTS',
     title: 'Product sales',
-    subtitle: 'What sells, what it earns you, and what is sitting still.',
     topProduct: 'Top product',
     unitsSold: 'Units sold',
     avgTicket: 'Average ticket',

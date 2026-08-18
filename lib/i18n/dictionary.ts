@@ -759,6 +759,12 @@ export interface Dictionary {
      */
     status: {
       ready: string;
+      /**
+       * CU-868ktkuq0: el reporte se está generando AHORA. No es un fallo — es el estado
+       * normal de todo reporte recién pedido, y antes se pintaba con `notGenerated`.
+       */
+      generating: string;
+      generatingHint: string;
       notGenerated: string;
       notGeneratedHint: string;
     };
@@ -966,13 +972,46 @@ export interface Dictionary {
       accepted: string;
       missingToken: string;
       genericError: string;
+      /**
+       * CU-868ktkq8r — la rama SIN sesión de `/invitations/accept`, que antes no existía
+       * porque la ruta exigía sesión y mandaba directo a la hosted UI de WorkOS. Estos
+       * textos son lo que el invitado nuevo lee ANTES de crear su cuenta, y su trabajo es
+       * dejar claro que esto es unirse a una empresa que ya existe — no dar de alta una.
+       */
+      signedOutTitle: string;
+      signedOutSubtitle: string;
+      signedOutCreateAccount: string;
+      signedOutSignIn: string;
+      /** Por qué importa con qué correo entra: la aceptación compara correos. */
+      emailHint: string;
+      /** Cada invitación de la lista. `{role}` = rol traducido (`members.role`). */
+      asRole: string;
+      join: string;
+      /** Ni invitación viva ni token: el enlace venció, ya se usó, o es de otro correo. */
+      noPending: string;
+      /** No se pudo consultar el backend; no es lo mismo que "no tienes invitaciones". */
+      unavailable: string;
+      /**
+       * Los tres rechazos que el backend distingue, dichos en el idioma del usuario. El
+       * backend manda además su texto en español, que queda de red — pero esta pantalla
+       * es la primera que ve un invitado angloparlante, y era la única del producto que
+       * le contestaba en otro idioma. `invalid` cubre "no existe" y "ya no está
+       * pendiente" con el MISMO texto a propósito: distinguirlos le diría a quien prueba
+       * tokens cuáles existen.
+       */
+      rejection: { invalid: string; expired: string; wrongRecipient: string };
+      /** Rama de `/` cuando el usuario no tiene empresa pero SÍ una invitación viva. */
+      pendingTitle: string;
+      /** `{company}` = nombre de la empresa que invita. */
+      pendingSubtitle: string;
+      pendingSubtitleMany: string;
+      pendingCta: string;
     };
   };
   /** Analítica (pantalla del prototipo MVP Macha): las series y desgloses del período. */
   analytics: {
     eyebrow: string;
     title: string;
-    subtitle: string;
     revenueTrend: string;
     cashFlow: string;
     costByCategory: string;
@@ -1044,7 +1083,6 @@ export interface Dictionary {
   productSales: {
     eyebrow: string;
     title: string;
-    subtitle: string;
     topProduct: string;
     unitsSold: string;
     avgTicket: string;

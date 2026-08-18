@@ -15,6 +15,7 @@ import { signOutAction } from '@/app/actions/sign-out';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import type { Membership } from '@/app/api/memberships/route';
+import type { PendingInvitation } from '@/lib/api/invitations';
 
 /**
  * CU-868khvynk criterio 5: `/` deja de ser una lista de links sueltos.
@@ -79,6 +80,61 @@ export default async function Home({ searchParams }: { searchParams?: { auth_err
     }
 
     if (memberships.length > 0) redirect('/dashboard');
+
+    /*
+     * ═══ CU-868ktkq8r: SIN EMPRESA NO SIGNIFICA "REGÍSTRATE" ═══
+     *
+     * Esta rama era la trampa que reportó QA. Un usuario sin membresías veía UNA sola
+     * salida —"Registrar mi empresa"— y el invitado que llegó hasta acá sin su `?token=`
+     * (porque el viaje por AuthKit incluye crear cuenta y verificar correo, y ahí la
+     * query se pierde de formas que no controlamos) es exactamente un usuario sin
+     * membresías. Seguía el único botón que había y terminaba de dueño de una empresa
+     * vacía en vez de miembro de la que lo invitó: en un producto multi-tenant con datos
+     * financieros eso no es un desvío cosmético.
+     *
+     * La invitación se descubre por el CORREO de la sesión, no por el enlace, así que
+     * aparece igual aunque el token se haya perdido. Cuando la hay, es la acción
+     * PRINCIPAL y el alta baja a secundaria: quien fue invitado casi nunca quiere crear
+     * una empresa, pero prohibírselo sería inventar una regla que nadie pidió.
+     *
+     * Va dentro del mismo `try` que las membresías a propósito: si el backend está
+     * caído ya se sale por `SessionUnavailable`, y un segundo `catch` que se trague el
+     * fallo dejaría la pantalla mintiendo ("no tienes invitaciones") justo cuando no
+     * puede saberlo.
+     */
+    let invitations: PendingInvitation[] = [];
+    try {
+      const res = await apiFetch<{ invitations: PendingInvitation[] }>('/invitations/pending', {
+        accessToken,
+      });
+      invitations = res.invitations;
+    } catch (error) {
+      return <SessionUnavailable t={t} locale={locale} kind={classifyApiFailure(error)} />;
+    }
+
+    if (invitations.length > 0) {
+      return (
+        <PublicScreen locale={locale}>
+          <ShowcaseHeading
+            eyebrow={t.members.accept.eyebrow}
+            title={t.members.accept.pendingTitle}
+            subtitle={
+              invitations.length === 1
+                ? t.members.accept.pendingSubtitle.replace('{company}', invitations[0]!.companyName)
+                : t.members.accept.pendingSubtitleMany
+            }
+          />
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <a href="/invitations/accept" className={showcaseCta}>
+              {t.members.accept.pendingCta}
+            </a>
+            <a href="/register" className={showcaseCtaSecondary}>
+              {t.register.noMembershipsCta}
+            </a>
+          </div>
+        </PublicScreen>
+      );
+    }
 
     return (
       <PublicScreen locale={locale}>

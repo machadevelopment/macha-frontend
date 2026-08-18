@@ -10,11 +10,7 @@ export default function ProductSalesPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <PageHeader
-        icon={ShoppingCart}
-        title={t.productSales.title}
-        subtitle={t.productSales.subtitle}
-      />
+      <PageHeader icon={ShoppingCart} title={t.productSales.title} />
       <ProductSalesClient
         locale={locale}
         labels={t.productSales}

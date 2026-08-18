@@ -26,7 +26,8 @@ const plano = (s: string) =>
 /** Las secciones con cabecera de pantalla, en los dos idiomas. */
 function cabeceras(d: typeof es) {
   return [
-    ['analytics', d.analytics.eyebrow, d.analytics.title, d.analytics.subtitle],
+    // CU-868ktkk32: analítica ya no lleva subtítulo — como reportes y como el dashboard.
+    ['analytics', d.analytics.eyebrow, d.analytics.title, undefined],
     ['reports', d.reports.eyebrow, d.reports.title, undefined],
     ['inventory', d.inventory.eyebrow, d.inventory.title, d.inventory.subtitle],
     ['dashboard', d.dashboard.eyebrow, d.dashboard.title, undefined],
