@@ -97,11 +97,23 @@ export function requestJson<T>(
   input: string,
   method: 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   body?: unknown,
+  /**
+   * CU-868ktmdex: para poder dejar de esperar una respuesta en curso.
+   *
+   * Va como cuarto parámetro opcional y no dentro de `body` porque no es dato de la
+   * petición, es control de su ciclo de vida. Un `AbortController` que se dispara hace que
+   * `fetch` rechace, y `request` ya trata cualquier rechazo como `kind: 'network'` — quien
+   * llame tiene que distinguir el aborto por su cuenta (`signal.aborted`), porque para el
+   * usuario "lo detuve yo" y "se cayó la red" no son el mismo suceso ni merecen el mismo
+   * mensaje.
+   */
+  signal?: AbortSignal,
 ): Promise<RequestResult<T>> {
   return request<T>(input, {
     method,
     headers: { 'Content-Type': 'application/json' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(signal ? { signal } : {}),
   });
 }
 

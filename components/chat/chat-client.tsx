@@ -43,6 +43,16 @@ export function ChatClient({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  /**
+   * CU-868ktmdex. Vive en una ref y no en estado porque cambiarlo no tiene que repintar:
+   * es el asa para cortar la espera, no algo que la pantalla dibuje.
+   */
+  const abortRef = useRef<AbortController | null>(null);
+  /**
+   * El usuario cortó la espera de una respuesta que el servidor SÍ va a terminar y guardar.
+   * No es un error, así que no va por `sendError`: es un aviso de que falta refrescar.
+   */
+  const [dejoDeEsperar, setDejoDeEsperar] = useState(false);
   /** Fallo cargando hilos/mensajes: reemplaza la pantalla. */
   const [loadError, setLoadError] = useState<RequestError | null>(null);
   /** Fallo enviando o creando: va junto al input, sin tapar la conversación. */
@@ -187,17 +197,32 @@ export function ChatClient({
 
     setDraft('');
     setSendError(null);
+    setDejoDeEsperar(false);
     setSending(true);
     setMessages((prev) => [
       ...prev,
       { role: 'user', content, createdAt: new Date().toISOString() },
     ]);
     try {
+      const controlador = new AbortController();
+      abortRef.current = controlador;
       const result = await requestJson<{ content: string; title: string }>(
         `/api/chats/${threadId}/messages`,
         'POST',
         { content },
+        controlador.signal,
       );
+
+      /*
+       * Abortar el `fetch` NO cancela nada del lado del servidor: el turno sigue corriendo
+       * y `POST /chats/:id/messages` inserta LOS DOS mensajes cuando termina. Por eso acá
+       * no se retira el mensaje del usuario ni se le devuelve el texto al input, como sí
+       * hace el camino de error: la pregunta está guardada, y borrarla de la pantalla sería
+       * decirle al usuario que se perdió algo que no se perdió.
+       *
+       * Se sale ANTES del bloque de error justamente porque un aborto no es un fallo.
+       */
+      if (controlador.signal.aborted) return;
       if (!result.ok) {
         /**
          * CU-868kkgb3c: antes, si esto fallaba, el mensaje del usuario se quedaba en
@@ -238,6 +263,45 @@ export function ChatClient({
       );
     } finally {
       setSending(false);
+      abortRef.current = null;
+    }
+  }
+
+  /**
+   * Dejar de esperar la respuesta en curso — CU-868ktmdex.
+   *
+   * ═══ LO QUE HACE Y LO QUE NO ═══
+   *
+   * Corta LA ESPERA, no el trabajo. `POST /chats/:id/messages` no es cancelable: el turno
+   * sigue corriendo en el servidor y al terminar inserta los dos mensajes. Abortar el
+   * `fetch` solo suelta al usuario de una pantalla bloqueada.
+   *
+   * Por eso el botón dice "Dejar de esperar" y no "Cancelar", y por eso el aviso explica
+   * que la respuesta va a aparecer igual. Un botón rotulado "Detener" que no detiene nada
+   * sería peor que no tener botón: el usuario creería haber evitado algo que no evitó.
+   *
+   * TAMPOCO SE RETIRA SU PREGUNTA de la pantalla, a diferencia del camino de error. El
+   * servidor la va a guardar, así que borrarla sería decirle que se perdió algo que no se
+   * perdió — y volvería a aparecer sola en la siguiente carga, que es peor.
+   *
+   * Cancelar de verdad exige que el backend propague el `AbortSignal` hasta la llamada a
+   * Claude y decida qué hacer con la fila de `ai_usage_events` de un turno a medias. Es un
+   * ticket aparte; el chat no debita créditos, así que esperar no le cuesta nada al cliente.
+   */
+  function dejarDeEsperar() {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setSending(false);
+    setDejoDeEsperar(true);
+  }
+
+  /** Trae el hilo de nuevo, que es como aparece la respuesta que se dejó de esperar. */
+  async function refrescarHilo() {
+    if (!activeId) return;
+    const result = await request<ChatMessage[]>(`/api/chats/${activeId}/messages`);
+    if (result.ok) {
+      setMessages(result.data);
+      setDejoDeEsperar(false);
     }
   }
 
@@ -364,7 +428,36 @@ export function ChatClient({
             {/* Que el asesor está trabajando, en la conversación y no solo en el botón: con
                 el composer abajo del todo, un rótulo que cambia allá se sale del punto donde
                 el usuario está mirando después de mandar. */}
-            {sending && <p className="text-body text-faint">{labels.thinking}</p>}
+            {sending && (
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-body text-faint">{labels.thinking}</p>
+                {/* CU-868ktmdex. Al lado del rótulo de "está pensando" y no en el composer:
+                    es la acción que corresponde a ESE estado, y ahí es donde el usuario ya
+                    está mirando después de mandar la pregunta. */}
+                <button
+                  type="button"
+                  onClick={dejarDeEsperar}
+                  className="text-body text-muted-foreground underline hover:text-foreground"
+                >
+                  {labels.stopWaiting}
+                </button>
+              </div>
+            )}
+
+            {/* No es un error y por eso no va con el color de error: la respuesta viene en
+                camino, solo que el usuario decidió no quedarse mirando. */}
+            {dejoDeEsperar && (
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-body text-faint">{labels.stoppedWaiting}</p>
+                <button
+                  type="button"
+                  onClick={() => void refrescarHilo()}
+                  className="text-body text-muted-foreground underline hover:text-foreground"
+                >
+                  {labels.refreshThread}
+                </button>
+              </div>
+            )}
 
             {/* Ancla del auto-scroll. Ver el efecto de arriba. */}
             <div ref={finDeLaConversacion} />
