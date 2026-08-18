@@ -1,3 +1,5 @@
+import { ShoppingCart } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { ProductSalesClient } from '@/components/product-sales/product-sales-client';
@@ -8,9 +10,11 @@ export default function ProductSalesPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.productSales.eyebrow}</p>
-      <h1 className="text-h1">{t.productSales.title}</h1>
-      <p className="mb-4 text-body text-muted-foreground">{t.productSales.subtitle}</p>
+      <PageHeader
+        icon={ShoppingCart}
+        title={t.productSales.title}
+        subtitle={t.productSales.subtitle}
+      />
       <ProductSalesClient
         locale={locale}
         labels={t.productSales}

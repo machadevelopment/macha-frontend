@@ -1,3 +1,5 @@
+import { FileText } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { getActiveRole } from '@/lib/auth/active-role';
@@ -19,8 +21,7 @@ export default async function ReportsPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.reports.eyebrow}</p>
-      <h1 className="mb-5 text-h1">{t.reports.title}</h1>
+      <PageHeader icon={FileText} title={t.reports.title} />
       <ReportsScreen
         locale={locale}
         labels={t.reports}

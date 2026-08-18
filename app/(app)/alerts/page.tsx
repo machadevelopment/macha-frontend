@@ -1,3 +1,5 @@
+import { AlertTriangle } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { getActiveRole } from '@/lib/auth/active-role';
@@ -21,8 +23,7 @@ export default async function AlertsPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.alerts.historyEyebrow}</p>
-      <h1 className="mb-5 text-h1">{t.alerts.historyTitle}</h1>
+      <PageHeader icon={AlertTriangle} title={t.alerts.historyTitle} />
       <AlertsScreen
         locale={locale}
         labels={t.alerts}

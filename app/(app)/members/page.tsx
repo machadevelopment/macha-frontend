@@ -1,3 +1,5 @@
+import { Users } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { MembersPanel } from '@/components/members/members-panel';
@@ -10,9 +12,7 @@ export default function MembersPage() {
 
   return (
     <main data-density="comfortable" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.members.eyebrow}</p>
-      <h1 className="mb-1 text-h1">{t.members.title}</h1>
-      <p className="mb-4 text-body text-muted-foreground">{t.members.subtitle}</p>
+      <PageHeader icon={Users} title={t.members.title} subtitle={t.members.subtitle} />
 
       <MembersPanel labels={t.members} common={t.common} />
     </main>

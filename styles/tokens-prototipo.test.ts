@@ -112,3 +112,25 @@ describe('la regla de los dos verdes sobrevive a la alineación', () => {
     expect(Math.abs(lum(salvia) - lum(funcional))).toBeGreaterThan(0.15);
   });
 });
+
+/**
+ * CU-868kt8bg0 · LA CURVA DE ANIMACIÓN ES UNA SOLA.
+ *
+ * El prototipo define `ease: [0.2, 0, 0, 1]` a 0,2 s una vez y la reusa en cada componente.
+ * Acá vive como el DEFAULT de Tailwind, no como una clase opcional, para que
+ * `transition-colors` a secas ya la traiga. Si alguien la mueve a una clase con nombre,
+ * las veinte transiciones del producto vuelven en silencio a la curva de fábrica
+ * (`cubic-bezier(0.4,0,0.2,1)` a 150 ms) y nada lo delata en pantalla salvo la sensación
+ * de que "no es tan suave como el prototipo", que es justo el reporte original.
+ */
+describe('curva de animación del prototipo', () => {
+  const config = readFileSync(join(import.meta.dir, '..', 'tailwind.config.ts'), 'utf-8');
+
+  test('la curva del prototipo es el DEFAULT, no una clase aparte', () => {
+    expect(config).toContain("transitionTimingFunction: { DEFAULT: 'cubic-bezier(0.2, 0, 0, 1)' }");
+  });
+
+  test('la duración por defecto es la del prototipo (200 ms, no los 150 de fábrica)', () => {
+    expect(config).toContain("transitionDuration: { DEFAULT: '200ms' }");
+  });
+});

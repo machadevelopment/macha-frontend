@@ -1,3 +1,5 @@
+import { UploadCloud } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { UploadScreen } from '@/components/upload/upload-screen';
@@ -17,9 +19,7 @@ export default async function UploadPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <p className="font-mono text-eyebrow uppercase text-faint">{t.upload.eyebrow}</p>
-      <h1 className="text-h1">{t.upload.title}</h1>
-      <p className="mb-4 text-body text-muted-foreground">{t.upload.subtitle}</p>
+      <PageHeader icon={UploadCloud} title={t.upload.title} subtitle={t.upload.subtitle} />
       <UploadScreen locale={locale} labels={t.upload} common={t.common} canRevert={canRevert} />
     </main>
   );
