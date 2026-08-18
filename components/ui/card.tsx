@@ -15,7 +15,11 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
     <div
       ref={ref}
       className={cn(
-        'rounded-xl border border-border bg-card p-[var(--density-card-p)] text-card-foreground shadow-card',
+        // CU-868kt8bg0: `rounded-lg` (10px) y no `xl` (11px). El ticket pide "mantener el
+        // mismo redondeado en todos los componentes", y el prototipo usa `rounded-lg` —que
+        // en su escala ES `--radius`— para las tarjetas. Un píxel no se ve solo; se ve al
+        // lado de un botón o un input que sí usan la escala base.
+        'rounded-lg border border-border bg-card p-[var(--density-card-p)] text-card-foreground shadow-card',
         className,
       )}
       {...props}

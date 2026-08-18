@@ -50,7 +50,7 @@ export function RouteError({
           <button
             type="button"
             onClick={onRetry}
-            className="rounded-[7px] border border-border px-3 py-1.5 text-body text-foreground transition-colors hover:bg-muted"
+            className="rounded-md border border-border px-3 py-1.5 text-body text-foreground transition-colors hover:bg-muted"
           >
             {labels.retry}
           </button>

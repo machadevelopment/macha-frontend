@@ -119,6 +119,23 @@ export default {
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
       borderRadius: { sm: '5px', md: '8px', lg: '10px', xl: '11px', pill: '22px' },
+      /**
+       * CU-868kt8bg0 — "transiciones más suaves".
+       *
+       * El prototipo anima todo con la MISMA curva: `ease: [0.2, 0, 0, 1]` a 0,2 s, escrita
+       * una sola vez y reusada en cada componente (`const transition` en `KpiCard.tsx`).
+       * Es una curva que arranca de golpe y frena largo — el movimiento se detiene sin
+       * rebote y sin ese último tramo lento que hace sentir pesada a `ease-in-out`.
+       *
+       * Se sobrescribe el `DEFAULT` de Tailwind en vez de agregar una clase nueva, y esa es
+       * toda la gracia: `transition-colors` sin más modificadores YA emite
+       * `cubic-bezier(0.4,0,0.2,1)` a 150 ms, así que las veinte transiciones que hay en el
+       * producto adoptan la curva sin tocar un solo componente — y la número veintiuno nace
+       * con ella. Ponerla como clase opcional habría dejado la mitad del producto animando
+       * con la curva de fábrica, que es la situación que este ticket vino a corregir.
+       */
+      transitionTimingFunction: { DEFAULT: 'cubic-bezier(0.2, 0, 0, 1)' },
+      transitionDuration: { DEFAULT: '200ms' },
       fontSize: {
         h1: ['27px', { lineHeight: '1.15', letterSpacing: '-0.03em', fontWeight: '700' }],
         /**
@@ -133,7 +150,24 @@ export default {
          * calibrado para dígitos, no para prosa.
          */
         display: ['38px', { lineHeight: '1.1', letterSpacing: '-0.035em', fontWeight: '700' }],
+        /**
+         * CU-868kt8bg0 · TÍTULO DE PANTALLA, tomado del prototipo.
+         *
+         * El prototipo titula TODAS sus páginas igual: `text-xl font-semibold` (20px/600)
+         * con el `letter-spacing: -0.02em` que su `@layer base` le pone a h1/h2/h3. Nunca
+         * usa 27px ni peso 700 para el título de una pantalla de producto.
+         *
+         * `h1` (27px/700) NO desaparece: sigue siendo el titular de las pantallas de
+         * VITRINA junto a `display`. Lo que cambia es que una pantalla de producto —
+         * dashboard, analítica, reportes— ya no lo usa, porque ahí el título compite con
+         * KPIs y tablas y a 27px se lleva un peso visual que el dato debería tener.
+         */
+        pagetitle: ['20px', { lineHeight: '1.25', letterSpacing: '-0.02em', fontWeight: '600' }],
         cardh2: ['15px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }],
+        // 12px sin tracking: el subtítulo que el prototipo cuelga del título de pantalla
+        // (`text-xs text-muted-foreground`). No es `eyebrow` — ese lleva mayúsculas y
+        // 0.08em de tracking, que es otra cosa: una etiqueta, no una frase.
+        caption: ['12px', { lineHeight: '1.4' }],
         body: ['14px', { lineHeight: '1.5' }],
         // Escala del prototipo "MVP Macha": la cifra de KPI baja de 29px/700 a 24px/600.
         // Menos peso y menos tamaño; el énfasis lo da el contraste con la etiqueta, no el bulto.
