@@ -595,6 +595,8 @@ export const en: Dictionary = {
     },
     status: {
       ready: 'Ready',
+      generating: 'Generating',
+      generatingHint: "We're writing this report. It will show up here when it's done.",
       notGenerated: "Didn't finish",
       notGeneratedHint: 'Generate it again to get this period.',
     },

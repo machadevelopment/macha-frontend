@@ -616,6 +616,8 @@ export const es: Dictionary = {
     },
     status: {
       ready: 'Listo',
+      generating: 'Generándose',
+      generatingHint: 'Estamos escribiendo este reporte. Aparecerá aquí al terminar.',
       notGenerated: 'No se completó',
       notGeneratedHint: 'Vuelve a generarlo para tener este periodo.',
     },
