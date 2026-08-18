@@ -140,18 +140,6 @@ export function ProductSalesClient({
     );
   }
 
-  if (data && items.length === 0) {
-    return (
-      <>
-        {encabezado}
-        <Card>
-          <p className="text-body text-muted-foreground">{labels.empty}</p>
-          <p className="mt-1 text-body text-faint">{labels.emptyHint}</p>
-        </Card>
-      </>
-    );
-  }
-
   const resumen = resumir(items);
   const porCategoria = agruparPorCategoria(items, labels.uncategorized);
 
@@ -216,60 +204,82 @@ export function ProductSalesClient({
           <CardHeader>
             <CardTitle>{labels.performance}</CardTitle>
           </CardHeader>
-          <div className="mt-3 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{labels.colProduct}</TableHead>
-                  <TableHead>{labels.colCategory}</TableHead>
-                  <TableHead className="text-right">{labels.colUnits}</TableHead>
-                  <TableHead className="text-right">{labels.colRevenue}</TableHead>
-                  <TableHead className="text-right">{labels.colCogs}</TableHead>
-                  <TableHead className="text-right">{labels.colMargin}</TableHead>
-                  <TableHead className="text-right">{labels.colShare}</TableHead>
-                  <TableHead className="text-center">{labels.colTrend}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((p) => (
-                  <TableRow key={p.productId}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {p.category ?? labels.uncategorized}
-                    </TableCell>
-                    <TableCell
-                      className={cn('text-right tabular-nums', p.units === null && 'text-faint')}
-                      title={p.units === null ? labels.noUnitsHint : undefined}
-                    >
-                      {p.units === null ? labels.noUnits : formatNumber(p.units, locale)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatMoney(p.revenue, moneda, locale)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
-                      {formatMoney(p.cogs, moneda, locale)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {/* `null` = producto sin ventas en el rango; no existe margen, no es 0%. */}
-                      {p.grossMarginPct === null ? '—' : formatPct(p.grossMarginPct / 100, locale)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
-                      {formatPct(p.revenueSharePct / 100, locale)}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className="flex items-center justify-center"
-                        title={labels.trend[p.trend]}
-                      >
-                        <IconoTendencia trend={p.trend} />
-                        <span className="sr-only">{labels.trend[p.trend]}</span>
-                      </span>
-                    </TableCell>
+          {/*
+            CU-868ktkrqe: antes, `items.length === 0` reemplazaba TODA la pantalla —fila de
+            KPIs, esta tarjeta y la de categorías— por una sola tarjeta angosta con el
+            mensaje. Un período sin ventas (p. ej. "Hoy") pasaba de un layout ancho de tres
+            columnas a un bloque diminuto en una fracción de segundo, y eso es lo que se leía
+            como "todo se shiftea al centro" — no había ningún `items-center` de por medio,
+            era el propio contenido colapsando de tamaño.
+
+            El precedente ya vive en esta misma pantalla (la tarjeta de categorías, abajo) y
+            en el dashboard (`PeriodEmptyNote`): la estructura se queda, y el vacío se explica
+            adentro de su propio hueco. `resumir([])` y `agruparPorCategoria([], ...)` ya
+            devuelven valores vacíos seguros —por eso la fila de KPIs no necesitó cambios.
+          */}
+          {items.length === 0 ? (
+            <div className="mt-3">
+              <p className="text-body text-muted-foreground">{labels.empty}</p>
+              <p className="mt-1 text-body text-faint">{labels.emptyHint}</p>
+            </div>
+          ) : (
+            <div className="mt-3 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{labels.colProduct}</TableHead>
+                    <TableHead>{labels.colCategory}</TableHead>
+                    <TableHead className="text-right">{labels.colUnits}</TableHead>
+                    <TableHead className="text-right">{labels.colRevenue}</TableHead>
+                    <TableHead className="text-right">{labels.colCogs}</TableHead>
+                    <TableHead className="text-right">{labels.colMargin}</TableHead>
+                    <TableHead className="text-right">{labels.colShare}</TableHead>
+                    <TableHead className="text-center">{labels.colTrend}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {items.map((p) => (
+                    <TableRow key={p.productId}>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {p.category ?? labels.uncategorized}
+                      </TableCell>
+                      <TableCell
+                        className={cn('text-right tabular-nums', p.units === null && 'text-faint')}
+                        title={p.units === null ? labels.noUnitsHint : undefined}
+                      >
+                        {p.units === null ? labels.noUnits : formatNumber(p.units, locale)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatMoney(p.revenue, moneda, locale)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {formatMoney(p.cogs, moneda, locale)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {/* `null` = producto sin ventas en el rango; no existe margen, no es 0%. */}
+                        {p.grossMarginPct === null
+                          ? '—'
+                          : formatPct(p.grossMarginPct / 100, locale)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {formatPct(p.revenueSharePct / 100, locale)}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className="flex items-center justify-center"
+                          title={labels.trend[p.trend]}
+                        >
+                          <IconoTendencia trend={p.trend} />
+                          <span className="sr-only">{labels.trend[p.trend]}</span>
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </Card>
 
         <Card>
