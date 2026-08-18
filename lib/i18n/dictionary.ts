@@ -589,6 +589,15 @@ export interface Dictionary {
      * `alerts.rule`: el backend clasifica, el diccionario nombra.
      */
     insightCategory: { collections: string; sales: string; financial: string };
+    /**
+     * CU-868kt8bg0: el panel se llama "Consejo Financiero Diario", no "IA".
+     *
+     * Decirle "IA" al panel nombra la TECNOLOGÍA, no lo que el usuario recibe — y el dueño
+     * de una PYME no abre el dashboard buscando inteligencia artificial, busca saber qué
+     * hacer. Además estaba QUEMADO en el componente: era el único texto de esta pantalla
+     * que no pasaba por el diccionario, así que en inglés también decía "IA".
+     */
+    insightTitle: string;
     insightCta: string;
     insightLoading: string;
     /**

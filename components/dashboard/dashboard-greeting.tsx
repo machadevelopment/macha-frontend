@@ -59,7 +59,12 @@ export function DashboardGreeting({
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
         <p className="font-mono text-eyebrow uppercase text-faint">{fecha}</p>
-        <h1 className="mt-1 text-h1">{saludo}</h1>
+        {/* CU-868kt8bg0: el saludo va en peso NORMAL. `text-h1` trae `font-weight: 700`, y
+            el equipo lo pidió explícito. Tiene sentido: "Buenos días" no es un dato ni un
+            título de sección que haya que encontrar de un vistazo — es una cortesía, y en
+            negrilla compite con las cifras que sí importan. El tamaño se queda; lo que baja
+            es el peso. */}
+        <h1 className="mt-1 text-h1 font-normal">{saludo}</h1>
         <p className="mt-1 text-body text-muted-foreground">{subtitulo}</p>
       </div>
       <Button asChild variant="outline" size="sm">

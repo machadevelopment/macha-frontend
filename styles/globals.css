@@ -56,7 +56,23 @@
   --soft: #f1f1f1;
   --fill: #f7f7f7;
   --inverse-surface: #141414;
-  --green: #16a34a;
+  /*
+   * CU-868kt8bg0: el verde funcional se alinea al del prototipo de Lovable
+   * (`--accent: 142 45% 38%` → #358D55), que es un verde bosque APAGADO.
+   *
+   * El anterior (#16A34A, hsl 142 76% 36%) tenía el mismo tono y el doble de saturación, y
+   * el ticket lo nombra como la diferencia que "salta a la vista en gráficas e
+   * indicadores": una serie de datos saturada compite con el contenido en vez de
+   * señalarlo.
+   *
+   * LA REGLA DE LOS DOS VERDES SE MANTIENE, y hay que decir por qué no se rompe: bajar la
+   * saturación acerca este verde al salvia de marca (#A0AF9A), que es justo lo que la
+   * regla separa. Siguen siendo distinguibles —#358D55 es un bosque oscuro y #A0AF9A un
+   * salvia claro y desaturado, con 30 puntos de luminosidad entre ambos— pero el margen se
+   * estrechó. Si algún día se vuelve a tocar cualquiera de los dos, hay que mirarlos
+   * juntos: el día que se confundan, el color deja de decir si algo va bien o si es Macha.
+   */
+  --green: #358d55;
   --green-bg: #f0fdf4;
   --green-bd: #bbf7d0;
   --red: #dc2626;
@@ -159,7 +175,20 @@
    * El borde NO se quita: sostiene la separación cuando la sombra no se ve (modo oscuro,
    * pantallas de bajo contraste, impresión).
    */
-  --shadow-card: 0 1px 2px rgb(23 23 23 / 4%), 0 2px 6px rgb(23 23 23 / 5%);
+  /*
+   * CU-868kt8bg0: la sombra pasa a ser un FILETE de 1px, no una sombra difusa.
+   *
+   * El prototipo usa `--card-shadow: 0 0 0 1px hsl(0 0% 92%)` y el equipo lo pidió
+   * explícito: "reducir considerablemente las sombras; las tarjetas se separan con bordes
+   * grises muy sutiles". Dos capas con desenfoque hacen que la tarjeta FLOTE, y el registro
+   * de este producto es plano.
+   *
+   * Se conserva como sombra y no se mueve al borde: `--card-shadow` se aplica sobre
+   * elementos que ya tienen su propio `border`, y sumar un segundo borde cambiaría la caja.
+   * Un `box-shadow` de spread 1px sin desenfoque dibuja el filete por fuera sin afectar el
+   * layout.
+   */
+  --shadow-card: 0 0 0 1px rgb(235 235 235);
 
   /*
    * ACABADO DE BOTÓN (CU-868knx0vh). El design guide §5 ya especificaba los estados del
