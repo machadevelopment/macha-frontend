@@ -38,6 +38,18 @@ interface ReportRow {
    * de antes y el correcto para todo el histórico ya generado.
    */
   ready?: boolean;
+  /**
+   * CU-868ktkuq0: el estado REAL, con tres valores.
+   *
+   * `ready` no alcanzaba: su ausencia significaba a la vez "todavía se está generando" y
+   * "ya no se va a generar", y esta lista tenía que elegir uno para pintar ese caso.
+   * Elegía "falló", así que todo reporte recién pedido salía en rojo — la fila se crea
+   * ANTES de encolar el job, o sea que ese es el estado normal, no el excepcional.
+   *
+   * Opcional por la ventana de despliegue en que el frontend va adelante del backend: si
+   * no viene, se cae a `ready` y el comportamiento es el de antes.
+   */
+  status?: 'ready' | 'generating' | 'failed';
 }
 
 const PAGE_SIZE = 50;
@@ -93,7 +105,11 @@ export function ReportList({
         </TableHeader>
         <TableBody>
           {reports.map((r) => {
-            const listo = r.ready !== false;
+            // El backend nuevo manda `status`; si no está (backend viejo), se deriva del
+            // booleano de siempre. Nunca se asume "generándose" sin dato: sin `status`, un
+            // reporte sin versión es el caso que ya conocíamos.
+            const estado = r.status ?? (r.ready !== false ? 'ready' : 'failed');
+            const listo = estado === 'ready';
             const periodo = `${formatDate(r.periodStart, locale)} — ${formatDate(r.periodEnd, locale)}`;
             return (
               <TableRow key={r.id}>
@@ -117,9 +133,16 @@ export function ReportList({
                   {/* `danger` y no `warning`: para el usuario esto no es una advertencia
                       sobre algo que igual sirve, es un reporte que no tiene. Y el chip
                       lleva texto+fondo+borde, nunca solo color (design guide §1 regla 3). */}
-                  {listo ? (
-                    <Badge variant="success">{labels.status.ready}</Badge>
-                  ) : (
+                  {estado === 'ready' && <Badge variant="success">{labels.status.ready}</Badge>}
+                  {/* `neutral` y no `warning`: generándose no es una advertencia sobre nada,
+                      es el curso normal. Pintarlo de color de aviso volvería a decirle al
+                      usuario que algo va mal cuando no va mal. */}
+                  {estado === 'generating' && (
+                    <Badge variant="neutral" title={labels.status.generatingHint}>
+                      {labels.status.generating}
+                    </Badge>
+                  )}
+                  {estado === 'failed' && (
                     <Badge variant="danger" title={labels.status.notGeneratedHint}>
                       {labels.status.notGenerated}
                     </Badge>

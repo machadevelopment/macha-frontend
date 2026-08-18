@@ -759,6 +759,12 @@ export interface Dictionary {
      */
     status: {
       ready: string;
+      /**
+       * CU-868ktkuq0: el reporte se está generando AHORA. No es un fallo — es el estado
+       * normal de todo reporte recién pedido, y antes se pintaba con `notGenerated`.
+       */
+      generating: string;
+      generatingHint: string;
       notGenerated: string;
       notGeneratedHint: string;
     };
