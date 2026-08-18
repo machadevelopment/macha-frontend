@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ReportsHeader } from '@/components/reports/reports-header';
 import { ReportBuilder } from '@/components/reports/report-builder';
 import { ReportList } from '@/components/reports/report-list';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -42,6 +43,11 @@ export function ReportsScreen({
 
   return (
     <>
+      {/* CU-868krvrxy: la cabecera de descarga del prototipo. Va arriba del generador
+          porque bajar lo que ya existe es la acción más frecuente; generar uno nuevo
+          cuesta créditos y es la excepción. Comparte el `nonce` con el historial: al
+          encolar un reporte, las dos piezas se vuelven a mirar. */}
+      <ReportsHeader labels={labels} common={common} nonce={nonce} />
       <ReportBuilder
         locale={locale}
         labels={labels.builder}

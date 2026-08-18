@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Laptop, Moon, Sun } from 'lucide-react';
+import { Check, Laptop, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,9 +27,31 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  * de la librería —el mismo que evita el flash de tema incorrecto, porque su script
  * inline lo lee antes del primer paint (de ahí el `suppressHydrationWarning` que ya
  * estaba en `<html>`). Moverlo a cookie rompería precisamente eso.
+ *
+ * ═══ CU-868kt5zfu: "Sistema no hace nada al seleccionarla" ═══
+ *
+ * El mecanismo NUNCA estuvo roto. `ThemeProvider` ya lleva `enableSystem`, y elegir
+ * "Sistema" llama a `setTheme('system')`, que es literalmente lo que next-themes espera:
+ * a partir de ahí sigue `prefers-color-scheme` y reacciona cuando el sistema operativo
+ * cambia. La segunda hipótesis del ticket era la correcta — con el SO en claro y la app en
+ * claro, elegir "Sistema" no cambia ningún píxel.
+ *
+ * Pero **sí había un defecto de producto**, y es el que se arregla acá: el menú no mostraba
+ * cuál opción estaba activa. Sin esa señal, "elegí Sistema y no pasó nada" es
+ * indistinguible de un botón roto — el usuario no tiene forma de saber si su clic se
+ * registró. Ahora:
+ *
+ *   · la opción activa lleva un check, así que el clic SIEMPRE produce un cambio visible;
+ *   · y "Sistema" dice a qué se resolvió ("Sistema · Oscuro"), que es la única manera de
+ *     confirmar que de verdad está siguiendo al SO cuando ambos coinciden.
+ *
+ * Arreglar la percepción no es un consuelo: en un control de tres estados donde dos pueden
+ * verse igual, mostrar el estado ES la funcionalidad.
  */
 export function ThemeSwitcher({ labels }: { labels: Dictionary['common']['theme'] }) {
-  const { theme, setTheme } = useTheme();
+  // `resolvedTheme` es a qué se resolvió de verdad: con `theme === 'system'` dice si el SO
+  // pidió claro u oscuro. Es lo que permite confirmar que "Sistema" está haciendo algo.
+  const { theme, resolvedTheme, setTheme } = useTheme();
   // Hasta que monta, el tema resuelto no se conoce en el servidor: renderizar el ícono
   // real en SSR produce un mismatch de hidratación. Se pinta el neutro y se cambia al
   // montar — es un ícono, no contenido.
@@ -58,12 +80,27 @@ export function ThemeSwitcher({ labels }: { labels: Dictionary['common']['theme'
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        {options.map(({ value, label, Icon }) => (
-          <DropdownMenuItem key={value} onSelect={() => setTheme(value)}>
-            <Icon className="mr-2 h-4 w-4 text-faint" strokeWidth={1.7} />
-            {label}
-          </DropdownMenuItem>
-        ))}
+        {options.map(({ value, label, Icon }) => {
+          const activa = mounted && theme === value;
+          return (
+            <DropdownMenuItem key={value} onSelect={() => setTheme(value)}>
+              <Icon className="mr-2 h-4 w-4 text-faint" strokeWidth={1.7} />
+              <span className="flex-1">
+                {label}
+                {/* "Sistema · Oscuro": sin esto, con el SO en claro la opción se ve idéntica
+                    a "Claro" y no hay forma de saber que está siguiendo al sistema. */}
+                {value === 'system' && activa && resolvedTheme && (
+                  <span className="text-faint">
+                    {` · ${resolvedTheme === 'dark' ? labels.dark : labels.light}`}
+                  </span>
+                )}
+              </span>
+              {/* El check es lo que vuelve VISIBLE el clic. `aria-hidden` porque el estado
+                  ya va anunciado por `aria-checked` del propio item de Radix. */}
+              {activa && <Check className="ml-2 h-4 w-4 shrink-0" strokeWidth={2.2} aria-hidden />}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

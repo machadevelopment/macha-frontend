@@ -32,7 +32,7 @@ describe('totalDeCartera', () => {
      * dejaría de cuadrar con la tabla del tab y nadie lo notaría — el número seguiría siendo
      * plausible.
      */
-    const tramos = Object.keys(es.analytics.arAp.bucket);
+    const tramos = Object.keys(es.common.agingBucket);
     const uno = Object.fromEntries(tramos.map((t) => [t, 1])) as AgingBuckets;
     expect(totalDeCartera(uno)).toBe(tramos.length);
   });

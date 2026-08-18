@@ -37,6 +37,14 @@ export const es: Dictionary = {
       body: 'Puede que el enlace esté mal o que la página se haya movido.',
       cta: 'Ir al inicio',
     },
+    agingBucket: {
+      current: 'Al día',
+      '1_30': '1 a 30 días',
+      '31_60': '31 a 60 días',
+      '61_90': '61 a 90 días',
+      '90_plus': 'Más de 90 días',
+    },
+    agingAxisLabel: 'Antigüedad de la cartera (días de vencimiento)',
   },
   admin: {
     common: {
@@ -584,6 +592,11 @@ export const es: Dictionary = {
       monthly: 'Mensual',
       quarterly: 'Trimestral',
     },
+    downloadHeader: {
+      title: 'Descargar tu último reporte',
+      subtitle: 'Baja el reporte más reciente que generaste, en PDF o en Excel.',
+      empty: 'Genera un reporte abajo y podrás descargarlo desde aquí.',
+    },
     baseCurrencyLabel: 'Moneda base',
     table: {
       period: 'Periodo',
@@ -835,13 +848,6 @@ export const es: Dictionary = {
       overdueTotal: 'Vencido',
       emptyAr: 'No tienes facturas por cobrar abiertas.',
       emptyAp: 'No tienes cuentas por pagar abiertas.',
-      bucket: {
-        current: 'Al día',
-        '1_30': '1–30 días',
-        '31_60': '31–60 días',
-        '61_90': '61–90 días',
-        '90_plus': 'Más de 90 días',
-      },
     },
   },
   productSales: {

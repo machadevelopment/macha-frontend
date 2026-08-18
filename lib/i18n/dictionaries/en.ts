@@ -37,6 +37,14 @@ export const en: Dictionary = {
       body: 'The link may be wrong, or the page may have moved.',
       cta: 'Go to home',
     },
+    agingBucket: {
+      current: 'Current',
+      '1_30': '1 to 30 days',
+      '31_60': '31 to 60 days',
+      '61_90': '61 to 90 days',
+      '90_plus': 'Over 90 days',
+    },
+    agingAxisLabel: 'Portfolio ageing (days past due)',
   },
   admin: {
     common: {
@@ -565,6 +573,11 @@ export const en: Dictionary = {
       monthly: 'Monthly',
       quarterly: 'Quarterly',
     },
+    downloadHeader: {
+      title: 'Download your latest report',
+      subtitle: 'Get the most recent report you generated, as PDF or Excel.',
+      empty: 'Generate a report below and you can download it from here.',
+    },
     baseCurrencyLabel: 'Base currency',
     table: {
       period: 'Period',
@@ -814,13 +827,6 @@ export const en: Dictionary = {
       overdueTotal: 'Overdue',
       emptyAr: 'You have no open receivables.',
       emptyAp: 'You have no open payables.',
-      bucket: {
-        current: 'Current',
-        '1_30': '1–30 days',
-        '31_60': '31–60 days',
-        '61_90': '61–90 days',
-        '90_plus': 'Over 90 days',
-      },
     },
   },
   productSales: {

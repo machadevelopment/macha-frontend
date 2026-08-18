@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { requestJson, errorMessage } from '@/lib/api/browser';
+import { setActiveCompany } from '@/app/actions/set-active-company';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -54,6 +55,26 @@ export function AcceptInvitationPanel({
       setState('idle');
       return;
     }
+    /*
+     * ═══ CU-868kt55w3: LA EMPRESA RECIÉN ACEPTADA PASA A SER LA ACTIVA ═══
+     *
+     * Esto faltaba, y es el eslabón que hacía parecer que "no quedaba unido".
+     *
+     * La membresía SÍ se creaba —el backend la inserta con el rol de la invitación, antes
+     * de marcar el token como usado—, pero nadie tocaba la cookie de empresa activa. El
+     * resultado depende de cuántas empresas tenga la persona:
+     *
+     *   · con UNA sola, `tenantDerive` la resuelve solo y todo se ve bien;
+     *   · con DOS o más —el caso del contador que trabaja con varios clientes, o de quien
+     *     ya tenía su propia empresa— la cookie vieja manda, y aterriza en la empresa
+     *     ANTERIOR. Ve su dashboard de siempre, ninguna señal de la invitación, y concluye
+     *     que no se unió.
+     *
+     * Se fija ANTES de navegar y se espera: `window.location.href` provoca una petición al
+     * servidor, y si la cookie todavía no está escrita esa petición sale con la anterior.
+     */
+    await setActiveCompany(result.data.companyId);
+
     setState('done');
     // Recarga completa y no `router.push`: la membresía recién creada cambia lo que
     // devuelve `/me/memberships`, y el shell la lee en el servidor.
