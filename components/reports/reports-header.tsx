@@ -5,6 +5,7 @@ import { Download, FileSpreadsheet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { request } from '@/lib/api/browser';
+import { descargarArchivo, nombreDeReporte } from '@/lib/download';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -80,9 +81,11 @@ export function ReportsHeader({
       setError(common.loadError.server);
       return;
     }
-    // Misma mecánica que el detalle del reporte: el backend devuelve una URL firmada de S3
-    // de vida corta y el navegador la abre. El binario nunca pasa por la app.
-    window.open(r.data.url, '_blank', 'noopener,noreferrer');
+    // CU-868kt4bxc: `<a download>` y no `window.open`. El backend devuelve una URL firmada
+    // de S3 de vida corta —el binario nunca pasa por la app— pero abrirla en una ventana
+    // nueva la convierte en un pop-up que el navegador bloquea, porque entre el clic y la
+    // apertura hay un `await`. Ver `lib/download.ts`.
+    descargarArchivo(r.data.url, nombreDeReporte({ formato }));
   }
 
   return (

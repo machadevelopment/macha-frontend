@@ -10,6 +10,7 @@ import { ShowcaseFrame, ShowcaseSeal } from '@/components/ui/showcase';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadError } from '@/components/ui/load-error';
 import { errorMessage, request, requestJson, type RequestError } from '@/lib/api/browser';
+import { descargarArchivo, nombreDeReporte } from '@/lib/download';
 import { formatDate, formatMoney, formatPct } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -134,6 +135,12 @@ export function ReportDetail({
       setSaveError(errorMessage(result.error) ?? common.loadError.server);
       return;
     }
+    /*
+     * Acá SÍ se abre una pestaña, y es a propósito: "Ver versión final" es una acción de
+     * LECTURA —el render HTML del reporte— y forzarla a descargar dejaría al usuario con un
+     * .html en su carpeta en vez de un reporte en pantalla. Las DESCARGAS (PDF/Excel) sí
+     * pasaron a `<a download>` en este mismo ticket; ver `download()` más abajo.
+     */
     window.open(result.data.url, '_blank', 'noopener,noreferrer');
   }
 
@@ -155,7 +162,15 @@ export function ReportDetail({
       setSaveError(errorMessage(result.error) ?? common.loadError.server);
       return;
     }
-    window.open(result.data.url, '_blank', 'noopener,noreferrer');
+    // CU-868kt4bxc: `<a download>` en vez de `window.open`. Entre el clic y la apertura hay
+    // un `await` para pedir la URL firmada, así que el navegador ya no lo considera
+    // resultado directo del clic y lo bloquea como pop-up — en silencio. Ver
+    // `lib/download.ts`. De paso el archivo se guarda con un nombre legible en vez del uuid
+    // que trae la URL de S3.
+    descargarArchivo(
+      result.data.url,
+      nombreDeReporte({ desde: report?.periodStart, hasta: report?.periodEnd, formato: format }),
+    );
   }
 
   // CU-868kh8uau: se manda `versionId` (el `report_versions.id` real), no `reportId`.
