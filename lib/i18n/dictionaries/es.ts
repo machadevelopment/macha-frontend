@@ -428,6 +428,8 @@ export const es: Dictionary = {
       today: 'hoy',
       week: 'esta semana',
       month: 'este mes',
+      lastMonth: 'el mes pasado',
+      quarter: 'este trimestre',
       year: 'este año',
       // Con preposición: "Así va tu negocio el rango elegido" no se lee.
       custom: 'en el rango elegido',
@@ -438,6 +440,8 @@ export const es: Dictionary = {
       today: 'Hoy',
       week: 'Esta semana',
       month: 'Este mes',
+      lastMonth: 'Mes pasado',
+      quarter: 'Este trimestre',
       year: 'Este año',
       showing: 'Mostrando',
       vsPrevious: 'vs. período anterior',

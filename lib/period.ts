@@ -10,7 +10,17 @@
  * no cuadrarían con lo que vendió.
  */
 
-export type PeriodKey = 'today' | 'week' | 'month' | 'year' | 'custom';
+/**
+ * CU-868kt2aga: se agregan `quarter` y `lastMonth`.
+ *
+ * `quarter` porque el prototipo lo lista entre los períodos rápidos y no existía — el
+ * trimestre es la unidad con la que una PYME habla con su contador y con el banco.
+ *
+ * `lastMonth` porque es el rango que más se pide y el único que HOY obligaba a abrir el
+ * calendario y teclear dos fechas: "¿cómo me fue el mes pasado?" es la pregunta más común
+ * del dashboard, y estaba a cuatro interacciones de distancia.
+ */
+export type PeriodKey = 'today' | 'week' | 'month' | 'lastMonth' | 'quarter' | 'year' | 'custom';
 
 export interface DateRange {
   from: string;
@@ -54,6 +64,23 @@ export function computeRange(key: Exclude<PeriodKey, 'custom'>, hoy: Date): Date
         // Día 0 del mes siguiente = último día de este. Evita la tabla de 30/31/28/29.
         to: iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)),
       };
+    case 'lastMonth':
+      // Día 0 del mes actual = último día del anterior. Misma técnica que `month`, y por
+      // la misma razón: evita la tabla de 30/31/28/29 y el 29 de febrero.
+      return {
+        from: iso(new Date(d.getFullYear(), d.getMonth() - 1, 1)),
+        to: iso(new Date(d.getFullYear(), d.getMonth(), 0)),
+      };
+    case 'quarter': {
+      // Trimestre CALENDARIO (ene-mar, abr-jun, jul-sep, oct-dic), no los últimos tres
+      // meses: es el que usa el contador y el que espera el banco. `Math.floor(mes/3)*3`
+      // da el primer mes del trimestre en curso.
+      const primerMes = Math.floor(d.getMonth() / 3) * 3;
+      return {
+        from: iso(new Date(d.getFullYear(), primerMes, 1)),
+        to: iso(new Date(d.getFullYear(), primerMes + 3, 0)),
+      };
+    }
     case 'year':
       return {
         from: iso(new Date(d.getFullYear(), 0, 1)),

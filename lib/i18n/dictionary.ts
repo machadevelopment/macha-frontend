@@ -1,3 +1,5 @@
+import type { PeriodKey } from '@/lib/period';
+
 export interface Dictionary {
   common: {
     signIn: string;
@@ -490,8 +492,16 @@ export interface Dictionary {
      * pasara lo que pasara con el filtro. Ver `dashboard-greeting.tsx`.
      */
     greetingSubtitle: string;
-    /** Las cinco formas que puede tomar `{period}`. Cubre todas las `PeriodKey`. */
-    greetingPeriod: Record<'today' | 'week' | 'month' | 'year' | 'custom', string>;
+    /**
+     * Cómo se nombra el período en la frase del saludo, una forma por `PeriodKey`.
+     *
+     * CU-868kt2aga: se escribe `Record<PeriodKey, …>` en vez de repetir la unión a mano.
+     * Antes era una copia literal, y agregar un preset dejaba el saludo diciendo
+     * `undefined` sin que nada fallara. Ahora el typechecker señala los dos diccionarios
+     * en cuanto `PeriodKey` crece — que es exactamente lo que pasó al agregar "mes pasado"
+     * y "este trimestre".
+     */
+    greetingPeriod: Record<PeriodKey, string>;
     importCta: string;
     /** Filtro de período. "Personalizado" aún no existe: ver period-filter.tsx. */
     period: {
@@ -499,6 +509,11 @@ export interface Dictionary {
       today: string;
       week: string;
       month: string;
+      /** CU-868kt2aga: el rango más pedido del dashboard, y el único que obligaba a
+       *  teclear dos fechas a mano. */
+      lastMonth: string;
+      /** El trimestre CALENDARIO, que es con el que una PYME habla con su contador. */
+      quarter: string;
       year: string;
       showing: string;
       vsPrevious: string;
