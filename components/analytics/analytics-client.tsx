@@ -309,6 +309,7 @@ export function AnalyticsClient({
               moneda={moneda}
               locale={locale}
               labels={labels}
+              common={common}
               vacio={labels.arAp.emptyAr}
               titulo={labels.tabs.receivables}
             />
@@ -321,6 +322,7 @@ export function AnalyticsClient({
               moneda={moneda}
               locale={locale}
               labels={labels}
+              common={common}
               vacio={labels.arAp.emptyAp}
               titulo={labels.tabs.payables}
             />

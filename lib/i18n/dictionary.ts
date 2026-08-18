@@ -74,6 +74,27 @@ export interface Dictionary {
       body: string;
       cta: string;
     };
+    /**
+     * Tramos de antigüedad de la cartera — CU-868kt2eh8.
+     *
+     * Viven en `common` y no bajo una pantalla porque los usan DOS: la gráfica de cuentas
+     * por cobrar/pagar del dashboard y los tabs de cartera de Analítica. Dos juegos de
+     * etiquetas para lo mismo terminan diciendo "1–30 días" en una pantalla y "1 a 30
+     * días" en la otra — que es exactamente el estado del que viene este ticket.
+     *
+     * El formato sigue la regla de rangos de U3: "1 a 30", nunca "1-30" ni "1_30". El
+     * guion se lee como resta cuando al lado hay cifras de dinero.
+     */
+    agingBucket: {
+      current: string;
+      '1_30': string;
+      '31_60': string;
+      '61_90': string;
+      '90_plus': string;
+    };
+    /** Qué representa el eje de la gráfica de antigüedad. Sin esto, las barras son montos
+     *  sin unidad: el usuario no sabe que están agrupadas por días de vencimiento. */
+    agingAxisLabel: string;
   };
   /**
    * CU-868kh8zvt — el backoffice es bilingüe ES/EN por decisión de Jose (2026-07-28).
@@ -990,14 +1011,6 @@ export interface Dictionary {
       overdueTotal: string;
       emptyAr: string;
       emptyAp: string;
-      /** Rótulos de los cinco tramos de antigüedad, tal como los nombra el backend. */
-      bucket: {
-        current: string;
-        '1_30': string;
-        '31_60': string;
-        '61_90': string;
-        '90_plus': string;
-      };
     };
   };
   /** Ventas por producto. */

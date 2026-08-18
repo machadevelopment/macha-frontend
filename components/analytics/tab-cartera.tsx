@@ -58,6 +58,7 @@ export function TabCartera({
   moneda,
   locale,
   labels,
+  common,
   vacio,
   titulo,
 }: {
@@ -67,6 +68,12 @@ export function TabCartera({
   moneda: 'GTQ' | 'USD';
   locale: Locale;
   labels: Dictionary['analytics'];
+  /**
+   * CU-868kt2eh8: los rótulos de los tramos viven en `common`, no acá. Los usan también la
+   * gráfica del dashboard, y dos juegos de etiquetas para lo mismo terminan diciendo
+   * "1–30 días" en una pantalla y "1 a 30 días" en la otra.
+   */
+  common: Dictionary['common'];
   /** Mensaje de "no hay nada", distinto para cobrar y para pagar. */
   vacio: string;
   titulo: string;
@@ -115,7 +122,7 @@ export function TabCartera({
               return (
                 <li key={b}>
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-body">{t.bucket[b]}</span>
+                    <span className="text-body">{common.agingBucket[b]}</span>
                     <span className="shrink-0 text-body tabular-nums">
                       {formatMoney(valor, moneda, locale)}
                     </span>
@@ -191,7 +198,9 @@ export function TabCartera({
                       {formatNumber(f.invoiceCount, locale)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={VARIANTE[f.worstBucket]}>{t.bucket[f.worstBucket]}</Badge>
+                      <Badge variant={VARIANTE[f.worstBucket]}>
+                        {common.agingBucket[f.worstBucket]}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))}
