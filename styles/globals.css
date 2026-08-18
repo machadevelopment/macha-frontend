@@ -35,25 +35,57 @@
    *   · `--brand` (salvia #A0AF9A) dice "esto es Macha". Identidad: Insight Point,
    *     acentos, pantallas de vitrina, cabecera de reportes. NUNCA aparece sobre un
    *     dato.
-   *   · `--green` (#16A34A) dice "este dato va bien". Delta positivo, chips de estado,
+   *   · `--green` (#358D55) dice "este dato va bien". Delta positivo, chips de estado,
    *     series positivas. NUNCA se usa como decoración.
    *
    * La prueba de fuego, literal del ticket: si el color dice "va bien o mal" es
-   * funcional; si dice "esto es Macha" es salvia. Son tonos deliberadamente distintos
-   * —el salvia es desaturado y apagado, el funcional es saturado y brillante— para que
-   * nadie los confunda a simple vista. Si alguien alguna vez los acerca, este párrafo
-   * deja de ser cierto y la regla se cae.
+   * funcional; si dice "esto es Macha" es salvia.
+   *
+   * ⚠️ ESTE PÁRRAFO SE REESCRIBIÓ EN CU-868kt8bg0, Y HAY QUE DECIR POR QUÉ. La versión
+   * anterior decía que los dos verdes eran "deliberadamente distintos — el salvia es
+   * desaturado y apagado, el funcional es saturado y brillante", y cerraba avisando: "si
+   * alguien alguna vez los acerca, este párrafo deja de ser cierto y la regla se cae".
+   *
+   * Pues los acercamos: el funcional pasó de #16A34A (sat 76 %) a #358D55 (sat 45 %) para
+   * alinearse al prototipo. Ya NO es "saturado y brillante" — es un verde bosque medio y
+   * oscuro. Dejar la frase vieja habría convertido este comentario en una mentira, que en
+   * un archivo de tokens es peor que no tener comentario.
+   *
+   * La regla NO se cae, y esta es la razón medida: salvia hsl(103 12% 65%) frente a
+   * funcional hsl(142 45% 38%). Los separan 39° de tono, 33 puntos de saturación y —lo que
+   * más pesa a simple vista— 27 puntos de LUMINOSIDAD. Uno es un gris verdoso pálido; el
+   * otro, un bosque oscuro. Siguen sin confundirse.
+   *
+   * Lo que sí cambió es el MARGEN. Antes eran distintos por saturación Y por luminosidad;
+   * ahora la luminosidad hace casi todo el trabajo. Quien toque cualquiera de los dos —o
+   * quien aclare el funcional para "que se vea mejor" en oscuro— tiene que mirarlos juntos
+   * y volver a medir. El día que se confundan, el color deja de decir si algo va bien o si
+   * algo es Macha, que es el único trabajo que tiene.
    */
-  /* Layer 1 — primitives (light, source of truth) */
-  --canvas: #f9f9f9;
+  /*
+   * Layer 1 — primitives (light, source of truth)
+   *
+   * CU-868kt8bg0: los valores salen del prototipo (`src/index.css` de mvp-macha), que el
+   * ticket declara fuente de verdad visual. La ARQUITECTURA de capas es la nuestra y no se
+   * toca — solo se igualan los valores, como pide el ticket.
+   *
+   * `--canvas` pasa de #F9F9F9 a blanco puro (el `--background: 0 0% 100%` del prototipo),
+   * y eso tiene una consecuencia que conviene entender antes de tocarlo de vuelta: con el
+   * lienzo y la tarjeta los DOS en blanco, lo único que separa una tarjeta del fondo es el
+   * filete de 1px. Es exactamente el registro del prototipo —"flat, hairline-bordered
+   * cards, no heavy drop shadow", dice su propio comentario— y es coherente con la sombra
+   * de filete que este mismo ticket ya aplicó. Si alguien devuelve el gris del lienzo sin
+   * devolver la sombra difusa, las tarjetas se quedan sin ninguna separación.
+   */
+  --canvas: #ffffff;
   --surface: #ffffff;
   --surface-2: #ffffff;
   --sidebar: #fcfcfc;
   --ink: #171717;
   --muted: #737373;
   --faint: #a0a0a0;
-  --border: #e9e9e9;
-  --soft: #f1f1f1;
+  --border: #ebebeb;
+  --soft: #f5f5f5;
   --fill: #f7f7f7;
   --inverse-surface: #141414;
   /*
@@ -75,7 +107,7 @@
   --green: #358d55;
   --green-bg: #f0fdf4;
   --green-bd: #bbf7d0;
-  --red: #dc2626;
+  --red: #ca2b2b;
   --red-bg: #fef2f2;
   --red-bd: #fecaca;
   --amber: #b45309;
@@ -242,17 +274,17 @@
   --surface: #171717;
   --surface-2: #1f1f1f;
   --sidebar: #141414;
-  --ink: #f5f5f5;
-  --muted: #a0a0a0;
+  --ink: #f2f2f2;
+  --muted: #999999;
   --faint: #6b6b6b;
-  --border: #2a2a2a;
-  --soft: #1f1f1f;
+  --border: #2b2b2b;
+  --soft: #242424;
   --fill: #232323;
   --inverse-surface: #f5f5f5;
-  --green: #4ade80;
+  --green: #46b970;
   --green-bg: #0e1f16;
   --green-bd: #194b31;
-  --red: #f87171;
+  --red: #d74242;
   --red-bg: #241111;
   --red-bd: #5b1e1e;
   --amber: #fbbf24;
@@ -349,20 +381,28 @@
 :root {
   --density-card-p: 16px;
   /*
-   * CU-868knx0vh — "más aire y jerarquía", pedido del prompt de rediseño §3.2.
+   * El margen de la PÁGINA: el aire alrededor del contenido, no dentro de las tarjetas.
    *
-   * Sube de 26 a 34. Es el margen de la PÁGINA: el aire alrededor del contenido, no dentro
-   * de las tarjetas. Subirlo acá levanta las 17 pantallas de una vez, que es exactamente lo
-   * que el prompt pide hacer "usando los density tokens que ya existen".
+   * ═══ HISTORIA, PORQUE ESTE NÚMERO YA SE MOVIÓ DOS VECES ═══
    *
-   * ⚠️ `--density-card-p` NO SUBE, y es deliberado. El padding de tarjeta le quita ancho
-   * ÚTIL al contenido, y las cinco tarjetas de KPI del dashboard ya viven al límite: hubo
-   * un desbordamiento real donde un monto se pintaba encima de la tarjeta vecina y tapaba
-   * la cifra de al lado. Se arregló con notación compacta y `truncate`, pero el margen
-   * sigue siendo estrecho. Dar aire por dentro de una tarjeta que contiene una cifra es
-   * quitárselo a la cifra.
+   * CU-868knx0vh lo subió de 26 a 34 pidiendo "más aire y jerarquía". CU-868kt8bg0 lo BAJA
+   * a 24, que es el `p-6` del prototipo — y el equipo pidió lo contrario de aquella vez:
+   * "la plataforma debe sentirse más completa y aprovechar mejor la pantalla, como el
+   * prototipo (menos aire desperdiciado)".
+   *
+   * No es que una de las dos decisiones estuviera mal. Son el mismo eje mirado desde dos
+   * lados, y ahora hay un árbitro que no había antes: el prototipo es la referencia
+   * declarada, y da 24. Se toma ese valor en vez de promediar, porque el objetivo del
+   * ticket es parecerse, no encontrar un punto medio propio.
+   *
+   * ⚠️ `--density-card-p` NO BAJA con él, y es deliberado — igual que antes NO subió. El
+   * padding de tarjeta le quita ancho ÚTIL al contenido, y las tarjetas de KPI del
+   * dashboard ya viven al límite: hubo un desbordamiento real donde un monto se pintaba
+   * encima de la tarjeta vecina. El prototipo usa `p-6` (24px) DENTRO de sus tarjetas,
+   * más que nuestros 16 — o sea que acá ya somos más compactos que él, y apretar más sería
+   * empeorar por copiar mal.
    */
-  --density-main-p: 34px;
+  --density-main-p: 24px;
   --density-btn-py: 8px;
   --density-btn-px: 14px;
   --density-btn-sm-py: 5px;
