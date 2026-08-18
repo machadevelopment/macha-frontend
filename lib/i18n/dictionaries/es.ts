@@ -800,6 +800,29 @@ export const es: Dictionary = {
       accepted: 'Listo',
       missingToken: 'El enlace no trae token. Pide una invitación nueva al owner.',
       genericError: 'No se pudo aceptar la invitación. Intenta de nuevo.',
+      signedOutTitle: 'Te invitaron a una empresa en Macha Finance',
+      signedOutSubtitle:
+        'Entra con tu cuenta para unirte. No vas a crear una empresa: te sumas a la que ya existe, con el rol que te asignaron.',
+      signedOutCreateAccount: 'Crear mi cuenta y unirme',
+      signedOutSignIn: 'Ya tengo cuenta',
+      emailHint: 'Usa el mismo correo al que te llegó la invitación: es con el que la verificamos.',
+      asRole: 'Te unes como {role}',
+      join: 'Unirme',
+      noPending:
+        'No encontramos ninguna invitación pendiente para tu cuenta. Puede que ya la hayas aceptado, que haya vencido, o que se haya enviado a otro correo. Pide una nueva a quien te invitó.',
+      unavailable:
+        'No pudimos consultar tus invitaciones ahora mismo. Vuelve a intentarlo en un momento.',
+      rejection: {
+        invalid:
+          'No pudimos usar esta invitación. Puede que ya la hayas aceptado, que se haya revocado, o que se haya enviado a un correo distinto del de tu cuenta. Revisa con qué correo entraste, o pide una nueva a quien te invitó.',
+        expired: 'La invitación venció. Pide una nueva a quien te invitó.',
+        wrongRecipient:
+          'Esta invitación no corresponde a tu cuenta. Entra con el correo al que te llegó.',
+      },
+      pendingTitle: 'Tienes una invitación pendiente',
+      pendingSubtitle: '{company} te invitó a su cuenta de Macha Finance.',
+      pendingSubtitleMany: 'Te invitaron a más de una empresa. Elige a cuál te unes.',
+      pendingCta: 'Ver mi invitación',
     },
   },
   analytics: {
