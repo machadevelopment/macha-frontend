@@ -550,6 +550,9 @@ export const en: Dictionary = {
       sectionsRequired: 'Pick at least one section.',
       instructionsLabel: 'Anything else you want to ask for (optional)',
       instructionsPlaceholder: 'Focus on the margin of the beverages line.',
+      instructionsScope:
+        'What you ask for can only come from the sections selected above. Currently unselected: {sections}.',
+      instructionsScopeAll: 'Every section is selected, so you can ask about any of them.',
       generate: 'Generate report',
       generating: 'Sending…',
       queued: 'Your report is queued and used {n} credits. It will show up below once ready.',
