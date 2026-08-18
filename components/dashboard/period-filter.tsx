@@ -72,6 +72,8 @@ export function PeriodFilter({
     { key: 'today', label: labels.today },
     { key: 'week', label: labels.week },
     { key: 'month', label: labels.month },
+    { key: 'lastMonth', label: labels.lastMonth },
+    { key: 'quarter', label: labels.quarter },
     { key: 'year', label: labels.year },
   ];
 
