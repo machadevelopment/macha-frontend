@@ -133,10 +133,15 @@ export function AppShell({
           // pantallas a la vez — esto es el layout compartido. `dvh` sigue a la barra.
           'min-h-[calc(100dvh-1rem)] app:min-h-[calc(100dvh-1.5rem)]',
           // design guide.md §Responsive: bajo 1080px `app → 1fr`, el sidebar se oculta
-          // y la navegación pasa al drawer. Arriba, `grid-template-columns: 212px 1fr`
-          // (§4.4); colapsado deja un riel de solo íconos en vez de esconder la nav.
+          // y la navegación pasa al drawer. Arriba, `grid-template-columns: 240px 1fr`;
+          // colapsado deja un riel de solo íconos en vez de esconder la nav.
+          //
+          // CU-868kt8bg0: 240px es el ancho del prototipo (`aside w-[240px]`). El design
+          // guide §4.4 decía 212 y se corrige acá — con los ítems ya a las medidas del
+          // prototipo (px-3 + gap-3 + ícono de 16), 212 dejaba las etiquetas largas
+          // truncando contra el borde, que es peor que los 28px de columna.
           'grid-cols-1',
-          collapsed ? 'app:grid-cols-[56px_1fr]' : 'app:grid-cols-[212px_1fr]',
+          collapsed ? 'app:grid-cols-[56px_1fr]' : 'app:grid-cols-[240px_1fr]',
           /*
            * FILAS EXPLÍCITAS (CU-868krvtya). Bajo 1080px el grid tiene dos hijos visibles
            * —la topbar móvil y el contenido— y sus filas eran `auto`. Con `align-content`
@@ -170,7 +175,7 @@ export function AppShell({
               <button
                 type="button"
                 aria-label={shell.openMenu}
-                className="rounded-[6px] p-1.5 text-faint transition-colors hover:bg-muted hover:text-foreground"
+                className="rounded-sm p-1.5 text-faint transition-colors hover:bg-muted hover:text-foreground"
               >
                 <Menu className="h-5 w-5" strokeWidth={1.7} />
               </button>
@@ -277,7 +282,7 @@ function SidebarBody({
           onClick={onToggleCollapse}
           aria-label={collapsed ? shell.expand : shell.collapse}
           aria-expanded={!collapsed}
-          className="hidden rounded-[6px] p-1.5 text-faint transition-colors hover:bg-muted hover:text-foreground app:block"
+          className="hidden rounded-sm p-1.5 text-faint transition-colors hover:bg-muted hover:text-foreground app:block"
         >
           {collapsed ? (
             <PanelLeftOpen className="h-4 w-4" strokeWidth={1.7} />
@@ -367,7 +372,7 @@ function SidebarBody({
           <button
             type="submit"
             title={collapsed ? common.signOut : undefined}
-            className="flex w-full items-center gap-2 rounded-[7px] px-2 py-1.5 text-body text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-body text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <LogOut className="h-[15px] w-[15px] shrink-0" strokeWidth={1.7} />
             <span className={collapsed ? 'app:sr-only' : ''}>{common.signOut}</span>
@@ -378,7 +383,20 @@ function SidebarBody({
   );
 }
 
-/** Ítem de nav (`ni`): activo con `fill` + peso 600, ícono Lucide a strokeWidth 1.7. */
+/**
+ * Ítem de nav (`ni`): activo con `fill` + peso 600, ícono Lucide a strokeWidth 1.7.
+ *
+ * CU-868kt8bg0 — medidas del prototipo (`src/components/DashboardSidebar.tsx`):
+ * `gap-3 px-3 py-2 rounded-md text-sm` con el ícono en 16 px. Los nuestros eran
+ * `gap-2 px-2 py-1.5 rounded-[7px]` con ícono de 15. Es al revés que el resto del
+ * ticket: acá el prototipo es MÁS holgado que nosotros, y se sigue igual, porque la
+ * navegación es lo que el ojo recorre para orientarse — apretarla no gana pantalla
+ * (la columna ya está reservada), solo dificulta apuntar.
+ *
+ * `rounded-[7px]` era además un radio FUERA de la escala (5/8/10/11/22). El ticket pide
+ * explícitamente "mantener el mismo redondeado en todos los componentes"; siete no era
+ * ninguno de los cinco y no había forma de notarlo mirando.
+ */
 function NavLink({
   item,
   active,
@@ -395,19 +413,19 @@ function NavLink({
       aria-current={active ? 'page' : undefined}
       title={collapsed ? item.label : undefined}
       className={cn(
-        'flex items-center gap-2 rounded-[7px] px-2 py-1.5 text-body transition-colors',
+        'flex items-center gap-3 rounded-md px-3 py-2 text-body transition-colors',
         collapsed && 'app:justify-center',
         active
           ? 'bg-muted font-semibold text-foreground'
           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
       )}
     >
-      <Icon className="h-[15px] w-[15px] shrink-0" strokeWidth={1.7} />
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={1.7} />
       <span className={cn('truncate', collapsed && 'app:sr-only')}>{item.label}</span>
       {item.badge !== undefined && item.badge > 0 && (
         <span
           className={cn(
-            'ml-auto rounded-[20px] bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground',
+            'ml-auto rounded-pill bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground',
             collapsed && 'app:sr-only',
           )}
         >

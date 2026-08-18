@@ -54,7 +54,7 @@ export function Badge({ className, variant = 'neutral', ...props }: BadgeProps) 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 whitespace-nowrap rounded-[5px] border px-1.5 py-0.5 align-middle font-mono text-chip uppercase leading-none',
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-1.5 py-0.5 align-middle font-mono text-chip uppercase leading-none',
         'transition-colors [&>svg]:shrink-0',
         variantClasses[variant],
         className,

@@ -11,8 +11,8 @@ export const Sheet = DialogPrimitive.Root;
 export const SheetTrigger = DialogPrimitive.Trigger;
 
 const sideClasses = {
-  left: 'left-0 top-0 h-full w-[212px] border-r',
-  right: 'right-0 top-0 h-full w-[212px] border-l',
+  left: 'left-0 top-0 h-full w-[240px] border-r',
+  right: 'right-0 top-0 h-full w-[240px] border-l',
 } as const;
 
 /** `closeLabel` obligatorio por el mismo motivo que en `dialog.tsx` — ver la nota ahí. */

@@ -126,7 +126,18 @@ export function PeriodFilter({
           <CalendarDays className="h-3.5 w-3.5" strokeWidth={1.7} />
           {labels.label}
         </span>
-        <div className="flex flex-wrap gap-1 rounded-pill border border-border bg-card p-1">
+        {/* CU-868kt8bg0: la píldora, al milímetro del prototipo — `p-0.5` en el riel y
+            `px-3 py-1 text-xs` en cada botón (el nuestro era `p-1` + 14 px). El control
+            baja de ~34 px de alto a ~26 y deja de comportarse como una barra: es un
+            control secundario, y a la altura anterior competía con la fila de KPIs que
+            está justo debajo. Es literalmente el "aprovechar mejor la pantalla" del
+            ticket, en el elemento que se repite en tres pantallas.
+
+            Se asume el área de toque más chica de forma consciente: es un control de
+            dashboard, el prototipo es la fuente de verdad declarada del ticket, y las
+            píldoras están agrupadas — errar el clic cae en la píldora vecina, no en un
+            vacío ni en una acción destructiva. */}
+        <div className="flex flex-wrap gap-1 rounded-pill border border-border bg-card p-0.5">
           {opciones.map((o) => (
             <button
               key={o.key}
@@ -137,7 +148,7 @@ export function PeriodFilter({
               }}
               aria-pressed={value === o.key}
               className={cn(
-                'rounded-pill px-3 py-1 text-body transition-colors',
+                'rounded-pill px-3 py-1 text-caption font-medium transition-colors',
                 value === o.key
                   ? 'bg-foreground text-background'
                   : 'text-muted-foreground hover:text-foreground',
@@ -152,7 +163,7 @@ export function PeriodFilter({
             aria-pressed={value === 'custom'}
             aria-expanded={abierto}
             className={cn(
-              'rounded-pill px-3 py-1 text-body transition-colors',
+              'rounded-pill px-3 py-1 text-caption font-medium transition-colors',
               value === 'custom'
                 ? 'bg-foreground text-background'
                 : 'text-muted-foreground hover:text-foreground',
