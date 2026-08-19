@@ -541,10 +541,8 @@ export const es: Dictionary = {
     noThreads: 'Todavía no tienes conversaciones.',
     composerHint: 'Enter envía · Mayús+Enter salta de línea',
     thinking: 'Macha está pensando…',
-    stopWaiting: 'Dejar de esperar',
-    stoppedWaiting:
-      'Dejaste de esperar. La respuesta se sigue escribiendo y quedará guardada en este chat.',
-    refreshThread: 'Ver si ya llegó',
+    stopWaiting: 'Cancelar',
+    stoppedWaiting: 'Cancelaste la respuesta. Tu pregunta quedó guardada en el chat.',
     welcome: {
       title: '¿Qué quieres saber de tu negocio?',
       subtitle:

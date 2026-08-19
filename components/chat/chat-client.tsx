@@ -268,41 +268,26 @@ export function ChatClient({
   }
 
   /**
-   * Dejar de esperar la respuesta en curso — CU-868ktmdex.
+   * Cancelar la respuesta en curso — CU-868ktvqjm.
    *
-   * ═══ LO QUE HACE Y LO QUE NO ═══
+   * Nació en CU-868ktmdex como "dejar de esperar", y el rótulo era honesto: el turno no era
+   * cancelable, así que abortar el `fetch` soltaba la pantalla mientras el modelo seguía
+   * escribiendo y la respuesta se guardaba igual. Ahora el backend propaga la señal de la
+   * petición hasta Claude, así que abortar corta la llamada de verdad.
    *
-   * Corta LA ESPERA, no el trabajo. `POST /chats/:id/messages` no es cancelable: el turno
-   * sigue corriendo en el servidor y al terminar inserta los dos mensajes. Abortar el
-   * `fetch` solo suelta al usuario de una pantalla bloqueada.
+   * Lo que cambia acá, además del rótulo: se fue el "ver si ya llegó". Existía para ir a
+   * buscar la respuesta que iba a llegar de todos modos; ahora no llega ninguna, y ofrecer
+   * un refresco que nunca trae nada sería peor que no ofrecerlo.
    *
-   * Por eso el botón dice "Dejar de esperar" y no "Cancelar", y por eso el aviso explica
-   * que la respuesta va a aparecer igual. Un botón rotulado "Detener" que no detiene nada
-   * sería peor que no tener botón: el usuario creería haber evitado algo que no evitó.
-   *
-   * TAMPOCO SE RETIRA SU PREGUNTA de la pantalla, a diferencia del camino de error. El
-   * servidor la va a guardar, así que borrarla sería decirle que se perdió algo que no se
-   * perdió — y volvería a aparecer sola en la siguiente carga, que es peor.
-   *
-   * Cancelar de verdad exige que el backend propague el `AbortSignal` hasta la llamada a
-   * Claude y decida qué hacer con la fila de `ai_usage_events` de un turno a medias. Es un
-   * ticket aparte; el chat no debita créditos, así que esperar no le cuesta nada al cliente.
+   * Lo que NO cambia: su pregunta se queda en pantalla. El servidor la guarda aunque el
+   * turno se cancele —la escribió y la mandó— así que retirarla diría que se perdió algo
+   * que no se perdió.
    */
   function dejarDeEsperar() {
     abortRef.current?.abort();
     abortRef.current = null;
     setSending(false);
     setDejoDeEsperar(true);
-  }
-
-  /** Trae el hilo de nuevo, que es como aparece la respuesta que se dejó de esperar. */
-  async function refrescarHilo() {
-    if (!activeId) return;
-    const result = await request<ChatMessage[]>(`/api/chats/${activeId}/messages`);
-    if (result.ok) {
-      setMessages(result.data);
-      setDejoDeEsperar(false);
-    }
   }
 
   // CU-868kkgb3c: si no se pudieron cargar los hilos no hay chat que mostrar. Antes esto
@@ -446,18 +431,9 @@ export function ChatClient({
 
             {/* No es un error y por eso no va con el color de error: la respuesta viene en
                 camino, solo que el usuario decidió no quedarse mirando. */}
-            {dejoDeEsperar && (
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-body text-faint">{labels.stoppedWaiting}</p>
-                <button
-                  type="button"
-                  onClick={() => void refrescarHilo()}
-                  className="text-body text-muted-foreground underline hover:text-foreground"
-                >
-                  {labels.refreshThread}
-                </button>
-              </div>
-            )}
+            {/* No es un error y por eso no lleva el color de error: el usuario decidió
+                cancelar. Su pregunta queda en el hilo, sin respuesta, que es lo que pasó. */}
+            {dejoDeEsperar && <p className="text-body text-faint">{labels.stoppedWaiting}</p>}
 
             {/* Ancla del auto-scroll. Ver el efecto de arriba. */}
             <div ref={finDeLaConversacion} />
