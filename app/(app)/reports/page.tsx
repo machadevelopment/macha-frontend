@@ -1,5 +1,3 @@
-import { FileText } from 'lucide-react';
-import { PageHeader } from '@/components/ui/page-header';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { getActiveRole } from '@/lib/auth/active-role';
@@ -13,6 +11,12 @@ import { ReportsScreen } from '@/components/reports/reports-screen';
  * backend lo gatea con `edit_send_reports` (owner/admin) y no con la capacidad de lectura.
  * Esto solo evita pintarle al `member` un formulario que va a devolver 403 — la autoridad
  * sigue siendo el backend.
+ *
+ * CU-868ktkn9w: la cabecera (`PageHeader`) ya no se monta acá sino dentro de
+ * `ReportsScreen` → `ReportsHeader`. No es un capricho de organización: el prototipo pone
+ * las descargas en la fila del título, y tanto los botones como el subtítulo dependen de
+ * si la empresa tiene algún reporte descargable — un dato que solo se conoce después del
+ * fetch, o sea del lado cliente. Ver la nota de `ReportsHeader`.
  */
 export default async function ReportsPage() {
   const locale = getLocale();
@@ -21,7 +25,6 @@ export default async function ReportsPage() {
 
   return (
     <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
-      <PageHeader icon={FileText} title={t.reports.title} />
       <ReportsScreen
         locale={locale}
         labels={t.reports}
