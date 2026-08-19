@@ -509,6 +509,18 @@ export const es: Dictionary = {
       sales: 'Ventas',
       financial: 'Financiero',
     },
+    /*
+     * Severidad del consejo (CU-868ku6r48). Los CÓDIGOS los manda el backend; acá solo se
+     * nombran, igual que con `insightCategory` y con `ruleKey` de las alertas.
+     *
+     * "Urgente" y no "Crítico": el rótulo lo lee el dueño de una PYME sobre su propio negocio, y la
+     * palabra tiene que decirle qué hacer con ella —mirar esto hoy— y no calificar su empresa.
+     */
+    insightSeverity: {
+      critical: 'Urgente',
+      warning: 'Atención',
+      info: 'Contexto',
+    },
     insightTitle: 'CONSEJO FINANCIERO DIARIO',
     insightCta: 'Generar consejo',
     insightLoading: 'Generando…',

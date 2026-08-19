@@ -590,6 +590,12 @@ export interface Dictionary {
      */
     insightCategory: { collections: string; sales: string; financial: string };
     /**
+     * CU-868ku6r48: severidad del consejo. Mismo criterio que la línea de arriba — el backend
+     * manda el código, el diccionario nombra. Los tres niveles son obligatorios: un consejo sin
+     * rótulo de urgencia deja al usuario adivinando si algo urge.
+     */
+    insightSeverity: { critical: string; warning: string; info: string };
+    /**
      * CU-868kt8bg0: el panel se llama "Consejo Financiero Diario", no "IA".
      *
      * Decirle "IA" al panel nombra la TECNOLOGÍA, no lo que el usuario recibe — y el dueño
