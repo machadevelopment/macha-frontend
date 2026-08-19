@@ -181,6 +181,29 @@ export default {
         // Prototipo: 11px con tracking 0.08em (el nuestro era 10.5/0.13, más espaciado).
         eyebrow: ['11px', { lineHeight: '1.2', letterSpacing: '0.08em', fontWeight: '500' }],
         chip: ['9.5px', { lineHeight: '1', letterSpacing: '0.09em', fontWeight: '600' }],
+        /*
+         * ═══ CU-868ktknbq · EL DATO DE APOYO DE UNA TARJETA DE KPI ═══
+         *
+         * La cifra exacta, la frase de ayuda y el "vs mes anterior" iban en `body` (14px/1.5).
+         * El prototipo los pone en 10px con interlínea apretada, y medido contra
+         * `juanrodriguezbz/mvp-macha` esa es la ÚNICA diferencia de escala real de la tarjeta:
+         * la etiqueta (11px/500), la cifra (24px/600) y el relleno (16px) ya coincidían.
+         *
+         * O sea que el reporte "todo se ve muy grande" no era la tipografía titular — era esto,
+         * tres líneas por tarjeta a 14px/1.5 (21px de alto cada una) donde el prototipo gasta
+         * 13px. Con el sparkline y el delta en medio, la tarjeta medía ~258px contra ~152px.
+         *
+         * No se reusa `chip` (9.5px): ese lleva mayúsculas, 0.09em de tracking y peso 600
+         * porque es un RÓTULO. Esto es un dato que se lee.
+         */
+        micro: ['10px', { lineHeight: '1.3' }],
+        /*
+         * El delta en línea (↗ +30.4%), que en el prototipo va en mono a 12px y SIN caja.
+         * Token propio y no `caption` porque su interlínea es 1 —se alinea con un ícono de
+         * 12px al lado— y porque el día que se ajuste, se ajusta el delta y no todos los
+         * subtítulos del producto.
+         */
+        delta: ['12px', { lineHeight: '1', fontWeight: '500' }],
       },
       // `card` sale de un token porque cambia entre claro y oscuro (en oscuro no es una
       // sombra negra sino un filo de luz — ver globals.css). `tab` se queda literal: es un

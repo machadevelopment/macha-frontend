@@ -19,8 +19,8 @@ export interface KpiCardProps {
   invertDelta?: boolean;
   /**
    * CU-868kh8y58: segunda cifra del MISMO dato, no un dato distinto — el par
-   * "utilidad bruta Q35,700 · margen bruto 35.7%". Mono y tabular como el valor
-   * principal, porque es un número (design guide §"regla mono").
+   * "utilidad bruta Q35,700 · margen bruto 35.7%". Va en mono y tabular como dato de apoyo
+   * (ver la nota del render); la cifra GRANDE, en cambio, ya no usa mono.
    */
   secondary?: string;
   /**
@@ -104,19 +104,45 @@ export function KpiCard({
         línea más abajo en `exact`.
       */}
       <p className="mt-1 min-w-0 truncate text-kpi tabular-nums">{value}</p>
+      {/*
+        ═══ CU-868ktknbq · EL DATO DE APOYO BAJA A `micro` ═══
+
+        Las cuatro líneas de abajo iban en `body` (14px/1.5). Medido contra el prototipo
+        (`juanrodriguezbz/mvp-macha`, declarado fuente de verdad visual), esa era la única
+        diferencia de escala real de esta tarjeta: la etiqueta, la cifra y el relleno ya
+        coincidían. Tres líneas a 21px de alto contra 13px, más el delta encajonado en su
+        propia fila, dejaban la tarjeta en ~258px contra los ~152px del prototipo — y con
+        cinco KPIs eso es lo que empujaba la gráfica de tendencia abajo del pliegue.
+
+        La cifra exacta y `secondary` van en MONO a propósito, y eso matiza la regla mono sin
+        deshacerla: lo que se sacó del mono fue la CIFRA GRANDE (`text-kpi`), que es lo que
+        hacía leer el producto como herramienta de desarrollador. Un dato denso de 10px
+        alineado bajo ella es el caso donde el ancho fijo ayuda a leer, y es lo que hace el
+        prototipo. El `hint` NO lleva mono: es prosa.
+      */}
       {exact !== undefined && (
-        <p className="mt-1 text-body tabular-nums text-muted-foreground">{exact}</p>
+        <p className="mt-1 font-mono text-micro tabular-nums text-muted-foreground">{exact}</p>
       )}
       {secondary !== undefined && (
-        <p className="mt-0.5 text-body tabular-nums text-muted-foreground">{secondary}</p>
+        <p className="mt-0.5 font-mono text-micro tabular-nums text-muted-foreground">
+          {secondary}
+        </p>
       )}
       {spark && <Sparkline data={spark} height={28} className="mt-2 w-full text-foreground" />}
-      {hint !== undefined && <p className="mt-1 font-ui text-body text-faint">{hint}</p>}
+      {hint !== undefined && <p className="mt-1.5 font-ui text-micro text-faint">{hint}</p>}
       {delta !== undefined && (
-        <DeltaBadge value={delta} invert={invertDelta} locale={locale} className="mt-2" />
+        <DeltaBadge
+          value={delta}
+          invert={invertDelta}
+          locale={locale}
+          /* Sin caja: acá la flecha es el canal redundante que pide la regla de color.
+             Ver la nota de `DeltaBadge`. */
+          presentation="inline"
+          className="mt-1.5"
+        />
       )}
       {delta !== undefined && deltaCaption && (
-        <p className="mt-1 font-ui text-body text-faint">{deltaCaption}</p>
+        <p className="mt-0.5 font-ui text-micro text-faint">{deltaCaption}</p>
       )}
     </Card>
   );

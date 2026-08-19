@@ -86,7 +86,22 @@ export function PeriodKpis({
    * Son breakpoints de viewport y no container queries porque Tailwind 3.4 no las trae en el
    * core; el ancho del rail es fijo, así que la cuenta desde el viewport es determinista.
    */
-  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5';
+  /*
+   * ═══ CU-868ktknbq · LAS 5 TARJETAS EN UNA FILA DESDE `lg`, NO DESDE `2xl` ═══
+   *
+   * El grid pasaba a 5 columnas en `2xl` (1536px). El prototipo lo hace en `lg` (1024px) — su
+   * pantalla de Analítica llega incluso a 6 columnas ahí.
+   *
+   * Los 512px de diferencia no son teóricos: una MacBook de 14" da 1512px de ancho de CSS,
+   * VEINTICUATRO por debajo del corte. O sea que en la máquina donde se demuestra el producto
+   * caíamos a 3 columnas, los KPIs ocupaban dos filas y la gráfica de tendencia quedaba abajo
+   * del pliegue. Es exactamente lo que se ve en las capturas que mandó QA.
+   *
+   * Cinco tarjetas a 1024px son ~180px cada una, que es donde el prototipo las tiene: alcanza
+   * porque la cifra va abreviada (`formatMoneyCompact`) y el resto del contenido bajó a
+   * `micro` en este mismo ticket. `truncate` sigue siendo el tope duro si algún día no cabe.
+   */
+  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5';
 
   const filtro = (
     <PeriodFilter
