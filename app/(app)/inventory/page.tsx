@@ -9,7 +9,7 @@ export default function InventoryPage() {
   const t = getDictionary(locale);
 
   return (
-    <main data-density="compact" className="mx-auto w-full max-w-app p-[var(--density-main-p)]">
+    <main data-density="compact" className="mx-auto max-w-app p-[var(--density-main-p)]">
       <PageHeader icon={Boxes} title={t.inventory.title} subtitle={t.inventory.subtitle} />
       <InventoryPanel locale={locale} labels={t.inventory} common={t.common} />
     </main>
