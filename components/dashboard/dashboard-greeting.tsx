@@ -59,12 +59,30 @@ export function DashboardGreeting({
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
         <p className="font-mono text-eyebrow uppercase text-faint">{fecha}</p>
-        {/* CU-868kt8bg0: el saludo va en peso NORMAL. `text-h1` trae `font-weight: 700`, y
-            el equipo lo pidió explícito. Tiene sentido: "Buenos días" no es un dato ni un
-            título de sección que haya que encontrar de un vistazo — es una cortesía, y en
-            negrilla compite con las cifras que sí importan. El tamaño se queda; lo que baja
-            es el peso. */}
-        <h1 className="mt-1 text-h1 font-normal">{saludo}</h1>
+        {/*
+          ═══ CU-868ktknbq · AHORA `pagetitle`, Y ESTO REVISA UNA DECISIÓN ANTERIOR ═══
+
+          Antes: `text-h1 font-normal` — 27px con peso 400. Venía de CU-868kt8bg0, donde el
+          equipo pidió EXPLÍCITAMENTE peso normal con este argumento, que sigue siendo bueno:
+          "Buenos días" es una cortesía, no un dato, y en negrilla compite con las cifras.
+
+          Lo que ese ticket no resolvió es el TAMAÑO, y ahí estaba el problema: 27px con peso
+          400 es más grande y más delgado a la vez que el prototipo (24px/600), así que ocupaba
+          más espacio y mandaba menos. La jerarquía del prototipo sale del PESO a un tamaño
+          menor; la nuestra la buscaba en el tamaño y después le quitaba el peso.
+
+          `pagetitle` (20px/600) no es un token nuevo: se creó en ese MISMO ticket con la nota
+          de que `h1` "sigue siendo el titular de las pantallas de VITRINA" y que "una pantalla
+          de producto — dashboard, analítica, reportes — ya no lo usa". El panel simplemente se
+          quedó sin migrar. Esto lo termina.
+
+          Se vuelve al peso 600 y por eso se contradice a medias el pedido del equipo. El
+          argumento de fondo se respeta igual: a 20px/600 el saludo pesa MENOS que a 27px/400
+          y compite mucho menos con los KPIs, que es lo que se quería evitar. Si se prefiere
+          calcar el prototipo al pixel son 24px/600 y hace falta un token; si se prefiere el
+          peso normal de vuelta, es agregar `font-normal` acá.
+        */}
+        <h1 className="mt-1 text-pagetitle">{saludo}</h1>
         <p className="mt-1 text-body text-muted-foreground">{subtitulo}</p>
       </div>
       <Button asChild variant="outline" size="sm">
