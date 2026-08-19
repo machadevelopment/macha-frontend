@@ -211,8 +211,32 @@ export function AppShell({
           —el chat, que ocupa el alto completo y scrollea adentro— sin depender de que
           `height: 100%` resuelva contra una celda de grid cuyo alto sale de un `min-height`.
           Con `flex-1` el alto lo reparte el contenedor y no hay porcentaje que resolver.
+
+          ═══ `[&>*]:w-full` — CU-868ktvjd0 ═══
+
+          El ancho de la pantalla se garantiza AQUÍ, una vez, y no en las once páginas.
+
+          En una columna flex el hijo se estira al ancho del contenedor por `align-items:
+          stretch`… salvo que tenga márgenes automáticos en el eje cruzado, que ganan sobre
+          stretch. Y TODAS las páginas abren con `mx-auto max-w-app` para centrarse. O sea
+          que ninguna estaba recibiendo el ancho del contenedor: se dimensionaban por
+          shrink-to-fit.
+
+          Mientras el contenido cabe no se nota. Cuando no cabe —una tabla con celdas
+          `whitespace-nowrap`— el `<main>` crece hasta el ancho mínimo del contenido y
+          arrastra a todos sus ancestros, así que NINGÚN `overflow-x-auto` intermedio llega
+          a ver un desbordamiento y el único que recorta es el `overflow-hidden` de acá, en
+          silencio. Fue exactamente el bug de Inventario (CU-868ktkk3g): medido, 1782px de
+          contenido dentro de un contenedor de 1246px, con el `overflow-x-auto` ya puesto y
+          sin efecto.
+
+          Va como selector al contenedor y no como clase en cada página por lo que ya
+          demostró este bug: su ausencia no falla de forma visible, así que once copias no
+          se mantienen solas — se olvida una y el defecto vuelve sin que nada lo señale.
+          Sobre un hijo de columna flex, `w-full` es exactamente lo que `stretch` habría
+          hecho, así que no cambia nada donde ya funcionaba.
         */}
-        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">{children}</div>
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden [&>*]:w-full">{children}</div>
       </div>
     </div>
   );
