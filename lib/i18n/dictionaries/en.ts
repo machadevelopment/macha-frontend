@@ -522,6 +522,10 @@ export const en: Dictionary = {
     noThreads: 'No conversations yet.',
     composerHint: 'Enter sends · Shift+Enter for a new line',
     thinking: 'Macha is thinking…',
+    stopWaiting: 'Stop waiting',
+    stoppedWaiting:
+      'You stopped waiting. The answer is still being written and will be saved in this chat.',
+    refreshThread: 'Check if it arrived',
     welcome: {
       title: 'What do you want to know about your business?',
       subtitle:
@@ -546,6 +550,10 @@ export const en: Dictionary = {
       readOnly: 'Only the owner and administrators can generate reports.',
       typeLabel: 'Report type',
       type: { executive_summary: 'Executive summary' },
+      typeDescription: {
+        executive_summary:
+          "The period's figures read the way a CFO would: what happened, why, and what to do about it.",
+      },
       sectionsLabel: 'What to include',
       sectionsRequired: 'Pick at least one section.',
       instructionsLabel: 'Anything else you want to ask for (optional)',
@@ -587,6 +595,7 @@ export const en: Dictionary = {
       empty: 'Generate a report below and you can download it from here.',
     },
     baseCurrencyLabel: 'Base currency',
+    historyTitle: 'Report history',
     table: {
       period: 'Period',
       frequency: 'Frequency',

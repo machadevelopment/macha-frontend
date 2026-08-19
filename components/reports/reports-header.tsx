@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download, FileSpreadsheet } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Download, FileSpreadsheet, FileText } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { request } from '@/lib/api/browser';
 import { descargarArchivo, nombreDeReporte } from '@/lib/download';
@@ -41,6 +41,26 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  * `ready` es el campo que agregó CU-868krw2wn: un reporte cuya generación falló existe en
  * la lista pero no tiene contenido, y ofrecer su descarga daría un error en vez de un
  * archivo.
+ *
+ * ═══ CU-868ktkn9w — ESTO **ES** LA CABECERA DE LA PANTALLA, NO UNA TARJETA MÁS ═══
+ *
+ * Hasta este ticket eran dos bloques apilados: el `PageHeader` de la página (solo el
+ * título) y, debajo, una tarjeta entera dedicada a "Descargar tu último reporte". El
+ * prototipo no tiene esa tarjeta: pone las descargas **en la misma fila del título**, al
+ * extremo derecho, que es exactamente el hueco para el que `PageHeader` declara su prop
+ * `actions` — y que hasta hoy ninguna pantalla usaba. Se recupera una tarjeta de alto en
+ * la parte más cara del dashboard sin perder una sola palabra del texto.
+ *
+ * El texto explicativo NO se pierde ni se vuelve estático: baja al subtítulo del
+ * `PageHeader` y sigue teniendo sus dos versiones, porque el matiz que defiende (lo que
+ * baja es el ÚLTIMO REPORTE GENERADO, no un export de datos en crudo) es justo lo que se
+ * perdería al reducirlo a dos botones sueltos. Por eso la cabecera se renderiza acá,
+ * dentro del árbol cliente, y no en `page.tsx`: la frase depende de si hay algo que bajar,
+ * y eso solo se sabe después del fetch.
+ *
+ * Mientras carga NO se muestra ninguna de las dos frases. Enseñar "genera un reporte
+ * abajo" a quien tiene doscientos —aunque sea por 200 ms— es decirle algo falso; el
+ * subtítulo aparece cuando hay una respuesta que dar.
  */
 
 interface ReportRow {
@@ -58,7 +78,11 @@ export function ReportsHeader({
   common: Dictionary['common'];
   nonce: number;
 }) {
-  const [ultimo, setUltimo] = useState<string | null>(null);
+  /**
+   * `undefined` = todavía no se sabe (no se afirma nada); `null` = no hay nada que bajar.
+   * La distinción es la que evita afirmar "no tienes reportes" durante el primer fetch.
+   */
+  const [ultimo, setUltimo] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -89,31 +113,52 @@ export function ReportsHeader({
   }
 
   return (
-    <Card className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <p className="text-cardh2">{labels.downloadHeader.title}</p>
-        <p className="text-body text-muted-foreground">
-          {ultimo ? labels.downloadHeader.subtitle : labels.downloadHeader.empty}
-        </p>
-        {error && (
-          <p role="alert" className="mt-1 text-body text-danger">
-            {error}
-          </p>
-        )}
-      </div>
+    <>
+      <PageHeader
+        icon={FileText}
+        title={labels.title}
+        subtitle={
+          ultimo === undefined
+            ? undefined
+            : ultimo
+              ? labels.downloadHeader.subtitle
+              : labels.downloadHeader.empty
+        }
+        actions={
+          ultimo ? (
+            /* El grupo lleva nombre accesible propio: dos botones que solo dicen
+               "Descargar PDF" y "Descargar Excel" no aclaran QUÉ se descarga, y en la fila
+               del título ya no queda un encabezado de tarjeta que lo diga. */
+            <div
+              role="group"
+              aria-label={labels.downloadHeader.title}
+              className="flex flex-wrap gap-2"
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => void bajar('xlsx')}
+              >
+                <FileSpreadsheet className="h-4 w-4" strokeWidth={1.7} aria-hidden />
+                {labels.downloadExcel}
+              </Button>
+              <Button size="sm" className="gap-1.5" onClick={() => void bajar('pdf')}>
+                <Download className="h-4 w-4" strokeWidth={1.7} aria-hidden />
+                {labels.downloadPdf}
+              </Button>
+            </div>
+          ) : undefined
+        }
+      />
 
-      {ultimo && (
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="gap-1.5" onClick={() => void bajar('xlsx')}>
-            <FileSpreadsheet className="h-4 w-4" strokeWidth={1.7} aria-hidden />
-            {labels.downloadExcel}
-          </Button>
-          <Button className="gap-1.5" onClick={() => void bajar('pdf')}>
-            <Download className="h-4 w-4" strokeWidth={1.7} aria-hidden />
-            {labels.downloadPdf}
-          </Button>
-        </div>
+      {/* Fuera del `PageHeader`: un fallo de descarga no es parte del título de la
+          pantalla, y meterlo en la fila la haría saltar de alto al aparecer. */}
+      {error && (
+        <p role="alert" className="mb-4 text-body text-danger">
+          {error}
+        </p>
       )}
-    </Card>
+    </>
   );
 }
