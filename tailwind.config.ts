@@ -35,7 +35,26 @@ export default {
       // Tailwind: 1080 es donde el sidebar de 212px + el contenido dejan de caber
       // cómodamente, y aproximarlo movería el punto exacto que el guide especifica.
       // `sm` (640px) sí es el del guide, así que se reutiliza tal cual.
-      screens: { app: '1080px' },
+      /*
+       * `app` (1080px) es donde el shell gana su rail derecho de 348px.
+       *
+       * `kpi4`/`kpi5` salen de MEDIR, no de la escala redonda de Tailwind (CU-868ku6r48). El
+       * dashboard descuenta sidebar (264px), paddings (48px) y rail (364px), así que el ancho de
+       * una tarjeta de KPI no tiene nada que ver con el del viewport:
+       *
+       *     viewport   5 col → útil    cabe a 24px
+       *     1080px          39px          3 chars   ← imposible
+       *     1280px          79px          6 chars   ← `GTQ 389.9K` son 10
+       *     1480px         119px          9 chars   ← cabe (a 20px, 10)
+       *
+       * Por eso 5 columnas arrancan en 1480 y 4 en 1300: son los anchos donde la cifra
+       * ENTRA. Un breakpoint más bajo no muestra más información, muestra la misma cortada.
+       *
+       * Y 1480 y no `2xl` (1536px) porque una MacBook de 14" da 1512px: con el corte en 1536
+       * caía a 3 columnas justo en la máquina donde se demuestra el producto, que es el
+       * reporte original de QA.
+       */
+      screens: { app: '1080px', kpi4: '1300px', kpi5: '1480px' },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
@@ -177,6 +196,24 @@ export default {
         // e Inter tienen las cifras más angostas que JetBrains Mono, y el tracking que
         // estaba calibrado para el ancho fijo del mono deja las cifras sueltas al soltarlo.
         kpi: ['24px', { lineHeight: '1.1', letterSpacing: '-0.035em', fontWeight: '600' }],
+        /*
+         * ═══ LA CIFRA DE KPI SE ENCOGE ANTES QUE CORTARSE (CU-868ku6r48) ═══
+         *
+         * Medido: con el grid de 5 columnas y el rail de 348px del dashboard, una tarjeta mide
+         * 71px de ancho útil a 1080px y 111px a 1280px. A 24px ahí caben 3 y 6 caracteres — y
+         * `GTQ 389.9K` son diez.
+         *
+         * Lo que hacía el código era `truncate`, o sea puntos suspensivos. En un dato financiero
+         * eso no es un recorte cosmético: si lo que se pierde es la `K`, `GTQ 389.9K` se lee como
+         * trescientos ochenta y nueve quetzales cuando son trescientos ochenta y nueve mil. Un
+         * factor de MIL, en la cifra principal del dashboard, sin que nada falle.
+         *
+         * Así que la cifra baja de tamaño según su largo y `truncate` queda como red que ya casi
+         * nunca se toca. Los dos pasos conservan el peso y el tracking de `kpi`: es la misma
+         * cifra más chica, no otra jerarquía.
+         */
+        'kpi-sm': ['20px', { lineHeight: '1.15', letterSpacing: '-0.03em', fontWeight: '600' }],
+        'kpi-xs': ['17px', { lineHeight: '1.2', letterSpacing: '-0.025em', fontWeight: '600' }],
         statbig: ['38px', { lineHeight: '1', letterSpacing: '-0.04em', fontWeight: '700' }],
         // Prototipo: 11px con tracking 0.08em (el nuestro era 10.5/0.13, más espaciado).
         eyebrow: ['11px', { lineHeight: '1.2', letterSpacing: '0.08em', fontWeight: '500' }],
