@@ -97,11 +97,23 @@ export function PeriodKpis({
    * caíamos a 3 columnas, los KPIs ocupaban dos filas y la gráfica de tendencia quedaba abajo
    * del pliegue. Es exactamente lo que se ve en las capturas que mandó QA.
    *
-   * Cinco tarjetas a 1024px son ~180px cada una, que es donde el prototipo las tiene: alcanza
-   * porque la cifra va abreviada (`formatMoneyCompact`) y el resto del contenido bajó a
-   * `micro` en este mismo ticket. `truncate` sigue siendo el tope duro si algún día no cabe.
+   * ═══ CORRECCIÓN DE ESE MISMO CAMBIO (CU-868ku6r48) ═══
+   *
+   * La primera versión de esto usó `lg:grid-cols-5` (1024px) copiando el breakpoint del
+   * prototipo, con la nota de que "cinco tarjetas a 1024px son ~180px cada una". Ese número
+   * estaba mal: el dashboard descuenta sidebar, paddings y el rail de 348px, así que a 1080px
+   * una tarjeta queda en 39px ÚTILES —tres caracteres— y `GTQ 389.9K` son diez.
+   *
+   * El prototipo puede permitírselo porque escribe `Q1.18M` (6 chars); nosotros escribimos
+   * `GTQ` completo, que es regla del producto (un PDF se imprime fuera de la app) y no se
+   * cambia por un píxel.
+   *
+   * Ahora los cortes salen de medir dónde la cifra ENTRA: 4 columnas desde 1300px y 5 desde
+   * 1480px (ver `screens` en tailwind.config.ts). Sigue resolviendo el reporte original —una
+   * MacBook de 1512px muestra las cinco en una fila— sin cortar ningún número en el camino.
    */
-  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5';
+  const GRID =
+    'grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 kpi4:grid-cols-4 kpi5:grid-cols-5';
 
   const filtro = (
     <PeriodFilter

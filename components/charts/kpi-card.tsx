@@ -51,6 +51,32 @@ export interface KpiCardProps {
   className?: string;
 }
 
+/**
+ * Qué tan grande se pinta la cifra, según cuánto mide.
+ *
+ * ═══ POR QUÉ NO SE MIDE EL DOM ═══
+ *
+ * Lo exacto sería medir el ancho real con `ResizeObserver` y ajustar. No se hace, y no por
+ * pereza: esta tarjeta se pinta en el servidor, así que la primera pintura saldría con el tamaño
+ * equivocado y se reacomodaría al hidratar — un salto visible en la cifra principal del
+ * dashboard, en cada carga. Un escalón por longitud de cadena es determinista, corre igual en
+ * servidor y cliente, y no salta.
+ *
+ * Los cortes salen de la medición documentada en `tailwind.config.ts`: con el grid de 5 y el
+ * rail del dashboard, la tarjeta más angosta da ~71px útiles. Se calibra contra lo que
+ * `formatMoneyCompact` produce de verdad (`GTQ 1.1K` = 8, `GTQ 389.9K` = 10, `GTQ 1000M` = 9),
+ * no contra longitudes hipotéticas.
+ *
+ * `truncate` sigue puesto en el elemento como última red — si algún día aparece una cadena más
+ * larga que todo lo previsto, se recorta dentro de su tarjeta en vez de pintarse encima de la
+ * vecina. Pero deja de ser el mecanismo normal, que era el problema.
+ */
+function escalaDeCifra(value: string): string {
+  if (value.length <= 8) return 'text-kpi';
+  if (value.length <= 11) return 'text-kpi-sm';
+  return 'text-kpi-xs';
+}
+
 export function KpiCard({
   label,
   value,
@@ -103,7 +129,7 @@ export function KpiCard({
         encima del de al lado y los dos queden ilegibles es peor, y la cifra completa está una
         línea más abajo en `exact`.
       */}
-      <p className="mt-1 min-w-0 truncate text-kpi tabular-nums">{value}</p>
+      <p className={cn('mt-1 min-w-0 truncate tabular-nums', escalaDeCifra(value))}>{value}</p>
       {/*
         ═══ CU-868ktknbq · EL DATO DE APOYO BAJA A `micro` ═══
 

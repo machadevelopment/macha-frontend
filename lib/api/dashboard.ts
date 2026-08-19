@@ -87,13 +87,34 @@ export interface CreditsBalanceResponse {
  */
 export type InsightCategory = 'collections' | 'sales' | 'financial';
 
+/**
+ * Qué tan urgente es un consejo — CU-868ku6r48.
+ *
+ * El Consejo Financiero Diario mostraba categoría y texto nada más, y Jose lo reportó como gap
+ * contra el prototipo: sin severidad, "tienes una cobranza vencida con 31 días de mora" y "tus
+ * ventas crecieron 30 %" se leen con el mismo peso, y quien abre el dashboard por la mañana no
+ * sabe cuál mirar primero.
+ *
+ * `info` cubre la ausencia: los consejos que ya están guardados en `insight_requests` (ledger
+ * append-only) no traen el campo, y tratarlos como el nivel más bajo es lo correcto — no se
+ * puede afirmar que algo urge cuando nadie lo evaluó.
+ */
+export type InsightSeverity = 'critical' | 'warning' | 'info';
+
 export interface InsightResponse {
   /**
    * Los consejos ya separados y clasificados por el modelo. Puede venir VACÍO si el modelo
    * respondió en prosa en vez de llamar a la herramienta; en ese caso `narrative` trae el
    * texto y la pantalla degrada a mostrarlo sin categorías.
    */
-  insights: Array<{ category: InsightCategory; text: string }>;
+  insights: Array<{
+    category: InsightCategory;
+    text: string;
+    /** Ausente en los consejos guardados antes de CU-868ku6r48: se trata como `info`. */
+    severity?: InsightSeverity;
+    /** La acción concreta a tomar, cuando hay una. Un consejo de contexto no la trae. */
+    action?: string;
+  }>;
   narrative: string;
   creditBalance: number;
 }

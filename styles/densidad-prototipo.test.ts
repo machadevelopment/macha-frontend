@@ -41,18 +41,42 @@ describe('el grid de KPIs llega a 5 columnas donde el prototipo (CU-868ktknbq)',
    * del corte— así que en la máquina donde se demuestra el producto caíamos a 3 columnas, los
    * KPIs ocupaban dos filas y la gráfica de tendencia quedaba abajo del pliegue.
    */
-  test('la fila única arranca en `lg`, no en `2xl`', () => {
-    expect(kpis).toContain('lg:grid-cols-5');
+  /**
+   * ═══ REVISADO EN CU-868ku6r48, Y ESTE TEST PASABA POR LA RAZÓN EQUIVOCADA ═══
+   *
+   * La versión anterior afirmaba `toContain('lg:grid-cols-5')` sobre el ARCHIVO COMPLETO. Al
+   * cambiar el grid a `kpi5:grid-cols-5` el test siguió pasando… porque el comentario que
+   * documenta el cambio menciona `lg:grid-cols-5` para explicar qué había antes. O sea que
+   * verificaba la documentación, no el código — es el segundo test de este archivo al que le
+   * pasa lo mismo, así que ahora TODOS leen la cadena del `GRID` y ninguno el archivo.
+   *
+   * Y el valor esperado cambió por una medición: `lg` (1024px) era incorrecto. Con el rail de
+   * 348px del dashboard, cinco tarjetas a 1080px dan 39px útiles —tres caracteres— y
+   * `GTQ 389.9K` son diez. Los cortes ahora salen de dónde la cifra ENTRA.
+   */
+  /*
+   * La `s` del flag no basta: `const GRID =` y su cadena pueden quedar en LÍNEAS DISTINTAS
+   * según cómo prettier decida partir la línea —pasó al formatear este mismo ticket— así que el
+   * patrón admite salto de línea entre el `=` y la comilla. Un test que se rompe al reformatear
+   * el código sin cambiarlo obliga a mantenerlo a cambio de nada.
+   */
+  const grid = () => kpis.match(/const GRID =\s*'([^']*)'/)?.[1] ?? '';
+
+  test('la fila de 5 arranca donde la cifra cabe (1480px), no en la escala redonda', () => {
+    expect(grid()).toContain('kpi5:grid-cols-5');
+    // Y hay un paso intermedio de 4: pasar de 3 a 5 de golpe salta el rango donde 4 sí caben.
+    expect(grid()).toContain('kpi4:grid-cols-4');
   });
 
-  test('y NO vuelve a colgarse de `2xl`', () => {
-    // Sobre la cadena del GRID, no sobre el archivo: los comentarios de al lado nombran los
-    // breakpoints viejos para explicar el cambio, y un `not.toContain` global fallaría contra
-    // la documentación en vez de contra el código.
-    const grid = kpis.match(/const GRID = '([^']*)'/)?.[1];
-    expect(grid).toBeDefined();
-    expect(grid).not.toContain('2xl:grid-cols-5');
-    expect(grid).not.toContain('xl:grid-cols-3');
+  test('NO vuelve a `2xl` (deja fuera la MacBook) ni a `lg` (corta las cifras)', () => {
+    /*
+     * Los dos extremos que ya se probaron y fallaron, cada uno por su lado:
+     *   · `2xl` (1536px) dejaba una MacBook de 1512px en 3 columnas — el reporte original.
+     *   · `lg` (1024px) metía cinco tarjetas donde caben tres caracteres.
+     */
+    expect(grid()).not.toContain('2xl:grid-cols-5');
+    expect(grid()).not.toContain('lg:grid-cols-5');
+    expect(grid()).not.toContain('xl:grid-cols-3');
   });
 });
 
@@ -124,6 +148,39 @@ describe('el delta de la tarjeta va sin caja pero con flecha (CU-868ktknbq)', ()
     // `key-alerts-card` rotula estados sin flecha: ahí el fondo y el borde son el único canal
     // redundante disponible y el chip es obligatorio.
     expect(badge).toMatch(/presentation\s*=\s*'chip'/);
+  });
+});
+
+describe('la cifra de KPI se encoge antes que cortarse (CU-868ku6r48)', () => {
+  const tarjeta = leer('components/charts/kpi-card.tsx');
+  const config = leer('tailwind.config.ts');
+
+  /**
+   * ═══ POR QUÉ ESTO NO ES COSMÉTICO ═══
+   *
+   * `truncate` sobre una cifra financiera no recorta: MIENTE. Si lo que se pierde es la `K`,
+   * `GTQ 389.9K` se lee como trescientos ochenta y nueve quetzales donde hay trescientos ochenta
+   * y nueve mil — un factor de mil, en la cifra principal del dashboard, sin que nada falle.
+   */
+  test('existen los dos pasos de reducción', () => {
+    expect(config).toMatch(/'kpi-sm': \['20px'/);
+    expect(config).toMatch(/'kpi-xs': \['17px'/);
+  });
+
+  test('el tamaño lo decide el largo de la cadena, no una medición del DOM', () => {
+    /*
+     * Medir el ancho real con `ResizeObserver` sería lo exacto, y está descartado a propósito:
+     * la tarjeta se pinta en el servidor, así que la primera pintura saldría con el tamaño
+     * equivocado y saltaría al hidratar — en la cifra principal, en cada carga.
+     */
+    expect(tarjeta).toContain('function escalaDeCifra(value: string)');
+    expect(tarjeta).toContain('escalaDeCifra(value)');
+  });
+
+  test('`truncate` se conserva como última red, no como mecanismo normal', () => {
+    // Si algún día aparece una cadena más larga que todo lo previsto, se recorta DENTRO de su
+    // tarjeta en vez de pintarse encima de la vecina. Pero deja de ser el camino habitual.
+    expect(tarjeta).toContain('truncate');
   });
 });
 

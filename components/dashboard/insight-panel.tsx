@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InsightPoint } from '@/components/ui/insight-point';
 import { requestJson } from '@/lib/api/browser';
@@ -12,6 +13,7 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
 import type {
   InsightCategory,
   InsightResponse,
+  InsightSeverity,
   InsufficientCreditsResponse,
 } from '@/lib/api/dashboard';
 
@@ -180,17 +182,59 @@ function InsightCards({
   if (insights.length > 0) {
     return (
       <ul className="mt-3 flex flex-col gap-2">
-        {insights.map((insight, i) => (
+        {ordenadosPorUrgencia(insights).map((insight, i) => (
           <li key={i} className="rounded-md border border-border bg-soft px-3 py-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              {/*
+                La categoría va en mono y en tenue: ordena y agrupa, pero el protagonista es
+                el consejo. Un chip de color acá competiría con los datos del dashboard — y
+                además el color en este producto significa estado financiero, no tema.
+              */}
+              <span className="font-mono text-eyebrow uppercase text-faint">
+                {categoria(insight.category, labels)}
+              </span>
+              {/*
+                ═══ LA SEVERIDAD SÍ VA EN CHIP DE COLOR (CU-868ku6r48) ═══
+
+                Y no contradice lo de arriba: eso dice que la CATEGORÍA no lleva color porque el
+                color en este producto significa estado, no tema. La severidad ES estado — "esto
+                urge" es exactamente la clase de cosa que el color existe para decir.
+
+                Chip y no texto de color: la regla de los dos verdes exige que el estado nunca
+                dependa solo del color, y acá no hay flecha que sirva de canal redundante (a
+                diferencia del delta de un KPI), así que el fondo y el borde son obligatorios.
+                Ver la nota de `DeltaBadge`.
+
+                `info` va en `neutral` a propósito: es contexto, no un estado que reclame nada, y
+                pintarlo de color gastaría la señal que `critical` necesita.
+              */}
+              <Badge
+                variant={
+                  insight.severity === 'critical'
+                    ? 'danger'
+                    : insight.severity === 'warning'
+                      ? 'warning'
+                      : 'neutral'
+                }
+              >
+                {labels.insightSeverity[insight.severity ?? 'info']}
+              </Badge>
+            </div>
+            <p className="mt-1 text-body">{insight.text}</p>
             {/*
-              La categoría va en mono y en tenue: ordena y agrupa, pero el protagonista es
-              el consejo. Un chip de color acá competiría con los datos del dashboard — y
-              además el color en este producto significa estado financiero, no tema.
+              La acción sugerida, como en el prototipo. Es TEXTO y no un enlace: el modelo la
+              escribe en prosa ("Enviar carta de cobro a Embajada") y no hay a dónde navegar —
+              fabricar un `href` obligaría a adivinar la pantalla, y un enlace que lleva al lugar
+              equivocado es peor que una instrucción clara sin enlace.
+
+              La flecha la marca como acción sin depender del color.
             */}
-            <span className="font-mono text-eyebrow uppercase text-faint">
-              {categoria(insight.category, labels)}
-            </span>
-            <p className="mt-0.5 text-body">{insight.text}</p>
+            {insight.action && (
+              <p className="mt-1.5 flex items-start gap-1.5 text-caption font-medium text-foreground">
+                <ArrowRight className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} aria-hidden />
+                {insight.action}
+              </p>
+            )}
           </li>
         ))}
       </ul>
@@ -225,6 +269,21 @@ function InsightCards({
  * conozca se muestra CRUDA en vez de romper la tarjeta: mismo criterio que `isKnownRule`
  * en las alertas.
  */
+/**
+ * Los consejos urgentes primero.
+ *
+ * El backend no garantiza orden —el modelo emite los insights en el orden que quiere— así que
+ * sin esto un `critical` puede quedar tercero, debajo de dos `info`. Y el panel completo entra en
+ * el rail derecho del dashboard: lo que queda abajo se lee tarde o no se lee.
+ *
+ * Orden ESTABLE dentro de cada nivel (`sort` de JS lo es desde ES2019), para no reordenar dos
+ * consejos igual de urgentes entre renders y hacerlos saltar en pantalla.
+ */
+function ordenadosPorUrgencia(insights: InsightResponse['insights']): InsightResponse['insights'] {
+  const rango: Record<InsightSeverity, number> = { critical: 0, warning: 1, info: 2 };
+  return [...insights].sort((a, b) => rango[a.severity ?? 'info'] - rango[b.severity ?? 'info']);
+}
+
 function categoria(code: InsightCategory, labels: Dictionary['dashboard']): string {
   return labels.insightCategory[code] ?? code;
 }

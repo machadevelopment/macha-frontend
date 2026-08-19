@@ -79,11 +79,21 @@ export function PlanPanel({
   async function cambiar(planCode: string) {
     setCambiando(planCode);
     setErrorCambio(null);
-    const result = await requestJson<{ planCode: string; changed: boolean }>(
-      '/api/plans/change',
-      'POST',
-      { planCode },
-    );
+    /*
+     * ═══ UN PLAN PAGADO DEVUELVE `checkoutUrl` (CU-868ku66du) ═══
+     *
+     * Antes esta respuesta siempre traía `{ planCode, changed }` porque el backend aplicaba el
+     * cambio directo, sin cobrar. Ahora un plan con precio > 0 abre checkout de Recurrente y
+     * responde con la URL; el gratuito y el mismo plan siguen respondiendo como antes.
+     *
+     * `checkoutUrl` es OPCIONAL en el tipo a propósito: las dos formas son válidas y cuál llega
+     * depende del precio del plan destino, que el frontend no debería tener que replicar.
+     */
+    const result = await requestJson<{
+      planCode: string;
+      changed: boolean;
+      checkoutUrl?: string;
+    }>('/api/plans/change', 'POST', { planCode });
     if (!result.ok) {
       // El backend responde 409 con motivos accionables ("el plan ya no está disponible").
       // `proxyMutation` los conserva; se muestran tal cual porque dicen qué hacer.
@@ -98,6 +108,21 @@ export function PlanPanel({
       setCambiando(null);
       return;
     }
+    /*
+     * Plan pagado: a pagar. Mismo patrón que la recarga de créditos
+     * (`credits-purchase-panel.tsx`), incluido dejar `cambiando` puesto — el navegador está a
+     * punto de irse de esta página y apagar el spinner antes solo alcanzaría a parpadear.
+     *
+     * No se recarga el estado: la suscripción todavía NO cambió, y refrescarla mostraría el plan
+     * viejo por un instante justo antes de la redirección. Al volver de Recurrente, el
+     * `successUrl` trae `?planChanged=1` y la página se monta de nuevo con el plan ya aplicado
+     * por el webhook.
+     */
+    if (result.data.checkoutUrl) {
+      window.location.href = result.data.checkoutUrl;
+      return;
+    }
+
     // Se recarga el estado desde el servidor en vez de parchear el local: el cambio de
     // plan también mueve `amountUsdCents` de la suscripción, y reconstruir eso acá sería
     // duplicar la regla que el backend ya aplicó.
