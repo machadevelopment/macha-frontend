@@ -16,6 +16,7 @@ import { request } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
 import { formatDate } from '@/lib/format';
 import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
+import { formatAlertValue } from '@/lib/alerts/format-alert-value';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -95,6 +96,15 @@ export function AlertList({
             const key = a.ruleKey;
             const label = isKnownRule(key) ? labels.rule[key] : key;
             const unit = isKnownRule(key) ? labels.unit[RULE_UNIT[key]] : '';
+            /*
+             * CU-868ktkjv4: los decimales salen de la UNIDAD, no del gusto. Antes se
+             * imprimía el `numeric(18,4)` tal como llega —"52.2850 %"— saltándose el
+             * sistema de formato entero, incluido el separador decimal del locale.
+             * Una regla desconocida no tiene unidad, y ahí un porcentaje es la
+             * suposición menos mala: todas las reglas del catálogo menos una lo son.
+             */
+            const fmt = (v: string) =>
+              formatAlertValue(v, isKnownRule(key) ? RULE_UNIT[key] : 'percent', locale);
             return (
               <TableRow key={a.id}>
                 <TableCell>
@@ -103,10 +113,10 @@ export function AlertList({
                   </Link>
                 </TableCell>
                 <TableCell className="tabular-nums">
-                  {a.triggeredValue} {unit}
+                  {fmt(a.triggeredValue)} {unit}
                 </TableCell>
                 <TableCell className="tabular-nums text-muted-foreground">
-                  {a.threshold} {unit}
+                  {fmt(a.threshold)} {unit}
                 </TableCell>
                 <TableCell className="tabular-nums text-muted-foreground">
                   {formatDate(a.createdAt, locale)}

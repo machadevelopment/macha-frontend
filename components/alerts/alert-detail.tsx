@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { request } from '@/lib/api/browser';
 import { formatDate } from '@/lib/format';
 import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
+import { formatAlertValue } from '@/lib/alerts/format-alert-value';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -68,6 +69,9 @@ export function AlertDetail({
 
   const ruleLabel = isKnownRule(alert.ruleKey) ? labels.rule[alert.ruleKey] : alert.ruleKey;
   const unit = isKnownRule(alert.ruleKey) ? labels.unit[RULE_UNIT[alert.ruleKey]] : '';
+  // CU-868ktkjv4 — ver la nota en `alert-list.tsx`: los decimales los decide la unidad.
+  const fmt = (v: string) =>
+    formatAlertValue(v, isKnownRule(alert.ruleKey) ? RULE_UNIT[alert.ruleKey] : 'percent', locale);
 
   return (
     <div className="flex flex-col gap-4">
@@ -83,14 +87,14 @@ export function AlertDetail({
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.triggeredValue}</p>
             <p className="mt-1 text-kpi tabular-nums">
-              {alert.triggeredValue}
+              {fmt(alert.triggeredValue)}
               <span className="ml-1 text-body text-muted-foreground">{unit}</span>
             </p>
           </div>
           <div>
             <p className="font-mono text-eyebrow uppercase text-faint">{labels.threshold}</p>
             <p className="mt-1 text-kpi tabular-nums text-muted-foreground">
-              {alert.threshold}
+              {fmt(alert.threshold)}
               <span className="ml-1 text-body">{unit}</span>
             </p>
           </div>
