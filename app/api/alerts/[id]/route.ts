@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { ApiError, apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 // CU-868kh8jxf. Proxy BFF con el mismo cableado que /api/reports/[id]: la UI nunca
 // sostiene el access token y `company_id` se resuelve server-side. El `X-Company-Id`
@@ -10,8 +9,8 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 // backend es lo que de verdad autoriza (y es lo que hace que el alert_event de otra
 // empresa devuelva 404, no datos).
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   try {
     const data = await apiFetch(`/alerts/${params.id}`, { accessToken, companyId });
     return NextResponse.json(data);

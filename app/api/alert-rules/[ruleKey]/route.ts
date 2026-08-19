@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { proxyMutation } from '@/lib/api/proxy';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * `PATCH /alert-rules/:ruleKey` — umbral y encendido de una regla.
@@ -15,8 +14,8 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * ticket es literalmente "mostrar el error del backend".
  */
 export async function PATCH(req: Request, { params }: { params: { ruleKey: string } }) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   return proxyMutation(`/alert-rules/${encodeURIComponent(params.ruleKey)}`, {
     accessToken,
     companyId,

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * Descarga de un reporte en PDF o Excel (ticket B2).
@@ -19,8 +18,8 @@ export async function GET(
   _request: Request,
   { params }: { params: { id: string; format: string } },
 ) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   const data = await apiFetch<{ url: string; format: string; expiresInSeconds: number }>(
     `/reports/${encodeURIComponent(params.id)}/export/${encodeURIComponent(params.format)}`,
     { accessToken, companyId },

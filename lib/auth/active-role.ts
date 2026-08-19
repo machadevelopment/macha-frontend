@@ -1,7 +1,7 @@
 import 'server-only';
-import { cookies } from 'next/headers';
+import { requireSession } from '@/lib/auth/session';
 import { getMemberships } from '@/lib/auth/memberships';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * CU-868kh8nhy: rol del usuario en la empresa activa, resuelto server-side.
@@ -16,11 +16,17 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * por request, para compartirla con el gate de `/admin` sin duplicar el round-trip.
  */
 export async function getActiveRole(): Promise<string | null> {
-  const data = await getMemberships();
+  const [{ user }, data] = await Promise.all([requireSession(), getMemberships()]);
 
-  const activeCompanyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
-  const membership = activeCompanyId
-    ? data.memberships.find((m) => m.companyId === activeCompanyId)
+  /*
+   * La cookie se lee ATADA AL USUARIO (2026-08-19). Antes se leía cruda, y como sobrevive al
+   * cambio de cuenta, un navegador con una sesión previa resolvía el rol contra la empresa de
+   * OTRA persona — que acá no encuentra membresía y cae al `?? null`, o sea que escondía
+   * acciones que el usuario sí tenía permitidas. Ver `lib/auth/active-company-server.ts`.
+   */
+  const activeCompany = activeCompanyId(user.id);
+  const membership = activeCompany
+    ? data.memberships.find((m) => m.companyId === activeCompany)
     : data.memberships[0];
 
   return membership?.role ?? null;

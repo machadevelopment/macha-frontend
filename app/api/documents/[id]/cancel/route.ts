@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch, ApiError } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * Proxy BFF de la CANCELACIÓN de una carga en curso. Mismo patrón que `revert/route.ts`: la
@@ -13,8 +12,8 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * "PROCESSING" sin poder hacer nada (reportado el 2026-08-14).
  */
 export async function POST(_request: Request, { params }: { params: { id: string } }) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   try {
     const data = await apiFetch(`/documents/${params.id}/cancel`, {
       method: 'POST',

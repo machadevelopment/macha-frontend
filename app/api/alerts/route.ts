@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
 import { paginationSuffix } from '@/lib/api/pagination';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * CU-868kj0tdq criterio 2: proxy BFF del histórico de alertas.
@@ -17,8 +16,8 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * contra las membresías reales en `tenant.derive.ts` en cada request.
  */
 export async function GET(request: NextRequest) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   const data = await apiFetch(`/alerts${paginationSuffix(request)}`, { accessToken, companyId });
   return NextResponse.json(data);
 }

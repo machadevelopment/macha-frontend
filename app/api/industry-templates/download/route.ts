@@ -1,13 +1,12 @@
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetchRaw } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 // Binary passthrough — apiFetchRaw (not apiFetch) so the .xlsx bytes and the
 // backend's Content-Disposition/Content-Type headers reach the browser untouched.
 export async function GET() {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   const res = await apiFetchRaw('/industry-templates/download', { accessToken, companyId });
   return new Response(res.body, {
     headers: {
