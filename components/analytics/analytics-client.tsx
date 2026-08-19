@@ -191,7 +191,8 @@ export function AnalyticsClient({
   }
 
   const moneda = (metricas.baseCurrency ?? 'GTQ') as 'GTQ' | 'USD';
-  const puntos = puntosDeSerie(metricas.series, locale, labels);
+  // CU-868ktvh75: el rango decide la granularidad. Sin él, "este año" pintaba 365 puntos.
+  const puntos = puntosDeSerie(metricas.series, locale, labels, rango);
   const itemsProducto = productos?.items ?? [];
   const deltaIngreso = delta(metricas.current.revenue, metricas.previous.revenue);
   /*
