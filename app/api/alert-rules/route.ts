@@ -1,8 +1,7 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * Proxy BFF de las reglas de alerta del CLIENTE (CU-868kh8pwv en el backend, la pantalla
@@ -21,8 +20,8 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * contra las membresías reales en cada request.
  */
 export async function GET() {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   const data = await apiFetch('/alert-rules', { accessToken, companyId });
   return NextResponse.json(data);
 }

@@ -43,6 +43,8 @@ process.env.NEXT_PUBLIC_API_URL = API_BASE;
 
 const TOKEN_DEL_SERVIDOR = 'token-de-la-sesion-verificada';
 const EMPRESA_DE_LA_COOKIE = 'empresa-resuelta-server-side';
+/** El mismo id que devuelve el `withAuth` falso: la cookie solo vale si coincide. */
+const USUARIO_DE_LA_SESION = 'user-1';
 
 /** Lo que mandaría un cliente hostil. Nada de esto debe llegar al backend. */
 const TOKEN_DEL_CLIENTE = 'token-inventado-por-el-navegador';
@@ -61,14 +63,31 @@ mock.module('@workos-inc/authkit-nextjs', () => ({
       if (opts?.ensureSignedIn) throw new RedireccionAlLogin('NEXT_REDIRECT;/login');
       return { user: null, accessToken: undefined };
     }
-    return { user: { id: 'user-1', email: 'quien@sea.gt' }, accessToken: TOKEN_DEL_SERVIDOR };
+    return {
+      user: { id: USUARIO_DE_LA_SESION, email: 'quien@sea.gt' },
+      accessToken: TOKEN_DEL_SERVIDOR,
+    };
   },
 }));
 
+/*
+ * ═══ LA COOKIE LLEVA EL USUARIO ADENTRO (2026-08-19) ═══
+ *
+ * El doble guardaba antes el `company_id` pelado, que es exactamente el formato que causó el
+ * fallo de producción: una preferencia que sobrevive al cambio de cuenta, así que el BFF
+ * terminaba pidiendo datos de la empresa de OTRA persona y el backend respondía 403.
+ *
+ * Ahora el valor es `${userId}:${companyId}` y `activeCompanyId()` solo lo devuelve si el
+ * usuario coincide con el de la sesión. El doble usa `user-1`, que es el que devuelve el
+ * `withAuth` falso de arriba — si alguien los desincroniza, estos tests dejan de ver el
+ * header y fallan, que es lo correcto.
+ */
 mock.module('next/headers', () => ({
   cookies: () => ({
     get: (nombre: string) =>
-      nombre === ACTIVE_COMPANY_COOKIE ? { value: EMPRESA_DE_LA_COOKIE } : undefined,
+      nombre === ACTIVE_COMPANY_COOKIE
+        ? { value: `${USUARIO_DE_LA_SESION}:${EMPRESA_DE_LA_COOKIE}` }
+        : undefined,
   }),
 }));
 

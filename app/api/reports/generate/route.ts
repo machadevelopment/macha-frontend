@@ -1,7 +1,6 @@
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { proxyMutation } from '@/lib/api/proxy';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * Generación de reporte a demanda (ticket B2). GASTA CRÉDITOS, así que el backend la gatea
@@ -17,8 +16,8 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * rato, y para el 400 del rango fuera de tope.
  */
 export async function POST(req: Request) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   return proxyMutation('/reports/generate', {
     accessToken,
     companyId,

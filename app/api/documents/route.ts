@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
 import { paginationSuffix } from '@/lib/api/pagination';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
+import { leerCuerpo } from '@/lib/api/json-o-texto';
 
 // BFF proxy (CU-868kfva7z) — same reasoning as /api/memberships: the upload UI
 // never holds an access token, and company_id resolution stays server-side
@@ -12,15 +12,15 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
 // CU-868kh913c: reenvía limit/offset. Antes el backend truncaba a 50 en silencio y
 // no había forma de pedir el resto.
 export async function GET(request: NextRequest) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   const data = await apiFetch(`/documents${paginationSuffix(request)}`, { accessToken, companyId });
   return NextResponse.json(data);
 }
 
 export async function POST(request: NextRequest) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   const formData = await request.formData();
 
   // Raw fetch, not apiFetch: caps rejections (413/402/429/415) carry a specific,
@@ -34,6 +34,6 @@ export async function POST(request: NextRequest) {
     },
     body: formData,
   });
-  const data = await res.json();
+  const data = await leerCuerpo(res);
   return NextResponse.json(data, { status: res.status });
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFetch } from '@/lib/api/admin';
 import { requireSession } from '@/lib/auth/session';
+import { leerCuerpo } from '@/lib/api/json-o-texto';
 
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   return NextResponse.json(await adminFetch(`/admin/companies/${params.id}/fx-rates`));
@@ -31,5 +32,5 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     },
   );
 
-  return NextResponse.json(await res.json(), { status: res.status });
+  return NextResponse.json(await leerCuerpo(res), { status: res.status });
 }
