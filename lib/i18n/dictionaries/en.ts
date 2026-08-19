@@ -522,10 +522,8 @@ export const en: Dictionary = {
     noThreads: 'No conversations yet.',
     composerHint: 'Enter sends · Shift+Enter for a new line',
     thinking: 'Macha is thinking…',
-    stopWaiting: 'Stop waiting',
-    stoppedWaiting:
-      'You stopped waiting. The answer is still being written and will be saved in this chat.',
-    refreshThread: 'Check if it arrived',
+    stopWaiting: 'Cancel',
+    stoppedWaiting: 'You cancelled the answer. Your question is saved in this chat.',
     welcome: {
       title: 'What do you want to know about your business?',
       subtitle:
