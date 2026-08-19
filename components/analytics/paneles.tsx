@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/table';
 import { chartColors } from '@/components/charts/chart-theme';
 import { TrendArea } from '@/components/charts/chart-primitives';
-import { formatMoney, formatNumber, formatPct } from '@/lib/format';
+import { formatDateAxis, formatMoney, formatNumber, formatPct } from '@/lib/format';
+import { agruparSerieDeTendencia } from '@/lib/metrics/series-grouping';
 import type {
   CategoryBreakdownResponse,
   PeriodMetricsResponse,
@@ -57,13 +58,37 @@ export function puntosDeSerie(
   serie: PeriodMetricsResponse['series'],
   locale: Locale,
   labels: Dictionary['analytics'],
+  /**
+   * El rango que se está mirando — CU-868ktvh75.
+   *
+   * Sin él no se puede decidir la granularidad, y sin granularidad esta función pintaba la
+   * serie DIARIA tal cual la manda el backend: con "este año", 365 puntos en un eje con
+   * espacio para una docena. Es el mismo defecto que CU-868ktm0re arregló en el dashboard;
+   * Analítica tiene su propio panel y se había quedado con la versión vieja.
+   *
+   * Opcional para no romper a ningún llamador que todavía no lo pase: sin rango se conserva
+   * el comportamiento anterior (día a día), que es correcto para períodos cortos.
+   */
+  rango?: { from: string; to: string },
 ): PuntoDeSerie[] {
-  const fmtDia = new Intl.DateTimeFormat(locale === 'es' ? 'es-GT' : 'en-US', {
-    day: '2-digit',
-    month: 'short',
-  });
-  return serie.map((p) => ({
-    fecha: fmtDia.format(new Date(`${p.date}T00:00:00`)),
+  /*
+   * Se agrupa ANTES de formatear. Al revés —formatear y luego agrupar— habría que volver a
+   * parsear la etiqueta ya localizada para saber a qué mes pertenece cada punto, que es
+   * exactamente el tipo de ida y vuelta que `lib/format` existe para evitar.
+   */
+  const { granularidad, puntos } = rango
+    ? agruparSerieDeTendencia(serie, rango.from, rango.to)
+    : { granularidad: 'day' as const, puntos: serie };
+
+  /*
+   * El año se muestra solo si el rango lo cruza. En una vista anual normal es ruido —los
+   * doce meses son del mismo año y el eje ya va apretado— pero en un rango personalizado
+   * que va de noviembre a febrero, sin él dos etiquetas distintas se leen igual.
+   */
+  const conAnio = rango ? rango.from.slice(0, 4) !== rango.to.slice(0, 4) : false;
+
+  return puntos.map((p) => ({
+    fecha: formatDateAxis(p.date, locale, granularidad, { conAnio }),
     [labels.revenueTrend]: p.revenue,
     // La salida agrupa costo directo + gasto operativo, que es como sale el dinero de la
     // cuenta. Separarlos acá contestaría otra pregunta — esa la contesta el desglose por

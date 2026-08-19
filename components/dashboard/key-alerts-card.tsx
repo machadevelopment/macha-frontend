@@ -8,6 +8,7 @@ import { request } from '@/lib/api/browser';
 import { useResource } from '@/lib/api/use-resource';
 import { formatDate, formatNumber } from '@/lib/format';
 import { RULE_UNIT, isKnownRule } from '@/lib/alerts/rule-units';
+import { formatAlertValue } from '@/lib/alerts/format-alert-value';
 import { unaPorRegla } from '@/components/dashboard/una-por-regla';
 import type { Locale } from '@/lib/i18n/config';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -100,45 +101,59 @@ export function KeyAlertsCard({
 
       {state.status === 'ready' && aMostrar.length > 0 && (
         <ul className="flex flex-col gap-2">
-          {aMostrar.map((a) => (
-            <li key={a.id} className="border-t border-border pt-2 first:border-t-0 first:pt-0">
-              <Link href={`/alerts/${a.id}`} className="group block">
-                <div className="flex items-center justify-between gap-2">
-                  {/* Una regla que exista en el backend pero todavía no en el diccionario se
+          {aMostrar.map((a) => {
+            const fmtAlerta = (v: string) =>
+              formatAlertValue(
+                v,
+                isKnownRule(a.ruleKey) ? RULE_UNIT[a.ruleKey] : 'percent',
+                locale,
+              );
+            return (
+              <li key={a.id} className="border-t border-border pt-2 first:border-t-0 first:pt-0">
+                <Link href={`/alerts/${a.id}`} className="group block">
+                  <div className="flex items-center justify-between gap-2">
+                    {/* Una regla que exista en el backend pero todavía no en el diccionario se
                       degrada a mostrar su clave cruda, nunca a romper la fila. */}
-                  {/*
-                   * `font-ui` junto a `normal-case` — CU-868ktkp9w.
-                   *
-                   * El chip trae `font-mono` de fábrica, y ahí está bien: la regla mono lo
-                   * reserva para etiquetas EN MAYÚSCULA CON TRACKING, que es lo que un chip
-                   * normalmente es. Pero acá se le pasaba `normal-case`, que cancela las
-                   * mayúsculas y deja la monoespaciada suelta: "Revenue drop" en caja normal
-                   * y en mono, que es un nombre en prosa vestido de dato. Eso es lo que QA
-                   * leyó como "muy grande" y "robótico" — no era el tamaño (14px), era la
-                   * familia.
-                   *
-                   * `DeltaBadge` sí conserva mono con `normal-case` y no es incoherente: lo
-                   * que lleva dentro es una CIFRA corta, no una frase.
-                   */}
-                  <Badge variant="danger" className="font-ui normal-case">
-                    {isKnownRule(a.ruleKey) ? alertLabels.rule[a.ruleKey] : a.ruleKey}
-                  </Badge>
-                  <span className="tabular-nums text-eyebrow text-faint">
-                    {formatDate(a.createdAt, locale)}
-                  </span>
-                </div>
-                <p className="mt-1 font-ui text-body text-muted-foreground group-hover:text-foreground">
-                  {labels.triggered
-                    .replace('{value}', formatNumber(a.triggeredValue, locale, 1))
-                    .replace('{threshold}', formatNumber(a.threshold, locale, 1))
-                    .replace(
-                      '{unit}',
-                      isKnownRule(a.ruleKey) ? alertLabels.unit[RULE_UNIT[a.ruleKey]] : '',
-                    )}
-                </p>
-              </Link>
-            </li>
-          ))}
+                    {/*
+                     * `font-ui` junto a `normal-case` — CU-868ktkp9w.
+                     *
+                     * El chip trae `font-mono` de fábrica, y ahí está bien: la regla mono lo
+                     * reserva para etiquetas EN MAYÚSCULA CON TRACKING, que es lo que un chip
+                     * normalmente es. Pero acá se le pasaba `normal-case`, que cancela las
+                     * mayúsculas y deja la monoespaciada suelta: "Revenue drop" en caja normal
+                     * y en mono, que es un nombre en prosa vestido de dato. Eso es lo que QA
+                     * leyó como "muy grande" y "robótico" — no era el tamaño (14px), era la
+                     * familia.
+                     *
+                     * `DeltaBadge` sí conserva mono con `normal-case` y no es incoherente: lo
+                     * que lleva dentro es una CIFRA corta, no una frase.
+                     */}
+                    <Badge variant="danger" className="font-ui normal-case">
+                      {isKnownRule(a.ruleKey) ? alertLabels.rule[a.ruleKey] : a.ruleKey}
+                    </Badge>
+                    <span className="tabular-nums text-eyebrow text-faint">
+                      {formatDate(a.createdAt, locale)}
+                    </span>
+                  </div>
+                  <p className="mt-1 font-ui text-body text-muted-foreground group-hover:text-foreground">
+                    {/*
+                    CU-868ktkjv4: los decimales los decide la UNIDAD. Acá se forzaba uno
+                    para todas las reglas, así que `ar_overdue` —que se mide en días de
+                    mora— salía como "74,0 días", sugiriendo una precisión que el ledger
+                    no tiene. Ahora es el mismo criterio que el histórico y el detalle.
+                  */}
+                    {labels.triggered
+                      .replace('{value}', fmtAlerta(a.triggeredValue))
+                      .replace('{threshold}', fmtAlerta(a.threshold))
+                      .replace(
+                        '{unit}',
+                        isKnownRule(a.ruleKey) ? alertLabels.unit[RULE_UNIT[a.ruleKey]] : '',
+                      )}
+                  </p>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
 
