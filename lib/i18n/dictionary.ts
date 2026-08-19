@@ -697,6 +697,15 @@ export interface Dictionary {
       typeLabel: string;
       /** Nombre por tipo de reporte; la clave es el `type` que manda el backend. */
       type: Record<string, string>;
+      /**
+       * CU-868ktkn9w — QUÉ PRODUCE CADA TIPO, en una línea.
+       *
+       * El nombre solo ("Resumen ejecutivo") no dice qué va a salir del otro lado, y la
+       * pantalla no lo explicaba en ningún otro lugar. Misma clave que `type`: el `type`
+       * del backend. Un tipo sin entrada acá se pinta solo con su nombre, así que agregar
+       * uno en el backend no rompe la pantalla — solo la deja menos explicada.
+       */
+      typeDescription: Record<string, string>;
       sectionsLabel: string;
       sectionsRequired: string;
       instructionsLabel: string;
@@ -751,6 +760,15 @@ export interface Dictionary {
       empty: string;
     };
     baseCurrencyLabel: string;
+    /**
+     * CU-868ktkn9w — el historial es una SECCIÓN, no la continuación de la pantalla.
+     *
+     * La tabla colgaba suelta debajo del generador, sin tarjeta ni encabezado: leído de
+     * arriba abajo, las filas parecían el resultado de lo que se acababa de configurar
+     * arriba y no el archivo de lo ya generado. El prototipo la titula ("Historial de
+     * reportes") dentro de su propia tarjeta.
+     */
+    historyTitle: string;
     table: {
       period: string;
       frequency: string;

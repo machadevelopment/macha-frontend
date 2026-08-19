@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
+import { ReportTypePicker } from '@/components/reports/report-type-picker';
 import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
 import { request, requestJson } from '@/lib/api/browser';
 import { formatNumber } from '@/lib/format';
@@ -160,26 +161,24 @@ export function ReportBuilder({
 
       {canGenerate && (
         <>
-          {/* Un solo tipo hoy ("Executive summary"): el selector se esconde en vez de
-              mostrar un desplegable con una sola opción, que solo ocupa espacio y
-              sugiere una elección que no existe. Aparece solo si el catálogo crece. */}
-          {catalogo.types.length > 1 && (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="report-type">{labels.typeLabel}</Label>
-              <select
-                id="report-type"
-                value={tipo}
-                onChange={(e) => cambiarTipo(e.target.value)}
-                className="h-9 max-w-xs rounded-md border border-border bg-background px-3 text-body"
-              >
-                {catalogo.types.map((t) => (
-                  <option key={t.type} value={t.type}>
-                    {labels.type[t.type] ?? t.type}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {/*
+            CU-868ktkn9w — EL TIPO DE REPORTE SE VE SIEMPRE.
+
+            Acá vivía un `<select>` que solo se pintaba si el catálogo traía más de un
+            tipo, para no mostrar un desplegable de una sola opción. El backend tiene
+            exactamente uno (`REPORT_TYPES = ['executive_summary']`), así que la condición
+            era falsa siempre y la pantalla nunca decía qué clase de documento se estaba
+            generando — que es literalmente lo que QA reportó. Ver la nota de cabecera de
+            `ReportTypePicker`: la tarjeta muestra nombre y descripción sin abrir nada, así
+            que con un tipo informa en vez de simular una elección, y con varios ya es la
+            elección.
+          */}
+          <ReportTypePicker
+            types={catalogo.types.map((t) => t.type)}
+            value={tipo}
+            onChange={cambiarTipo}
+            labels={labels}
+          />
 
           <PeriodFilter
             value={periodo}

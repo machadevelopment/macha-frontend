@@ -550,6 +550,10 @@ export const en: Dictionary = {
       readOnly: 'Only the owner and administrators can generate reports.',
       typeLabel: 'Report type',
       type: { executive_summary: 'Executive summary' },
+      typeDescription: {
+        executive_summary:
+          "The period's figures read the way a CFO would: what happened, why, and what to do about it.",
+      },
       sectionsLabel: 'What to include',
       sectionsRequired: 'Pick at least one section.',
       instructionsLabel: 'Anything else you want to ask for (optional)',
@@ -591,6 +595,7 @@ export const en: Dictionary = {
       empty: 'Generate a report below and you can download it from here.',
     },
     baseCurrencyLabel: 'Base currency',
+    historyTitle: 'Report history',
     table: {
       period: 'Period',
       frequency: 'Frequency',

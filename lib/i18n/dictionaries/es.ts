@@ -569,6 +569,13 @@ export const es: Dictionary = {
       readOnly: 'Solo el propietario y los administradores pueden generar reportes.',
       typeLabel: 'Tipo de reporte',
       type: { executive_summary: 'Resumen ejecutivo' },
+      // CU-868ktkn9w: qué sale del otro lado, no cómo se llama. Nombra las tres cosas que
+      // el tipo produce de verdad —cifras del período, lectura y recomendaciones— para que
+      // la decisión de gastar créditos se tome sabiendo qué se recibe.
+      typeDescription: {
+        executive_summary:
+          'Las cifras del período con la lectura de un CFO: qué pasó, por qué, y qué conviene hacer.',
+      },
       sectionsLabel: 'Qué incluir',
       sectionsRequired: 'Elige al menos una sección.',
       instructionsLabel: 'Algo más que quieras pedirle (opcional)',
@@ -612,6 +619,7 @@ export const es: Dictionary = {
       empty: 'Genera un reporte abajo y podrás descargarlo desde aquí.',
     },
     baseCurrencyLabel: 'Moneda base',
+    historyTitle: 'Historial de reportes',
     table: {
       period: 'Periodo',
       frequency: 'Frecuencia',
