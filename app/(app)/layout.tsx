@@ -1,8 +1,7 @@
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 import { AppShell } from '@/components/shell/app-shell';
 
 /**
@@ -25,7 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { user } = await requireSession();
   const locale = getLocale();
   const t = getDictionary(locale);
-  const activeCompanyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const activeCompany = activeCompanyId(user.id);
 
   return (
     <AppShell
@@ -33,7 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       common={t.common}
       locale={locale}
       userEmail={user.email}
-      activeCompanyId={activeCompanyId}
+      activeCompanyId={activeCompany}
     >
       {children}
     </AppShell>

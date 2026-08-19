@@ -1,8 +1,7 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth/session';
 import { apiFetch } from '@/lib/api/client';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 /**
  * Proxy BFF del catálogo de planes del CLIENTE (ticket B3, ronda de QA 2026-08-11).
@@ -18,7 +17,7 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * las membresías reales en cada request.
  */
 export async function GET() {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   return NextResponse.json(await apiFetch('/plans', { accessToken, companyId }));
 }

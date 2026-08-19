@@ -1,11 +1,10 @@
-import { cookies } from 'next/headers';
 import { requireSession } from '@/lib/auth/session';
 import { proxyMutation } from '@/lib/api/proxy';
-import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { activeCompanyId } from '@/lib/auth/active-company-server';
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   return proxyMutation(`/inventory/${params.id}`, {
     accessToken,
     companyId,
@@ -15,8 +14,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 }
 
 export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
-  const { accessToken } = await requireSession();
-  const companyId = cookies().get(ACTIVE_COMPANY_COOKIE)?.value;
+  const { accessToken, user } = await requireSession();
+  const companyId = activeCompanyId(user.id);
   return proxyMutation(`/inventory/${params.id}`, {
     accessToken,
     companyId,
