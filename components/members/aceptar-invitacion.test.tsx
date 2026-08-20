@@ -25,25 +25,22 @@ let respuesta: { ok: boolean; error?: { kind: 'http'; status: number; body?: unk
 };
 
 /*
- * ═══ EL DOBLE REEXPORTA EL MÓDULO REAL, Y NO ES OPCIONAL ═══
+ * ═══ EL DOBLE EXPONE TODO EL MÓDULO, PERO SIN IMPORTARLO ═══
  *
- * `mock.module` de Bun es GLOBAL AL PROCESO, no al archivo: una vez que este test corre,
- * TODOS los demás ven este doble. Sin `...real`, el módulo pasa a exponer únicamente
- * `requestJson` y `errorMessage` — y cualquier test posterior que importe `request` o
- * `RequestError` de ahí muere con "Export named 'request' not found".
+ * `mock.module` de Bun es GLOBAL AL PROCESO, no al archivo. Un doble parcial deja al módulo
+ * con solo lo que declara, y el test que corra después importando otro export muere con
+ * "Export named ... not found" — pasó en CI, en los dos sentidos, entre este archivo y
+ * `app-shell.test.tsx`.
  *
- * Localmente no se veía porque el orden de archivos de `bun test` dejaba a los afectados
- * ANTES que a este; en CI el orden cambió y tumbó dos archivos. Es el mismo modo de fallo
- * que `ia-respuesta-inservible.test.ts` documenta en el backend, por el que allá los dos
- * casos viven en un solo archivo.
+ * La salida obvia —`...(await import('@/lib/api/browser'))`— es PEOR y también se probó:
+ * captura el módulo ya evaluado y su `request` queda ligada al `fetch` de ese instante,
+ * rompiendo `lib/api/browser.test.ts`, que sustituye `globalThis.fetch` para probar el
+ * módulo real.
  *
- * Reexportar lo real y sobreescribir solo lo que hace falta mantiene el aislamiento sin
- * mutilar el módulo para el resto de la suite.
+ * Por eso se declaran a mano los tres exports.
  */
-const real = await import('@/lib/api/browser');
-
 mock.module('@/lib/api/browser', () => ({
-  ...real,
+  request: async () => ({ ok: true, data: {} }),
   requestJson: async (url: string, _metodo: string, body: unknown) => {
     ultimaPeticion = { url, body };
     return respuesta.ok

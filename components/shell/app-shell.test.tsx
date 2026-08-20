@@ -37,18 +37,26 @@ mock.module('@/app/actions/set-active-company', () => ({
 // El org-switcher vive dentro del orgbar del shell y pide sus membresías al montarse.
 // Acá solo interesa que no reviente el render; su lógica tiene su propio archivo.
 /*
- * El doble REEXPORTA el módulo real y solo sobreescribe `request`.
+ * ═══ EL DOBLE EXPONE TODO EL MÓDULO, PERO SIN IMPORTARLO ═══
  *
- * `mock.module` de Bun es global al proceso: sin `...real`, este doble deja al módulo con
- * `request` y nada más, y cualquier test que corra después e importe `requestJson` o
- * `errorMessage` muere con "Export named ... not found". Pasó de verdad — tumbó
- * `aceptar-invitacion.test.tsx` en CI, donde el orden de archivos difiere del local.
+ * `mock.module` de Bun es GLOBAL AL PROCESO, no al archivo. Un doble parcial deja al módulo
+ * con solo lo que declara, y cualquier test posterior que importe otro export muere con
+ * "Export named ... not found". Pasó de verdad: tumbó `aceptar-invitacion.test.tsx` en CI,
+ * donde el orden de archivos difiere del local.
+ *
+ * La salida obvia —`...(await import('@/lib/api/browser'))`— es PEOR, y también se probó:
+ * captura el módulo YA EVALUADO, y su `request` queda ligada al `globalThis.fetch` de ese
+ * instante. Eso rompe `lib/api/browser.test.ts`, que sustituye `fetch` para probar el módulo
+ * de verdad — sus tests de `request` fallaron en CI exactamente por eso.
+ *
+ * Por eso los exports se declaran a mano: los que este archivo no necesita fingir se dejan
+ * como funciones inertes, y ningún otro test depende de que hagan algo (los que sí usan
+ * `requestJson` de verdad traen su propio doble).
  */
-const apiReal = await import('@/lib/api/browser');
-
 mock.module('@/lib/api/browser', () => ({
-  ...apiReal,
   request: async () => ({ ok: true, data: { memberships: [], staffTier: null } }),
+  requestJson: async () => ({ ok: true, data: {} }),
+  errorMessage: () => undefined,
 }));
 
 let rutaActual = '/dashboard';
