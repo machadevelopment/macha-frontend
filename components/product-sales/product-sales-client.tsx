@@ -186,6 +186,9 @@ export function ProductSalesClient({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 app:grid-cols-3 xl:grid-cols-5">
         {tarjetas.map((c) => (
+          // CU-868ku9u0j: misma causa que la fila de abajo. Estas ya truncan su valor, pero
+          // sin `min-w-0` la tarjeta igual reclama el min-content de un nombre de producto
+          // largo y desequilibra las cinco columnas.
           <Card key={c.label}>
             <p className="flex items-center justify-between gap-2 font-mono text-eyebrow uppercase text-faint">
               {c.label}
@@ -200,6 +203,25 @@ export function ProductSalesClient({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 app:grid-cols-[2fr_1fr]">
+        {/*
+          ═══ CU-868ku9u0j · `min-w-0` EN LAS DOS TARJETAS DE LA FILA ═══
+
+          Jose reportó que la tarjeta del donut "se desplaza a la derecha y no se logra ver".
+
+          Es el MISMO mecanismo que el bug de Inventario (CU-868ktkk3g) y el de los KPIs
+          (CU-868ku9q7c): un hijo de grid tiene `min-width: auto`, o sea su ancho de
+          min-content. Las celdas de esta tabla llevan `whitespace-nowrap` a propósito —para
+          que la tabla desborde con scroll en vez de apilar el texto— así que un nombre de
+          producto largo empuja el min-content de la tarjeta izquierda por encima de su `2fr`,
+          y la de la derecha se sale de la vista.
+
+          Y explica por qué el `overflow-x-auto` que la tabla YA tiene no servía de nada: si
+          la tarjeta crece con el contenido, ese contenedor nunca llega a ver un
+          desbordamiento que recortar.
+
+          Con `min-w-0` la tarjeta se achica a su fracción, el `overflow-x-auto` por fin
+          muerde, y la tabla scrollea DENTRO de su tarjeta sin empujar a la vecina.
+        */}
         <Card>
           <CardHeader>
             <CardTitle>{labels.performance}</CardTitle>
@@ -240,6 +262,15 @@ export function ProductSalesClient({
                 <TableBody>
                   {items.map((p) => (
                     <TableRow key={p.productId}>
+                      {/*
+                        CU-868ku9u0j: el ticket proponía además `truncate` acá. NO se pone,
+                        y el motivo está en `table.tsx`: el `whitespace-nowrap` de las celdas
+                        es deliberado (CU-868khvzbd) para que la tabla DESBORDE y scrollee en
+                        vez de comprimirse hasta una palabra por línea en 390px. Truncar
+                        volvería a esconder el nombre del producto, que es la columna que
+                        identifica la fila — y con `min-w-0` en la tarjeta ese scroll ya
+                        funciona, que era lo que faltaba.
+                      */}
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {p.category ?? labels.uncategorized}

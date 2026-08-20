@@ -11,7 +11,7 @@
  * endpoints RPC que aquí no hay dónde ejecutar. Todo lo demás —el shell, la nav, Radix—
  * es el código de producción.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
@@ -36,9 +36,25 @@ mock.module('@/app/actions/set-active-company', () => ({
 
 // El org-switcher vive dentro del orgbar del shell y pide sus membresías al montarse.
 // Acá solo interesa que no reviente el render; su lógica tiene su propio archivo.
-mock.module('@/lib/api/browser', () => ({
-  request: async () => ({ ok: true, data: { memberships: [], staffTier: null } }),
-}));
+/*
+ * ═══ SE SUSTITUYE `fetch`, NO EL MÓDULO ═══
+ *
+ * Antes esto hacía `mock.module('@/lib/api/browser', …)`. Los mocks de módulo de Bun son
+ * GLOBALES AL PROCESO, así que ese doble reemplazaba el módulo para TODA la suite — y
+ * `lib/api/browser.test.ts`, que lo prueba de verdad, recibía el doble y fallaba. Ver la
+ * nota larga en `components/members/aceptar-invitacion.test.tsx`.
+ *
+ * Con `fetch` sustituido, el shell ejecuta su `request` real contra una respuesta fija: la
+ * misma cobertura, sin tocar el registro de módulos.
+ */
+const realFetch = globalThis.fetch;
+
+globalThis.fetch = (async () =>
+  Response.json({ memberships: [], staffTier: null })) as unknown as typeof fetch;
+
+afterAll(() => {
+  globalThis.fetch = realFetch;
+});
 
 let rutaActual = '/dashboard';
 

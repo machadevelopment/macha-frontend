@@ -153,6 +153,17 @@ export function PeriodKpis({
   // propia fila de KPIs sobre los mismos totales, y dos copias de "gastos = cogs + opex" son
   // dos números distintos esperando a que alguien toque una sola.
   const margen = margenBruto(data.current);
+  const margenPrevio = margenBruto(data.previous);
+
+  /*
+   * CU-868ku9q7c: la serie del margen, para que Margen tenga su sparkline como las otras.
+   *
+   * Un mes sin ventas no tiene margen —`margenBruto` devuelve `null` a propósito, porque
+   * dividir entre cero no es 0 %— y el sparkline necesita números. Se dibuja 0 SOLO en esos
+   * meses: la alternativa era omitirlos, y eso comprime el eje horizontal y hace que la
+   * curva mienta sobre CUÁNDO pasó cada cosa.
+   */
+  const serieDeMargen = data.series.map((t) => margenBruto(t) ?? 0);
 
   const serie = (f: (t: PeriodTotals) => number) => data.series.map(f);
 
@@ -206,11 +217,32 @@ export function PeriodKpis({
           spark={serie(utilidadBruta)}
           locale={locale}
         />
+        {/*
+          ═══ CU-868ku9q7c · MARGEN DEJA DE SER LA TARJETA HUECA ═══
+
+          Era la única de las cinco sin `delta`, `deltaCaption` ni `spark`: solo etiqueta,
+          valor y frase. El grid estira las cinco a la misma altura, así que la suya quedaba
+          con un blanco del tamaño de una gráfica y un delta. Eso es lo que Jose leyó como
+          "diferente tamaño" — no era el tamaño de la tarjeta, era el hueco adentro.
+
+          EL DELTA VA EN PUNTOS PORCENTUALES, y por eso NO usa `delta()`. Esa función divide
+          entre el valor previo, que para un margen da la variación RELATIVA: de 50 % a 52 %
+          devolvería +4 %. El dueño que ve 50 y 52 al lado espera +2. Se resta directo, y la
+          leyenda dice "puntos" para que el número no se confunda con el otro — que también
+          es correcto, solo que responde otra pregunta.
+
+          `margenPrevio === null` (período anterior sin ventas) deja el delta en `undefined`:
+          la tarjeta vuelve a quedarse sin esa línea, que es lo honesto cuando no hay base
+          contra qué comparar. Es el mismo criterio que ya usa `delta()` con el previo en cero.
+        */}
         <KpiCard
           label={labels.kpi.margin}
           icon={<Percent className="h-4 w-4" strokeWidth={1.7} />}
           value={margen === null ? '—' : formatPct(margen, locale)}
           hint={labels.kpi.marginHint}
+          delta={margen === null || margenPrevio === null ? undefined : margen - margenPrevio}
+          deltaCaption={labels.kpi.vsPreviousPp}
+          spark={serieDeMargen}
           locale={locale}
         />
         <KpiCard
