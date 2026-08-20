@@ -50,6 +50,14 @@ function stubFetch(impl: (input: string, init?: RequestInit) => Promise<Response
 }
 
 describe('request', () => {
+  test('DIAGNOSTICO CI: qué módulo llegó', async () => {
+    stubFetch(async () => Response.json({ items: [1, 2] }));
+    const r = await request<{ items: number[] }>('/api/reports');
+    console.log('[DIAG] resultado =', JSON.stringify(r));
+    console.log('[DIAG] request.toString() =', String(request).slice(0, 160));
+    expect(true).toBe(true);
+  });
+
   test('2xx con JSON válido devuelve los datos', async () => {
     stubFetch(async () => Response.json({ items: [1, 2] }));
 
