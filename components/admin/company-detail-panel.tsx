@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -181,16 +182,15 @@ export function CompanyDetailPanel({
               <TableRow key={u.userId}>
                 <TableCell>{u.email}</TableCell>
                 <TableCell>
-                  <select
+                  <Select
                     aria-label={`Rol de ${u.email}`}
                     value={u.role}
                     onChange={(e) => updateRole(u.userId, e.target.value)}
-                    className="rounded-md border border-border bg-card px-2 py-1 text-body"
                   >
                     <option value="owner">owner</option>
                     <option value="admin">admin</option>
                     <option value="member">member</option>
-                  </select>
+                  </Select>
                 </TableCell>
                 <TableCell className="font-mono text-eyebrow uppercase text-faint">
                   {u.status}
