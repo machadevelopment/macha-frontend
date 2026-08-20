@@ -352,6 +352,35 @@ export const es: Dictionary = {
     authError: 'No se pudo completar el inicio de sesión. Vuelve a intentarlo.',
   },
   upload: {
+    conceptos: {
+      cta: 'Ayúdanos a clasificar {n} concepto(s)',
+      /*
+       * El encabezado dice POR QUÉ se pregunta, no solo qué. "No pudimos clasificar" suena a
+       * fallo nuestro y pone al cliente a la defensiva; "solo tú sabes qué es" es literalmente
+       * cierto —es su libro, sus proveedores— y convierte la pregunta en algo que vale
+       * contestar.
+       */
+      title: 'Solo tú sabes qué son estos',
+      subtitle:
+        'Cada respuesta ordena todas las filas con ese concepto, y no te lo volvemos a preguntar en las próximas cargas.',
+      rows: '{n} filas · {monto}',
+      typeLabel: 'Qué es',
+      categoryLabel: 'Rubro',
+      categoryPlaceholder: 'Ej. servicios, transporte, nómina',
+      type: {
+        revenue: 'Un ingreso',
+        cogs: 'Un costo de lo que vendo',
+        opex: 'Un gasto de operación',
+        other: 'Otro movimiento',
+      },
+      submit: 'Guardar y aplicar',
+      submitting: 'Guardando…',
+      // Se dice cuántas filas se acomodaron, no un "listo" a secas: es la prueba de que
+      // contestar cambió algo, que es justamente lo que la pantalla tiene que demostrar.
+      done: 'Listo. Acomodamos {n} filas de esta carga.',
+      error: 'No se pudo guardar. Vuelve a intentarlo.',
+      empty: 'No quedó nada por clasificar en esta carga.',
+    },
     readSummary: {
       cta: 'Ver qué entendimos de tu archivo',
       empty: 'Esta carga es anterior a esta función, así que no guardamos el detalle.',

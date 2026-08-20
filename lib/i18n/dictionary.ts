@@ -417,6 +417,30 @@ export interface Dictionary {
   };
   upload: {
     /**
+     * Los conceptos que la ingesta no logró clasificar y que contesta el CLIENTE durante la
+     * subida — decisión de Semi, 2026-08-20. No va a revisión interna a propósito: es la
+     * persona que sabe qué es "Cropa" en su propio libro.
+     *
+     * Se pregunta por CONCEPTO y no por fila: un archivo con 400 filas marcadas puede tener
+     * seis conceptos, y 400 preguntas no las contesta nadie.
+     * Ver `components/upload/conceptos-pendientes.tsx`.
+     */
+    conceptos: {
+      cta: string;
+      title: string;
+      subtitle: string;
+      rows: string;
+      typeLabel: string;
+      categoryLabel: string;
+      categoryPlaceholder: string;
+      type: Record<'revenue' | 'cogs' | 'opex' | 'other', string>;
+      submit: string;
+      submitting: string;
+      done: string;
+      error: string;
+      empty: string;
+    };
+    /**
      * CU-868krmrcj — "qué entendimos de tu archivo". Es lo que vuelve visibles los dos fallos
      * silenciosos de la ingesta: leer la columna equivocada y descartar hojas sin decirlo.
      * Ver `components/upload/read-summary.tsx`.
