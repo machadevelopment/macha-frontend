@@ -189,7 +189,7 @@ export function ProductSalesClient({
           // CU-868ku9u0j: misma causa que la fila de abajo. Estas ya truncan su valor, pero
           // sin `min-w-0` la tarjeta igual reclama el min-content de un nombre de producto
           // largo y desequilibra las cinco columnas.
-          <Card key={c.label} className="min-w-0">
+          <Card key={c.label}>
             <p className="flex items-center justify-between gap-2 font-mono text-eyebrow uppercase text-faint">
               {c.label}
               {c.icon}
@@ -222,7 +222,7 @@ export function ProductSalesClient({
           Con `min-w-0` la tarjeta se achica a su fracción, el `overflow-x-auto` por fin
           muerde, y la tabla scrollea DENTRO de su tarjeta sin empujar a la vecina.
         */}
-        <Card className="min-w-0">
+        <Card>
           <CardHeader>
             <CardTitle>{labels.performance}</CardTitle>
           </CardHeader>
@@ -313,7 +313,7 @@ export function ProductSalesClient({
           )}
         </Card>
 
-        <Card className="min-w-0">
+        <Card>
           <CardHeader>
             <CardTitle>{labels.salesByCategory}</CardTitle>
           </CardHeader>

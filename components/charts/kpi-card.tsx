@@ -138,21 +138,16 @@ export function KpiCard({
     // así que `transition-transform` a secas ya la trae — y la comparte con las otras
     // veinte transiciones del producto en vez de ser un ajuste suelto de esta tarjeta.
     /*
-      ═══ CU-868ku9q7c · `min-w-0` EN LA TARJETA, QUE ES EL GRID ITEM ═══
-
-      Jose reportó que los números "se corren y tienen diferente tamaño". La causa no está en
-      los párrafos: está acá. `grid-cols-5` de Tailwind ya usa `minmax(0, 1fr)`, así que la
-      PISTA puede encogerse — pero la tarjeta, como hijo de grid, tiene `min-width: auto`, o
-      sea su ancho de min-content. Una cifra exacta larga en mono lo empuja, esa columna se
-      ensancha y las otras cuatro se aprietan para compensar. De ahí que las tarjetas de una
-      misma fila terminen midiendo distinto.
-
-      `truncate` en el valor grande tapaba el síntoma solo para esa línea; `exact` y
-      `secondary` no lo llevan y son las que más miden, porque van en mono.
+      CU-868ku9q7c: el `min-w-0` que hacía falta acá vive ahora en la primitiva `Card`
+      (CU-868ku9rpy), porque el mismo defecto apareció en otras cuatro pantallas. La causa,
+      para quien llegue a este archivo buscándola: la tarjeta es el hijo de grid y tiene
+      `min-width: auto`, así que una cifra exacta larga en mono empujaba su min-content, esa
+      columna se ensanchaba y las otras cuatro se apretaban — de ahí que las tarjetas de una
+      misma fila midieran distinto.
     */
     <Card
       className={cn(
-        'min-w-0 transition-transform hover:-translate-y-0.5',
+        'transition-transform hover:-translate-y-0.5',
         // `p-4` como el `card-surface p-4` del prototipo para esta fila.
         compacta && 'p-4',
         className,
