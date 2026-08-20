@@ -579,13 +579,24 @@ export const es: Dictionary = {
       subtitle: 'Elige el período y qué quieres que incluya. Se genera y aparece abajo.',
       readOnly: 'Solo el propietario y los administradores pueden generar reportes.',
       typeLabel: 'Tipo de reporte',
-      type: { executive_summary: 'Resumen ejecutivo' },
+      type: {
+        executive_summary: 'Resumen ejecutivo',
+        financial_performance: 'Desempeño financiero',
+        cost_analysis: 'Análisis de costos',
+        sales_performance: 'Ventas y productos',
+      },
       // CU-868ktkn9w: qué sale del otro lado, no cómo se llama. Nombra las tres cosas que
       // el tipo produce de verdad —cifras del período, lectura y recomendaciones— para que
       // la decisión de gastar créditos se tome sabiendo qué se recibe.
       typeDescription: {
         executive_summary:
           'Las cifras del período con la lectura de un CFO: qué pasó, por qué, y qué conviene hacer.',
+        financial_performance:
+          'La comparación contra el período anterior: qué se movió en ingresos, costos y margen, y qué lo explica.',
+        cost_analysis:
+          'En qué se está yendo el dinero: qué categorías pesan más, cuáles se movieron y qué riesgos hay.',
+        sales_performance:
+          'Qué se vendió y qué producto manda, con la tendencia de la venta en el período.',
       },
       sectionsLabel: 'Qué incluir',
       sectionsRequired: 'Elige al menos una sección.',
