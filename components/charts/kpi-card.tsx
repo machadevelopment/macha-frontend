@@ -111,7 +111,20 @@ export function KpiCard({
     // (`cubic-bezier(0.2,0,0,1)` a 200 ms) es el DEFAULT de Tailwind en `tailwind.config`,
     // así que `transition-transform` a secas ya la trae — y la comparte con las otras
     // veinte transiciones del producto en vez de ser un ajuste suelto de esta tarjeta.
-    <Card className={cn('transition-transform hover:-translate-y-0.5', className)}>
+    /*
+      ═══ CU-868ku9q7c · `min-w-0` EN LA TARJETA, QUE ES EL GRID ITEM ═══
+
+      Jose reportó que los números "se corren y tienen diferente tamaño". La causa no está en
+      los párrafos: está acá. `grid-cols-5` de Tailwind ya usa `minmax(0, 1fr)`, así que la
+      PISTA puede encogerse — pero la tarjeta, como hijo de grid, tiene `min-width: auto`, o
+      sea su ancho de min-content. Una cifra exacta larga en mono lo empuja, esa columna se
+      ensancha y las otras cuatro se aprietan para compensar. De ahí que las tarjetas de una
+      misma fila terminen midiendo distinto.
+
+      `truncate` en el valor grande tapaba el síntoma solo para esa línea; `exact` y
+      `secondary` no lo llevan y son las que más miden, porque van en mono.
+    */
+    <Card className={cn('min-w-0 transition-transform hover:-translate-y-0.5', className)}>
       <div className="flex items-start justify-between gap-2">
         <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
         {icon && <span className="shrink-0 text-faint">{icon}</span>}
@@ -146,11 +159,27 @@ export function KpiCard({
         alineado bajo ella es el caso donde el ancho fijo ayuda a leer, y es lo que hace el
         prototipo. El `hint` NO lleva mono: es prosa.
       */}
+      {/*
+        CU-868ku9q7c: estas dos ENVUELVEN, no se truncan, y la diferencia importa.
+
+        El ticket proponía copiarles el `truncate` del valor grande. Sería repetir el error
+        que CU-868ku6r48 acaba de arreglar: `truncate` sobre una cifra financiera no recorta,
+        MIENTE — `GTQ 1,290,000.00` cortado en `GTQ 1,290,0` se lee como doce mil novecientos.
+        Y acá el argumento del valor grande no aplica al revés: ahí truncar era aceptable
+        PORQUE la cifra completa vive en esta línea. Si esta también se trunca, el número
+        exacto no está en ninguna parte.
+
+        Envolver es la degradación honesta: no se pierde un dígito, la tarjeta gana una línea
+        y el grid ya estira las cinco a la misma altura, así que la fila no se descuadra.
+        `break-words` cubre el caso sin espacios donde partir.
+      */}
       {exact !== undefined && (
-        <p className="mt-1 font-mono text-micro tabular-nums text-muted-foreground">{exact}</p>
+        <p className="mt-1 min-w-0 break-words font-mono text-micro tabular-nums text-muted-foreground">
+          {exact}
+        </p>
       )}
       {secondary !== undefined && (
-        <p className="mt-0.5 font-mono text-micro tabular-nums text-muted-foreground">
+        <p className="mt-0.5 min-w-0 break-words font-mono text-micro tabular-nums text-muted-foreground">
           {secondary}
         </p>
       )}
