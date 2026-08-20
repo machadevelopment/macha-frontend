@@ -18,6 +18,35 @@ const nextConfig = {
     // borrarla (si se queda, deja un warning en cada build).
     instrumentationHook: true,
   },
+
+  /**
+   * El isotipo de los correos se cachea fuerte y a propósito.
+   *
+   * Vercel sirve `public/` con `max-age=0, must-revalidate`, que es lo correcto para un
+   * asset que puede cambiar entre deploys. Para ESTE archivo no lo es, por dos razones que
+   * solo aplican a una imagen de correo:
+   *
+   *  1. **Quien la pide no es un navegador con sesión, es el proxy de Google.** Gmail
+   *     descarga la imagen a `googleusercontent.com` y la sirve desde ahí a cada apertura
+   *     del correo. Con `must-revalidate` revalida contra nosotros mucho más seguido que
+   *     lo que el archivo cambia, que es nunca.
+   *  2. **La URL es inmutable por contrato.** `public/brand/README.md` lo explica: un
+   *     correo enviado hace seis meses sigue pidiendo esta ruta, así que el archivo no se
+   *     puede reemplazar en su sitio — un logo nuevo va como nombre nuevo. Eso es
+   *     exactamente la condición que `immutable` describe.
+   *
+   * Alcanza a `brand/` y no a `public/` entero: el resto son assets que sí se reemplazan
+   * (favicon, íconos), y marcarlos inmutables dejaría a los clientes con la versión vieja
+   * durante un año sin forma de purgarla.
+   */
+  async headers() {
+    return [
+      {
+        source: '/brand/:archivo*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+    ];
+  },
 };
 
 /**
