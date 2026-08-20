@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Card } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import { request, requestJson, errorMessage } from '@/lib/api/browser';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -143,7 +144,7 @@ export function RegisterWizard({
             <p className="mb-1 text-body text-muted-foreground">{labels.planSubtitle}</p>
 
             {/*
-              Tarjetas y no un `<select>`: el ticket pide comparar, y un desplegable
+              Tarjetas y no un `<Select>`: el ticket pide comparar, y un desplegable
               esconde justo lo que hay que comparar (créditos contra precio) detrás de un
               clic. Van como radios de verdad —`<fieldset>` + `<legend>` + `role`
               implícito del input— y no como `<div onClick>`: es una elección única, el
@@ -256,9 +257,8 @@ export function RegisterWizard({
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="baseCurrency">{labels.baseCurrency}</Label>
-          <select
+          <Select
             id="baseCurrency"
-            className="h-9 rounded-md border border-border bg-background px-3 text-body"
             value={form.baseCurrency}
             onChange={(e) =>
               setForm({ ...form, baseCurrency: e.target.value as RegisterRequest['baseCurrency'] })
@@ -266,14 +266,13 @@ export function RegisterWizard({
           >
             <option value="GTQ">GTQ</option>
             <option value="USD">USD</option>
-          </select>
+          </Select>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="locale">{labels.locale}</Label>
-          <select
+          <Select
             id="locale"
-            className="h-9 rounded-md border border-border bg-background px-3 text-body"
             value={form.locale}
             onChange={(e) =>
               setForm({ ...form, locale: e.target.value as RegisterRequest['locale'] })
@@ -281,7 +280,7 @@ export function RegisterWizard({
           >
             <option value="es">Español</option>
             <option value="en">English</option>
-          </select>
+          </Select>
         </div>
 
         {/* Tripleta texto+fondo+borde (design guide §1.3): el color de estado nunca va solo

@@ -248,19 +248,34 @@ export function AnalyticsClient({
           </div>
 
           <TabsContent value="overview" className="mt-4 flex flex-col gap-4">
-            <PanelTendencia
-              metricas={metricas}
-              puntos={puntos}
-              moneda={moneda}
-              locale={locale}
-              labels={labels}
-              kpiLabels={kpiLabels}
-              deltaIngreso={deltaIngreso}
-            />
-            {/* `g-side` del design guide §4.4 (1.35fr / 1fr): la gráfica necesita ancho para
-                que la curva se lea; la lista de productos es texto y se defiende en menos. */}
+            {/*
+              ═══ CU-868ku9rpy · EL EMPAREJADO DEL RESUMEN, COMO EN EL PROTOTIPO ═══
+
+              Antes: tendencia a ancho completo, y debajo flujo + productos al costado. El
+              prototipo empareja al revés —tendencia CON productos (`lg:grid-cols-2`) y el
+              flujo a ancho completo abajo— y la captura de Jose muestra por qué importa: a
+              ancho completo, la curva de tendencia deja media pantalla vacía y la lista de
+              productos, que es la que de verdad se lee palabra por palabra, queda relegada.
+
+              Emparejarla con los productos llena esa fila y sube la lista al primer pliegue.
+              El flujo baja a ancho completo, que es donde SÍ lo aprovecha: son dos series
+              (entradas y salidas) y necesita ancho para que no se encimen.
+
+              La proporción se mantiene en 1.35fr/1fr y no 1fr/1fr: la razón del design guide
+              §4.4 sigue siendo cierta —la gráfica necesita ancho para que la curva se lea, el
+              texto se defiende en menos— y el prototipo usa mitad y mitad porque su lista de
+              productos trae barras de progreso que ocupan más que nuestro texto.
+            */}
             <div className="grid grid-cols-1 gap-4 app:grid-cols-[1.35fr_1fr]">
-              <PanelFlujo puntos={puntos} moneda={moneda} locale={locale} labels={labels} />
+              <PanelTendencia
+                metricas={metricas}
+                puntos={puntos}
+                moneda={moneda}
+                locale={locale}
+                labels={labels}
+                kpiLabels={kpiLabels}
+                deltaIngreso={deltaIngreso}
+              />
               <PanelProductos
                 items={itemsProducto}
                 moneda={moneda}
@@ -268,6 +283,7 @@ export function AnalyticsClient({
                 labels={labels}
               />
             </div>
+            <PanelFlujo puntos={puntos} moneda={moneda} locale={locale} labels={labels} />
           </TabsContent>
 
           <TabsContent value="revenue" className="mt-4 flex flex-col gap-4">

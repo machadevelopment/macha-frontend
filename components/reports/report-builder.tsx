@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Check, Circle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Card } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -164,7 +165,7 @@ export function ReportBuilder({
           {/*
             CU-868ktkn9w — EL TIPO DE REPORTE SE VE SIEMPRE.
 
-            Acá vivía un `<select>` que solo se pintaba si el catálogo traía más de un
+            Acá vivía un `<Select>` que solo se pintaba si el catálogo traía más de un
             tipo, para no mostrar un desplegable de una sola opción. El backend tiene
             exactamente uno (`REPORT_TYPES = ['executive_summary']`), así que la condición
             era falsa siempre y la pantalla nunca decía qué clase de documento se estaba

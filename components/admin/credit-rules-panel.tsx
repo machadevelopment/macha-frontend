@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import { AdminLoadError } from '@/components/admin/admin-load-error';
 import { request, requestJson, type RequestError } from '@/lib/api/browser';
@@ -77,31 +78,29 @@ export function CreditRulesPanel({
             <label htmlFor="creditRuleActionKind" className="text-body font-medium">
               Acción
             </label>
-            <select
+            <Select
               id="creditRuleActionKind"
               value={form.actionKind}
               onChange={(e) => setForm({ ...form, actionKind: e.target.value })}
-              className="rounded-md border border-border bg-card px-3 py-2 text-body"
             >
               <option value="excel">excel</option>
               <option value="chat">chat</option>
               <option value="insight">insight</option>
               <option value="report_generation">report_generation</option>
-            </select>
+            </Select>
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="creditRuleType" className="text-body font-medium">
               Tipo
             </label>
-            <select
+            <Select
               id="creditRuleType"
               value={form.ruleType}
               onChange={(e) => setForm({ ...form, ruleType: e.target.value })}
-              className="rounded-md border border-border bg-card px-3 py-2 text-body"
             >
               <option value="fixed">fixed</option>
               <option value="variable">variable</option>
-            </select>
+            </Select>
           </div>
           <Field
             id="creditsPerUnit"
