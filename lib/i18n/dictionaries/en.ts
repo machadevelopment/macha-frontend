@@ -463,6 +463,7 @@ export const en: Dictionary = {
       cashFlowHint: 'Sales minus all expenses.',
       // CU-868krkqh2: ver la nota del mismo campo en es.ts.
       vsPrevious: 'vs. previous period',
+      vsPreviousPp: 'points vs. previous period',
       cogs: 'Direct cost of sales',
       margin: 'Gross margin',
       marginHint: 'What you keep from each sale before fixed expenses.',

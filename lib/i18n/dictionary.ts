@@ -564,6 +564,12 @@ export interface Dictionary {
       marginHint: string;
       /** Pie del delta: sin esto un porcentaje no dice contra qué se compara. */
       vsPrevious: string;
+      /**
+       * CU-868ku9q7c. El delta del MARGEN va en PUNTOS PORCENTUALES, no en porcentaje: de
+       * 50 % a 52 % son +2 pp, pero +4 % relativo. Con la leyenda de las otras tarjetas el
+       * mismo "+2,0 %" se leería como la segunda cosa, que es un número distinto.
+       */
+      vsPreviousPp: string;
     };
     /** CU-868kn5hqu: por qué el dashboard puede estar en cero tras subir un Excel. */
     ingest: {

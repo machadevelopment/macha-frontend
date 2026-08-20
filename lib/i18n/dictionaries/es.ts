@@ -479,6 +479,7 @@ export const es: Dictionary = {
       // año previo, un día contra el día previo (ver `ventanaAnterior` en el backend). El pie
       // afirmaba una comparación que el número no era.
       vsPrevious: 'vs. período anterior',
+      vsPreviousPp: 'puntos vs. período anterior',
       // CU-868kh8y58: "directo" no es adorno — la decisión de Jose define `cogs` como
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
