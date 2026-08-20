@@ -14,7 +14,7 @@
  *     de invitación antes del de registro en `/`) y las tres se pueden revertir una por
  *     una sin que nada más falle.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -25,33 +25,33 @@ let respuesta: { ok: boolean; error?: { kind: 'http'; status: number; body?: unk
 };
 
 /*
- * ═══ EL DOBLE EXPONE TODO EL MÓDULO, PERO SIN IMPORTARLO ═══
+ * ═══ SE SUSTITUYE `fetch`, NO EL MÓDULO ═══
  *
- * `mock.module` de Bun es GLOBAL AL PROCESO, no al archivo. Un doble parcial deja al módulo
- * con solo lo que declara, y el test que corra después importando otro export muere con
- * "Export named ... not found" — pasó en CI, en los dos sentidos, entre este archivo y
- * `app-shell.test.tsx`.
+ * Antes esto hacía `mock.module('@/lib/api/browser', …)`, y los mocks de módulo de Bun son
+ * GLOBALES AL PROCESO: `lib/api/browser.test.ts`, que prueba ese módulo de verdad, recibía
+ * este doble y sus catorce tests fallaban comparando contra respuestas fingidas. En CI
+ * —donde el orden de archivos difiere del de macOS— tumbaba la suite entera.
  *
- * La salida obvia —`...(await import('@/lib/api/browser'))`— es PEOR y también se probó:
- * captura el módulo ya evaluado y su `request` queda ligada al `fetch` de ese instante,
- * rompiendo `lib/api/browser.test.ts`, que sustituye `globalThis.fetch` para probar el
- * módulo real.
+ * Se intentó arreglar tres veces por el lado del doble (completar sus exports, reexportar el
+ * módulo real, cargarlo por ruta de archivo) y ninguna sirvió: mientras exista el mock, el
+ * módulo queda reemplazado para todo el proceso. Un diagnóstico impreso desde CI lo confirmó
+ * — `request.toString()` devolvía el cuerpo del doble.
  *
- * Por eso se declaran a mano los tres exports.
+ * Sustituir `globalThis.fetch` prueba lo mismo sin tocar el registro de módulos: el panel
+ * ejecuta su `requestJson` DE VERDAD, que es incluso mejor cobertura, y ningún otro archivo
+ * se entera. Es exactamente lo que hace `browser.test.ts`.
  */
-mock.module('@/lib/api/browser', () => ({
-  request: async () => ({ ok: true, data: {} }),
-  requestJson: async (url: string, _metodo: string, body: unknown) => {
-    ultimaPeticion = { url, body };
-    return respuesta.ok
-      ? { ok: true, data: { companyId: 'empresa-1' } }
-      : { ok: false, error: respuesta.error };
-  },
-  errorMessage: (error: { body?: unknown }) =>
-    error.body && typeof error.body === 'object' && 'error' in error.body
-      ? (error.body as { error: string }).error
-      : undefined,
-}));
+const realFetch = globalThis.fetch;
+
+globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+  ultimaPeticion = {
+    url: String(input),
+    body: init?.body ? JSON.parse(String(init.body)) : undefined,
+  };
+  return respuesta.ok
+    ? Response.json({ companyId: 'empresa-1' })
+    : Response.json(respuesta.error?.body ?? {}, { status: respuesta.error?.status ?? 400 });
+}) as unknown as typeof fetch;
 
 mock.module('@/app/actions/set-active-company', () => ({
   setActiveCompany: async () => undefined,
@@ -88,6 +88,12 @@ beforeEach(() => {
   respuesta = { ok: true };
 });
 afterEach(cleanup);
+
+// Se devuelve el `fetch` real al terminar: dejar el global sustituido afectaría a cualquier
+// archivo que corra después, que es justo el defecto que este cambio vino a quitar.
+afterAll(() => {
+  globalThis.fetch = realFetch;
+});
 
 describe('panel de aceptación', () => {
   test('sin token pero con invitación al correo de la sesión, se puede unir', () => {

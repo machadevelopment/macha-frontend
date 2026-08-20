@@ -1,24 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
-/*
- * ═══ SE IMPORTA POR RUTA DE ARCHIVO, NO POR EL REGISTRO DE MÓDULOS ═══
- *
- * Este archivo prueba `lib/api/browser` DE VERDAD: sustituye `globalThis.fetch` y verifica
- * que `request` nunca lance ni rechace. Para eso necesita el módulo real, no un doble.
- *
- * Y hay dos tests de componentes que hacen `mock.module('@/lib/api/browser', …)` para no
- * pegarle a la red. Los mocks de módulo de Bun son GLOBALES AL PROCESO: si uno de esos corre
- * antes, este archivo recibe SU doble y sus catorce tests fallan comparando contra respuestas
- * fingidas. Pasó en CI —donde el orden de archivos difiere del de macOS— y no se ve local.
- *
- * `import(pathToFileURL(...))` carga el archivo por su ruta absoluta, que es una clave
- * distinta a la del registro, así que el doble no lo intercepta. Es lo mismo que el propio
- * `stubFetch` de abajo hace con `fetch`: aislar lo que se prueba de lo que el resto del
- * proceso le hizo.
- */
-const { errorMessage, request, requestJson } = (await import(
-  pathToFileURL(join(import.meta.dir, 'browser.ts')).href
-)) as typeof import('./browser');
+import { errorMessage, request, requestJson } from './browser';
 
 /**
  * CU-868kkgb3c criterio 6: el camino de fallo, que es justo el que no tenía cobertura.
@@ -29,9 +11,6 @@ const { errorMessage, request, requestJson } = (await import(
  * siempre. Por eso el contrato que se prueba acá es "nunca lanza, nunca rechaza": si
  * `request` puede rechazar, todo lo construido encima vuelve a tener el mismo agujero.
  */
-
-import { pathToFileURL } from 'node:url';
-import { join } from 'node:path';
 
 const realFetch = globalThis.fetch;
 
@@ -50,14 +29,6 @@ function stubFetch(impl: (input: string, init?: RequestInit) => Promise<Response
 }
 
 describe('request', () => {
-  test('DIAGNOSTICO CI: qué módulo llegó', async () => {
-    stubFetch(async () => Response.json({ items: [1, 2] }));
-    const r = await request<{ items: number[] }>('/api/reports');
-    console.log('[DIAG] resultado =', JSON.stringify(r));
-    console.log('[DIAG] request.toString() =', String(request).slice(0, 160));
-    expect(true).toBe(true);
-  });
-
   test('2xx con JSON válido devuelve los datos', async () => {
     stubFetch(async () => Response.json({ items: [1, 2] }));
 

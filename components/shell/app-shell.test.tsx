@@ -11,7 +11,7 @@
  * endpoints RPC que aquí no hay dónde ejecutar. Todo lo demás —el shell, la nav, Radix—
  * es el código de producción.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
@@ -37,27 +37,24 @@ mock.module('@/app/actions/set-active-company', () => ({
 // El org-switcher vive dentro del orgbar del shell y pide sus membresías al montarse.
 // Acá solo interesa que no reviente el render; su lógica tiene su propio archivo.
 /*
- * ═══ EL DOBLE EXPONE TODO EL MÓDULO, PERO SIN IMPORTARLO ═══
+ * ═══ SE SUSTITUYE `fetch`, NO EL MÓDULO ═══
  *
- * `mock.module` de Bun es GLOBAL AL PROCESO, no al archivo. Un doble parcial deja al módulo
- * con solo lo que declara, y cualquier test posterior que importe otro export muere con
- * "Export named ... not found". Pasó de verdad: tumbó `aceptar-invitacion.test.tsx` en CI,
- * donde el orden de archivos difiere del local.
+ * Antes esto hacía `mock.module('@/lib/api/browser', …)`. Los mocks de módulo de Bun son
+ * GLOBALES AL PROCESO, así que ese doble reemplazaba el módulo para TODA la suite — y
+ * `lib/api/browser.test.ts`, que lo prueba de verdad, recibía el doble y fallaba. Ver la
+ * nota larga en `components/members/aceptar-invitacion.test.tsx`.
  *
- * La salida obvia —`...(await import('@/lib/api/browser'))`— es PEOR, y también se probó:
- * captura el módulo YA EVALUADO, y su `request` queda ligada al `globalThis.fetch` de ese
- * instante. Eso rompe `lib/api/browser.test.ts`, que sustituye `fetch` para probar el módulo
- * de verdad — sus tests de `request` fallaron en CI exactamente por eso.
- *
- * Por eso los exports se declaran a mano: los que este archivo no necesita fingir se dejan
- * como funciones inertes, y ningún otro test depende de que hagan algo (los que sí usan
- * `requestJson` de verdad traen su propio doble).
+ * Con `fetch` sustituido, el shell ejecuta su `request` real contra una respuesta fija: la
+ * misma cobertura, sin tocar el registro de módulos.
  */
-mock.module('@/lib/api/browser', () => ({
-  request: async () => ({ ok: true, data: { memberships: [], staffTier: null } }),
-  requestJson: async () => ({ ok: true, data: {} }),
-  errorMessage: () => undefined,
-}));
+const realFetch = globalThis.fetch;
+
+globalThis.fetch = (async () =>
+  Response.json({ memberships: [], staffTier: null })) as unknown as typeof fetch;
+
+afterAll(() => {
+  globalThis.fetch = realFetch;
+});
 
 let rutaActual = '/dashboard';
 
