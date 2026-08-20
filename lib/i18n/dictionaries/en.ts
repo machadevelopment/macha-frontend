@@ -347,6 +347,27 @@ export const en: Dictionary = {
     authError: "We couldn't complete your sign-in. Please try again.",
   },
   upload: {
+    conceptos: {
+      cta: 'Help us classify {n} item(s)',
+      title: 'Only you know what these are',
+      subtitle:
+        "Each answer sorts every row with that item, and we won't ask again on your next uploads.",
+      rows: '{n} rows · {monto}',
+      typeLabel: 'What is it',
+      categoryLabel: 'Category',
+      categoryPlaceholder: 'e.g. utilities, freight, payroll',
+      type: {
+        revenue: 'Income',
+        cogs: 'Cost of what I sell',
+        opex: 'Operating expense',
+        other: 'Another movement',
+      },
+      submit: 'Save and apply',
+      submitting: 'Saving…',
+      done: 'Done. We sorted {n} rows from this upload.',
+      error: "Couldn't save. Please try again.",
+      empty: 'Nothing left to classify in this upload.',
+    },
     readSummary: {
       cta: 'See what we understood from your file',
       empty: "This upload predates this feature, so we didn't keep the details.",

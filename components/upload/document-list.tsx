@@ -19,6 +19,7 @@ import { cn } from '@/lib/cn';
 import { errorMessage, request, requestJson } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
 import { ReadSummary } from '@/components/upload/read-summary';
+import { ConceptosPendientes } from '@/components/upload/conceptos-pendientes';
 import { formatDate } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -277,13 +278,36 @@ export function DocumentList({
                   un panel vacío que se llena solo confundiría más que ayudar.
                 */}
                 {!IN_FLIGHT.includes(doc.status) && doc.status !== 'cancelled' && (
-                  <div className="mt-1.5">
+                  <div className="mt-1.5 flex flex-col gap-1.5">
                     <ReadSummary
                       documentId={doc.id}
                       labels={labels.readSummary}
                       common={common}
                       locale={locale}
                     />
+
+                    {/*
+                      "Solo tú sabes qué son estos" — decisión de Semi, 2026-08-20.
+                      Se ofrece SOLO cuando el documento tiene filas marcadas, y el motivo es
+                      concreto: `flaggedCount` es lo único que este listado sabe sin pedir el
+                      detalle de cada documento, y mostrar el disparador en una carga sin nada
+                      pendiente haría que el cliente lo abriera para leer "no quedó nada". Un
+                      control que casi siempre está vacío se aprende a ignorar, y entonces deja
+                      de servir el día que sí hay algo.
+                      Que `flaggedCount > 0` no garantiza que TODO sea contestable por el
+                      cliente (una fila sin fecha no la arregla ninguna categoría) es
+                      aceptable: el panel dice "no quedó nada por clasificar" y eso es honesto.
+                      Al revés —esconderlo cuando sí hay— sería perder la respuesta.
+                    */}
+                    {(doc.flaggedCount ?? 0) > 0 && (
+                      <ConceptosPendientes
+                        documentId={doc.id}
+                        labels={labels.conceptos}
+                        common={common}
+                        locale={locale}
+                        onResuelto={reload}
+                      />
+                    )}
                   </div>
                 )}
               </TableCell>
