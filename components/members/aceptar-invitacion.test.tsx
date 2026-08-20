@@ -24,7 +24,26 @@ let respuesta: { ok: boolean; error?: { kind: 'http'; status: number; body?: unk
   ok: true,
 };
 
+/*
+ * ═══ EL DOBLE REEXPORTA EL MÓDULO REAL, Y NO ES OPCIONAL ═══
+ *
+ * `mock.module` de Bun es GLOBAL AL PROCESO, no al archivo: una vez que este test corre,
+ * TODOS los demás ven este doble. Sin `...real`, el módulo pasa a exponer únicamente
+ * `requestJson` y `errorMessage` — y cualquier test posterior que importe `request` o
+ * `RequestError` de ahí muere con "Export named 'request' not found".
+ *
+ * Localmente no se veía porque el orden de archivos de `bun test` dejaba a los afectados
+ * ANTES que a este; en CI el orden cambió y tumbó dos archivos. Es el mismo modo de fallo
+ * que `ia-respuesta-inservible.test.ts` documenta en el backend, por el que allá los dos
+ * casos viven en un solo archivo.
+ *
+ * Reexportar lo real y sobreescribir solo lo que hace falta mantiene el aislamiento sin
+ * mutilar el módulo para el resto de la suite.
+ */
+const real = await import('@/lib/api/browser');
+
 mock.module('@/lib/api/browser', () => ({
+  ...real,
   requestJson: async (url: string, _metodo: string, body: unknown) => {
     ultimaPeticion = { url, body };
     return respuesta.ok

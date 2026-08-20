@@ -36,7 +36,18 @@ mock.module('@/app/actions/set-active-company', () => ({
 
 // El org-switcher vive dentro del orgbar del shell y pide sus membresías al montarse.
 // Acá solo interesa que no reviente el render; su lógica tiene su propio archivo.
+/*
+ * El doble REEXPORTA el módulo real y solo sobreescribe `request`.
+ *
+ * `mock.module` de Bun es global al proceso: sin `...real`, este doble deja al módulo con
+ * `request` y nada más, y cualquier test que corra después e importe `requestJson` o
+ * `errorMessage` muere con "Export named ... not found". Pasó de verdad — tumbó
+ * `aceptar-invitacion.test.tsx` en CI, donde el orden de archivos difiere del local.
+ */
+const apiReal = await import('@/lib/api/browser');
+
 mock.module('@/lib/api/browser', () => ({
+  ...apiReal,
   request: async () => ({ ok: true, data: { memberships: [], staffTier: null } }),
 }));
 
