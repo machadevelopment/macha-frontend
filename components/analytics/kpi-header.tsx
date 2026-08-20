@@ -85,6 +85,7 @@ export function AnalyticsKpiHeader({
   return (
     <div className={GRID}>
       <KpiCard
+        variant="compact"
         label={kpiLabels.revenue}
         icon={<DollarSign className="h-4 w-4" strokeWidth={1.7} />}
         value={formatMoneyCompact(actual.revenue, moneda, locale)}
@@ -94,6 +95,7 @@ export function AnalyticsKpiHeader({
         locale={locale}
       />
       <KpiCard
+        variant="compact"
         label={kpiLabels.expenses}
         icon={<Receipt className="h-4 w-4" strokeWidth={1.7} />}
         value={formatMoneyCompact(gastos(actual), moneda, locale)}
@@ -105,19 +107,31 @@ export function AnalyticsKpiHeader({
         locale={locale}
       />
       <KpiCard
+        variant="compact"
         label={labels.header.grossMargin}
         icon={<Percent className="h-4 w-4" strokeWidth={1.7} />}
         // Sin delta a propósito: la variación de un porcentaje ya es un porcentaje, y
         // "+12% sobre un 35%" no dice si subió 12 puntos o hasta 39,2%.
         value={margen === null ? '—' : formatPct(margen, locale)}
-        hint={
+        deltaCaption={
           margenNeto === null
-            ? kpiLabels.marginHint
+            ? undefined
             : `${labels.header.netMargin}: ${formatPct(margenNeto, locale)}`
         }
+        /*
+          CU-868ku91y9: el margen NETO viajaba en `hint`, y la variante compacta no pinta
+          hint. No se pierde — pasa a `secondary`, que en compacto tampoco se pinta… así
+          que va como leyenda del delta, el único hueco que la tarjeta chica conserva.
+
+          Se hace así y no dejándolo caer porque el neto no es decoración: es la otra mitad
+          de la lectura del margen ("bruto 52 %, neto 27 %"), y el prototipo también muestra
+          una segunda línea acá. Lo que se pierde de verdad es `marginHint`, la frase
+          explicativa — esa sí es prosa de ayuda y su lugar es la tarjeta grande.
+        */
         locale={locale}
       />
       <KpiCard
+        variant="compact"
         label={kpiLabels.grossProfit}
         icon={<PiggyBank className="h-4 w-4" strokeWidth={1.7} />}
         value={formatMoneyCompact(utilidadBruta(actual), moneda, locale)}
@@ -127,23 +141,23 @@ export function AnalyticsKpiHeader({
         locale={locale}
       />
       <KpiCard
+        variant="compact"
         label={labels.header.result}
         icon={<ArrowUpRight className="h-4 w-4" strokeWidth={1.7} />}
         value={formatMoneyCompact(resultado(actual), moneda, locale)}
         exact={formatMoney(resultado(actual), moneda, locale)}
         delta={delta(resultado(actual), resultado(previo))}
         deltaCaption={kpiLabels.vsPrevious}
-        hint={labels.header.resultHint}
         locale={locale}
       />
       <KpiCard
+        variant="compact"
         label={labels.header.arOpen}
         icon={<HandCoins className="h-4 w-4" strokeWidth={1.7} />}
         // `null` mientras `/ar-ap` no responde: un cero acá diría "no te deben nada", que es
         // una afirmación, no una ausencia de dato.
         value={arApTotal === null ? '—' : formatMoneyCompact(arApTotal, moneda, locale)}
         exact={arApTotal === null ? undefined : formatMoney(arApTotal, moneda, locale)}
-        hint={labels.header.arOpenHint}
         locale={locale}
       />
     </div>

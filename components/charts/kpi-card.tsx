@@ -47,6 +47,23 @@ export interface KpiCardProps {
    */
   spark?: number[];
   locale?: Locale;
+  /**
+   * `compact` — CU-868ku91y9. La fila de Analítica, no la del Dashboard.
+   *
+   * El prototipo usa DOS tarjetas distintas y no una reciclada: el Dashboard lleva la
+   * completa (cifra exacta, sparkline, hint) y Analítica una de tres líneas — etiqueta,
+   * valor y variación. Acá había una sola, la grande, puesta en las dos pantallas: seis
+   * líneas apiladas × seis tarjetas es lo que se lee como "demasiado grande".
+   *
+   * Es una PROP y no un componente nuevo a propósito: la escala de la cifra, la regla de
+   * signo del delta y el manejo del valor faltante ya viven acá, y una copia de todo eso
+   * para Analítica se desincroniza en el primer cambio — que es exactamente el error que
+   * este ticket vino a corregir, en el otro sentido.
+   *
+   * Lo que oculta —`exact`, `hint`, `deltaCaption`, `spark`— NO se pierde: el dato exacto
+   * está en las tablas de los seis tabs, que es donde el prototipo espera que se lea.
+   */
+  variant?: 'default' | 'compact';
   loading?: boolean;
   className?: string;
 }
@@ -89,14 +106,23 @@ export function KpiCard({
   deltaCaption,
   spark,
   locale = 'es',
+  variant = 'default',
   loading,
   className,
 }: KpiCardProps) {
+  const compacta = variant === 'compact';
   if (loading) {
     return (
-      <Card className={cn('animate-pulse', className)}>
+      // El esqueleto sigue la misma variante: si cargara siempre con el alto de la grande,
+      // la fila de Analítica daría un salto al llegar los datos.
+      <Card className={cn('animate-pulse', variant === 'compact' && 'p-4', className)}>
         <div className="h-[10.5px] w-20 rounded bg-muted" />
-        <div className="mt-3 h-[29px] w-24 rounded bg-muted" />
+        <div
+          className={cn(
+            'w-24 rounded bg-muted',
+            variant === 'compact' ? 'mt-2 h-[22px]' : 'mt-3 h-[29px]',
+          )}
+        />
       </Card>
     );
   }
@@ -124,7 +150,14 @@ export function KpiCard({
       `truncate` en el valor grande tapaba el síntoma solo para esa línea; `exact` y
       `secondary` no lo llevan y son las que más miden, porque van en mono.
     */
-    <Card className={cn('min-w-0 transition-transform hover:-translate-y-0.5', className)}>
+    <Card
+      className={cn(
+        'min-w-0 transition-transform hover:-translate-y-0.5',
+        // `p-4` como el `card-surface p-4` del prototipo para esta fila.
+        compacta && 'p-4',
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <p className="font-mono text-eyebrow uppercase text-faint">{label}</p>
         {icon && <span className="shrink-0 text-faint">{icon}</span>}
@@ -142,7 +175,20 @@ export function KpiCard({
         encima del de al lado y los dos queden ilegibles es peor, y la cifra completa está una
         línea más abajo en `exact`.
       */}
-      <p className={cn('mt-1 min-w-0 truncate tabular-nums', escalaDeCifra(value))}>{value}</p>
+      {/*
+        En compacto el valor es fijo (`kpi-sm`, 20px ≈ el `text-lg` del prototipo) y NO pasa
+        por `escalaDeCifra`: esa escala está calibrada contra el ancho de la tarjeta del
+        dashboard con el rail de 348px al lado, y acá el grid es de seis columnas sin rail.
+        Aplicarla escogería tamaños pensados para otra caja.
+      */}
+      <p
+        className={cn(
+          'mt-1 min-w-0 truncate tabular-nums',
+          compacta ? 'text-kpi-sm' : escalaDeCifra(value),
+        )}
+      >
+        {value}
+      </p>
       {/*
         ═══ CU-868ktknbq · EL DATO DE APOYO BAJA A `micro` ═══
 
@@ -173,18 +219,22 @@ export function KpiCard({
         y el grid ya estira las cinco a la misma altura, así que la fila no se descuadra.
         `break-words` cubre el caso sin espacios donde partir.
       */}
-      {exact !== undefined && (
+      {!compacta && exact !== undefined && (
         <p className="mt-1 min-w-0 break-words font-mono text-micro tabular-nums text-muted-foreground">
           {exact}
         </p>
       )}
-      {secondary !== undefined && (
+      {!compacta && secondary !== undefined && (
         <p className="mt-0.5 min-w-0 break-words font-mono text-micro tabular-nums text-muted-foreground">
           {secondary}
         </p>
       )}
-      {spark && <Sparkline data={spark} height={28} className="mt-2 w-full text-foreground" />}
-      {hint !== undefined && <p className="mt-1.5 font-ui text-micro text-faint">{hint}</p>}
+      {!compacta && spark && (
+        <Sparkline data={spark} height={28} className="mt-2 w-full text-foreground" />
+      )}
+      {!compacta && hint !== undefined && (
+        <p className="mt-1.5 font-ui text-micro text-faint">{hint}</p>
+      )}
       {delta !== undefined && (
         <DeltaBadge
           value={delta}
@@ -193,11 +243,23 @@ export function KpiCard({
           /* Sin caja: acá la flecha es el canal redundante que pide la regla de color.
              Ver la nota de `DeltaBadge`. */
           presentation="inline"
-          className="mt-1.5"
+          className={compacta ? 'mt-1' : 'mt-1.5'}
         />
       )}
-      {delta !== undefined && deltaCaption && (
+      {!compacta && delta !== undefined && deltaCaption && (
         <p className="mt-0.5 font-ui text-micro text-faint">{deltaCaption}</p>
+      )}
+      {/*
+        CU-868ku91y9: en compacto, una tarjeta SIN delta puede usar `deltaCaption` como su
+        segunda línea. Es el hueco que el prototipo reserva para la variación, y dejarlo
+        vacío en las tarjetas que no tienen delta —margen, cartera— las volvería a dejar
+        más cortas que sus vecinas, que es el defecto que CU-868ku9q7c acaba de corregir en
+        el dashboard. Acá lo ocupa el dato que sí hay: el margen neto.
+      */}
+      {compacta && delta === undefined && deltaCaption && (
+        <p className="mt-1 font-mono text-micro tabular-nums text-muted-foreground">
+          {deltaCaption}
+        </p>
       )}
     </Card>
   );
