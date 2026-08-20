@@ -560,10 +560,21 @@ export const en: Dictionary = {
       subtitle: 'Pick the period and what to include. It gets generated and shows up below.',
       readOnly: 'Only the owner and administrators can generate reports.',
       typeLabel: 'Report type',
-      type: { executive_summary: 'Executive summary' },
+      type: {
+        executive_summary: 'Executive summary',
+        financial_performance: 'Financial performance',
+        cost_analysis: 'Cost analysis',
+        sales_performance: 'Sales and products',
+      },
       typeDescription: {
         executive_summary:
           "The period's figures read the way a CFO would: what happened, why, and what to do about it.",
+        financial_performance:
+          'The comparison against the previous period: what moved in revenue, costs and margin, and what explains it.',
+        cost_analysis:
+          'Where the money goes: which categories weigh most, which ones moved, and what risks show up.',
+        sales_performance:
+          'What sold and which product leads, with the sales trend over the period.',
       },
       sectionsLabel: 'What to include',
       sectionsRequired: 'Pick at least one section.',
