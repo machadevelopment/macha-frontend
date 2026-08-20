@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { LoadError } from '@/components/ui/load-error';
 import { request, requestJson } from '@/lib/api/browser';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -112,15 +121,14 @@ export function MembersPanel({
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="invite-role">{labels.roleLabel}</Label>
-            <select
+            <Select
               id="invite-role"
               value={role}
               onChange={(e) => setRole(e.target.value as AssignableRole)}
-              className="rounded-md border border-border bg-surface px-3 py-2 text-body"
             >
               <option value="member">{labels.role.member}</option>
               <option value="admin">{labels.role.admin}</option>
-            </select>
+            </Select>
           </div>
           <Button type="submit" disabled={busy}>
             {labels.inviteAction}
@@ -137,69 +145,81 @@ export function MembersPanel({
 
       <Card>
         <p className="mb-3 text-cardh2">{labels.membersTitle}</p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-body">
-            <thead>
-              <tr className="text-left font-mono text-eyebrow uppercase text-faint">
-                <th className="pb-2">{labels.colPerson}</th>
-                <th className="pb-2">{labels.colRole}</th>
-                <th className="pb-2">{labels.colStatus}</th>
-                <th className="pb-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {(members ?? []).map((m) => (
-                <tr key={m.userId} className="border-t border-border">
-                  <td className="py-2">
-                    <span className="block">{m.name ?? m.email}</span>
-                    <span className="font-mono text-eyebrow text-faint">{m.email}</span>
-                  </td>
-                  <td className="py-2">
-                    {/* El owner no se edita desde acá: cambiarlo es transferir la
+        {/*
+          ═══ CU-868ku9rpy · LA TABLA DEL SISTEMA, NO UNA ESCRITA A MANO ═══
+
+          Esto era `<table>`, `<thead>`, `<th className="pb-2">` y `<tr className="border-t">`
+          crudos: reinventaba lo que `components/ui/table.tsx` ya define —relleno por token de
+          densidad, encabezado en mono con tracking, borde entre filas, `overflow-x-auto` con
+          `whitespace-nowrap` para que desborde en móvil en vez de comprimirse (CU-868khvzbd).
+
+          El resultado no era feo por sí solo, era DISTINTO: el relleno de celda no seguía la
+          densidad de la app, así que esta tabla y la de Ventas por producto tenían aire
+          diferente en la misma sesión. Y el día que el token de densidad cambie, esta se
+          queda atrás sin que nada falle — que es exactamente cómo se acumulan estas
+          diferencias.
+        */}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{labels.colPerson}</TableHead>
+              <TableHead>{labels.colRole}</TableHead>
+              <TableHead>{labels.colStatus}</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(members ?? []).map((m) => (
+              <TableRow key={m.userId}>
+                <TableCell>
+                  <span className="block">{m.name ?? m.email}</span>
+                  <span className="font-mono text-eyebrow text-faint">{m.email}</span>
+                </TableCell>
+                <TableCell>
+                  {/* El owner no se edita desde acá: cambiarlo es transferir la
                         propiedad, que es una acción explícita aparte. */}
-                    {m.role === 'owner' ? (
-                      <Badge variant="neutral">{labels.role.owner}</Badge>
-                    ) : (
-                      <select
-                        value={m.role}
-                        disabled={busy || m.status !== 'active'}
-                        onChange={(e) =>
-                          void mutate(() =>
-                            requestJson(`/api/members/${m.userId}`, 'PATCH', {
-                              role: e.target.value as AssignableRole,
-                            }),
-                          )
-                        }
-                        className="rounded-md border border-border bg-surface px-2 py-1 text-body"
-                      >
-                        <option value="member">{labels.role.member}</option>
-                        <option value="admin">{labels.role.admin}</option>
-                      </select>
-                    )}
-                  </td>
-                  <td className="py-2">
-                    <Badge variant={m.status === 'active' ? 'success' : 'neutral'}>
-                      {labels.status[m.status]}
-                    </Badge>
-                  </td>
-                  <td className="py-2 text-right">
-                    {m.role !== 'owner' && m.status === 'active' && (
-                      <Button
-                        variant="ghost"
-                        disabled={busy}
-                        onClick={() =>
-                          void mutate(() => requestJson(`/api/members/${m.userId}`, 'DELETE'))
-                        }
-                      >
-                        {labels.removeAction}
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  {m.role === 'owner' ? (
+                    <Badge variant="neutral">{labels.role.owner}</Badge>
+                  ) : (
+                    <Select
+                      value={m.role}
+                      disabled={busy || m.status !== 'active'}
+                      onChange={(e) =>
+                        void mutate(() =>
+                          requestJson(`/api/members/${m.userId}`, 'PATCH', {
+                            role: e.target.value as AssignableRole,
+                          }),
+                        )
+                      }
+                      className="rounded-md border border-border bg-surface px-2 py-1 text-body"
+                    >
+                      <option value="member">{labels.role.member}</option>
+                      <option value="admin">{labels.role.admin}</option>
+                    </Select>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={m.status === 'active' ? 'success' : 'neutral'}>
+                    {labels.status[m.status]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {m.role !== 'owner' && m.status === 'active' && (
+                    <Button
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() =>
+                        void mutate(() => requestJson(`/api/members/${m.userId}`, 'DELETE'))
+                      }
+                    >
+                      {labels.removeAction}
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </Card>
 
       <Card>

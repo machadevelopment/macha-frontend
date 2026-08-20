@@ -189,15 +189,33 @@ export function ProductSalesClient({
           // CU-868ku9u0j: misma causa que la fila de abajo. Estas ya truncan su valor, pero
           // sin `min-w-0` la tarjeta igual reclama el min-content de un nombre de producto
           // largo y desequilibra las cinco columnas.
-          <Card key={c.label}>
+          /*
+            ═══ CU-868ku9rpy · LA FILA COMPACTA, COMO EN EL PROTOTIPO ═══
+
+            El prototipo usa acá exactamente la misma tarjeta chica que en Analítica
+            (`card-surface p-4`, tres líneas, `text-xs` para etiqueta y dato de apoyo). La
+            forma ya coincidía —etiqueta, valor, sub— pero con el relleno y la escala de la
+            tarjeta grande, así que la fila medía más alto que la del prototipo.
+
+            `p-4` sobre `--density-card-p` (16px): el token vale lo mismo hoy, pero se
+            escribe explícito porque esta fila sigue al prototipo y no a la densidad general
+            — si algún día el token cambia, esta fila no debe moverse con él.
+
+            El dato de apoyo baja a `micro` (10px), que es el mismo token que ya usa la
+            tarjeta de KPI del dashboard para su segunda línea. `text-body` (14px) era el
+            valor por defecto, no una decisión.
+          */
+          <Card key={c.label} className="flex flex-col gap-1 p-4">
             <p className="flex items-center justify-between gap-2 font-mono text-eyebrow uppercase text-faint">
               {c.label}
               {c.icon}
             </p>
-            <p className="mt-2 truncate text-cardh2" title={c.value}>
+            <p className="truncate text-cardh2" title={c.value}>
               {c.value}
             </p>
-            {c.sub && <p className="mt-1 text-body text-muted-foreground">{c.sub}</p>}
+            {c.sub && (
+              <p className="truncate font-mono text-micro text-muted-foreground">{c.sub}</p>
+            )}
           </Card>
         ))}
       </div>

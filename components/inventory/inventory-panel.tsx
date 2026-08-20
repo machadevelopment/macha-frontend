@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Boxes, DollarSign, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Label } from '@/components/ui/label';
@@ -494,15 +495,14 @@ function ItemDialog({
             />
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="inv-currency">{labels.fieldCurrency}</Label>
-              <select
+              <Select
                 id="inv-currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 text-body"
               >
                 <option value="GTQ">GTQ</option>
                 <option value="USD">USD</option>
-              </select>
+              </Select>
             </div>
           </div>
           <Field
@@ -566,16 +566,15 @@ function MovementDialog({
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="mov-type">{labels.fieldMovementType}</Label>
-            <select
+            <Select
               id="mov-type"
               value={movementType}
               onChange={(e) => setMovementType(e.target.value as MovementType)}
-              className="h-9 rounded-md border border-input bg-background px-3 text-body"
             >
               <option value="in">{labels.movement.in}</option>
               <option value="out">{labels.movement.out}</option>
               <option value="adjustment">{labels.movement.adjustment}</option>
-            </select>
+            </Select>
           </div>
           <Field
             id="mov-qty"

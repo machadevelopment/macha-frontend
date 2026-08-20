@@ -1,6 +1,7 @@
 'use client';
 
 import { CircleCheck, Circle } from 'lucide-react';
+import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/cn';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
@@ -19,13 +20,13 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  * traía un solo tipo, con este razonamiento: *"un desplegable con una sola opción solo
  * ocupa espacio y sugiere una elección que no existe"*.
  *
- * Ese razonamiento era correcto SOBRE UN `<select>` y equivocado sobre el problema. Como
+ * Ese razonamiento era correcto SOBRE UN `<Select>` y equivocado sobre el problema. Como
  * `REPORT_TYPES` en el backend tiene hoy exactamente un elemento (`executive_summary`), la
  * condición se cumplía siempre: el resultado neto es que la pantalla NUNCA decía qué clase
  * de documento estaba a punto de cobrarle créditos al usuario. Esconder el control no
  * ahorró una elección falsa, borró una respuesta verdadera.
  *
- * ═══ POR QUÉ TARJETAS Y NO UN `<select>` ═══
+ * ═══ POR QUÉ TARJETAS Y NO UN `<Select>` ═══
  *
  * El desplegable esconde todo menos el nombre elegido, y "Resumen ejecutivo" a secas no
  * dice qué sale del otro lado. La tarjeta muestra el nombre **y** la descripción sin

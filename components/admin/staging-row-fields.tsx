@@ -1,6 +1,7 @@
 'use client';
 
 import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -146,7 +147,7 @@ export function StagingRowFields({
             <span className="font-mono text-eyebrow uppercase text-faint">{campo.etiqueta}</span>
 
             {campo.tipo === 'select' && (
-              <select
+              <Select
                 id={id}
                 value={valor}
                 onChange={(e) => onChange({ [campo.clave]: e.target.value })}
@@ -155,7 +156,7 @@ export function StagingRowFields({
                 {/*
                   La opción vacía existe porque una fila marcada por `invalid_type` o
                   `invalid_currency` llega justamente con un valor que NO está en la lista.
-                  Sin ella el `<select>` mostraría la primera opción y le mentiría al
+                  Sin ella el `<Select>` mostraría la primera opción y le mentiría al
                   operador diciéndole que el dato ya está bien.
                 */}
                 <option value="">{labels.empty_value}</option>
@@ -168,7 +169,7 @@ export function StagingRowFields({
                 {valor !== '' && !campo.opciones?.some((o) => o.valor === valor) && (
                   <option value={valor}>{valor}</option>
                 )}
-              </select>
+              </Select>
             )}
 
             {campo.tipo === 'longtext' && (
