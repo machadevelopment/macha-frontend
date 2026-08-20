@@ -83,11 +83,26 @@ const TIPOS: TipoDeMovimiento[] = ['revenue', 'cogs', 'opex', 'other'];
  * Nunca se suman entre sí: ver la nota de `Concepto.montos`. Una moneda que el producto no
  * maneja se cae en vez de formatearse a la fuerza — `formatMoney` acota a GTQ/USD, y mostrar
  * una tercera con el símbolo equivocado sería peor que no mostrarla.
+ *
+ * ═══ POR QUÉ TOLERA QUE `montos` NO VENGA ═══
+ *
+ * Los dos repos NO despliegan de forma atómica: este componente vive en Vercel y el endpoint en
+ * Railway, con deploys independientes que pueden tardar distinto o fallar uno solo. Durante esa
+ * ventana el backend puede devolver una forma vieja.
+ *
+ * Ya pasó, y por eso está escrito acá: una versión anterior del endpoint devolvía un `montoTotal`
+ * único, y `montos.filter(...)` sobre `undefined` no degradaba — **reventaba el panel entero** al
+ * abrirlo. El cliente no veía "sin monto": veía una pantalla rota.
+ *
+ * La regla que queda: en un dato de APOYO, no poder mostrarlo vale mucho menos que tumbar la
+ * pantalla que sí sirve. La lista de conceptos se contesta perfectamente sin la cifra.
  */
-function montosLegibles(montos: Concepto['montos'], locale: Locale): string {
+function montosLegibles(montos: Concepto['montos'] | undefined, locale: Locale): string {
+  if (!Array.isArray(montos)) return '';
   return montos
     .filter(
-      (m): m is { currency: Moneda; total: number } => m.currency === 'GTQ' || m.currency === 'USD',
+      (m): m is { currency: Moneda; total: number } =>
+        typeof m?.total === 'number' && (m.currency === 'GTQ' || m.currency === 'USD'),
     )
     .map((m) => formatMoney(m.total, m.currency, locale))
     .join(' + ');
