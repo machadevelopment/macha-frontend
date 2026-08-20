@@ -56,3 +56,41 @@ describe('tunnelRoute y middleware van juntos (CU-868kjc99f)', () => {
     expect(middleware).toMatch(/matcher:\s*\['\/\(\(\?!.*monitoring.*\)\.\*\)'\]/);
   });
 });
+
+/**
+ * El isotipo que va en los correos — el arreglo del logo roto que reportó Jose.
+ *
+ * Estos dos hechos son de la misma clase que los de Sentry: si alguien los deshace, el
+ * build sigue verde, la app sigue funcionando y lo único que se rompe es una imagen
+ * dentro de un correo ya enviado, que nadie de este lado vuelve a abrir.
+ *
+ * Se prueba el TEXTO por el mismo motivo que arriba (importar la config ejecuta el
+ * plugin de Sentry), y por eso mismo no se puede probar la cabecera realmente servida.
+ * Lo que sí queda fijado es que la intención esté escrita.
+ */
+describe('el isotipo de los correos se sirve como archivo público', () => {
+  test('`brand` está FUERA del matcher del middleware', () => {
+    /*
+     * Es la mitad del arreglo que no se ve venir. Dentro del matcher, `authkitProxy`
+     * responde 307 hacia WorkOS a quien pida el archivo — verificado contra producción
+     * con `/icon.svg` — y un cliente de correo no sigue redirecciones para cargar una
+     * imagen: pinta el `alt`. Que el archivo exista en `public/` no alcanza.
+     */
+    expect(middleware).toMatch(/matcher:\s*\['\/\(\(\?!.*brand.*\)\.\*\)'\]/);
+  });
+
+  test('la ruta se cachea inmutable, porque la URL es contrato de correos ya enviados', () => {
+    // Un correo de hace seis meses sigue pidiendo esta ruta, así que el archivo no se
+    // reemplaza en su sitio: un logo nuevo va como nombre nuevo. Sin esto, el proxy de
+    // Gmail revalida contra nosotros mucho más seguido de lo que el archivo cambia.
+    expect(config).toMatch(/source:\s*'\/brand\//);
+    expect(config).toMatch(/max-age=31536000,\s*immutable/);
+  });
+
+  test('el cacheo inmutable NO alcanza a `public/` entero', () => {
+    // El resto (favicon, íconos) sí se reemplaza; marcarlo inmutable dejaría a la gente
+    // con la versión vieja durante un año y sin forma de purgarla.
+    expect(config).not.toMatch(/source:\s*'\/:\w+\*?'/);
+    expect(config).not.toMatch(/source:\s*'\/\(\.\*\)'/);
+  });
+});

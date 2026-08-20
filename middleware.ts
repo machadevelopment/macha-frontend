@@ -30,6 +30,17 @@ export default authkitProxy({
 // ruta pública y justo donde falla quien todavía no pudo entrar, se responderían con un
 // redirect al login en vez de reportarse. Excluirlo del matcher es más seguro que
 // sumarlo a `unauthenticatedPaths`: así el middleware ni siquiera corre sobre el túnel.
+// `brand/` también queda FUERA del matcher, y por un motivo distinto al de `/monitoring`:
+// sus archivos los pide un CLIENTE DE CORREO, no un navegador con sesión.
+//
+// El logo de los correos transaccionales se sirve desde acá (`/brand/isotipo.png`). Dentro
+// del matcher, `authkitProxy` respondería 307 hacia WorkOS a quien lo pida — y Gmail, que no
+// sigue redirecciones para cargar una imagen, la pinta rota. Es exactamente el síntoma que
+// reportó Jose.
+//
+// Sumarlo a `unauthenticatedPaths` no alcanzaría igual de bien: eso lo deja pasar por el
+// middleware para que este decida no exigir sesión. Excluirlo del matcher es que el
+// middleware ni siquiera corra sobre un archivo estático, que es lo correcto.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|monitoring).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|monitoring|brand).*)'],
 };
