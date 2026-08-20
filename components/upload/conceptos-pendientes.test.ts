@@ -19,6 +19,15 @@ import { en } from '@/lib/i18n/dictionaries/en';
 
 const FUENTE = readFileSync(new URL('./conceptos-pendientes.tsx', import.meta.url), 'utf8');
 
+/**
+ * La fuente SIN comentarios, para las aserciones NEGATIVAS.
+ *
+ * Un `not.toContain('montoTotal')` sobre el archivo completo falla en cuanto un comentario
+ * menciona `montoTotal` para explicar por qué no se usa — y ese comentario es justamente lo que
+ * evita que alguien lo reintroduzca. El chequeo tiene que mirar CÓDIGO, no prosa.
+ */
+const CODIGO = FUENTE.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
 describe.each([
   ['es', es],
   ['en', en],
@@ -103,14 +112,32 @@ describe('los montos NUNCA se suman entre monedas', () => {
    * una suma que da un número perfectamente plausible.
    */
   test('el componente no reduce los montos a un solo número', () => {
-    expect(FUENTE).not.toMatch(/montos\s*\.\s*reduce/);
-    expect(FUENTE).not.toContain('montoTotal');
+    // Sobre el CÓDIGO y no sobre el archivo: los comentarios nombran `montoTotal` a propósito,
+    // para explicar el bug que se evita.
+    expect(CODIGO).not.toMatch(/montos\s*\.\s*reduce/);
+    expect(CODIGO).not.toContain('montoTotal');
   });
 
   test('cada moneda se formatea con la SUYA, no con una fija', () => {
     // `formatMoney(m.total, m.currency, ...)`: la moneda sale de la entrada. Pasarle una
     // constante pintaría un total en dólares con el símbolo del quetzal.
     expect(FUENTE).toContain('formatMoney(m.total, m.currency, locale)');
+  });
+
+  test('no revienta si el backend todavía devuelve la forma vieja', () => {
+    /*
+     * ═══ ESTO NO ES DEFENSA ESPECULATIVA: YA PASÓ ═══
+     *
+     * Los dos repos no despliegan de forma atómica —este componente en Vercel, el endpoint en
+     * Railway— y durante esa ventana el backend puede devolver una forma vieja. Con la primera
+     * versión (`montoTotal` único), `montos.filter(...)` sobre `undefined` no degradaba: tumbaba
+     * el panel al abrirlo. El cliente no veía "sin monto", veía una pantalla rota.
+     *
+     * En un dato de APOYO, no poder mostrarlo vale mucho menos que tumbar la pantalla que sí
+     * sirve: la lista de conceptos se contesta igual sin la cifra.
+     */
+    expect(FUENTE).toContain('if (!Array.isArray(montos)) return');
+    expect(FUENTE).toContain("montos: Concepto['montos'] | undefined");
   });
 
   test('una moneda que el producto no maneja se omite en vez de formatearse a la fuerza', () => {
