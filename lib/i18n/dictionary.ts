@@ -438,6 +438,40 @@ export interface Dictionary {
      */
     authError: string;
   };
+  /**
+   * Landing pública (`app/page.tsx`). El español es el original del Figma; el inglés es
+   * traducción. Ver la nota en `dictionaries/es.ts`.
+   */
+  landing: {
+    nav: {
+      inicio: string;
+      comoFunciona: string;
+      planes: string;
+      faq: string;
+      contacto: string;
+      demo: string;
+    };
+    hero: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      demo: string;
+      how: string;
+      /** Describe QUÉ muestra el mockup, no que existe: es la única prueba visual del producto. */
+      mockupAlt: string;
+    };
+    cta: { title: string; subtitle: string; demo: string };
+    footer: {
+      tagline: string;
+      email: string;
+      privacidad: string;
+      terminos: string;
+      datos: string;
+      copyright: string;
+    };
+    /** Asunto prellenado del correo del CTA. */
+    demoAsunto: string;
+  };
   upload: {
     /**
      * Los conceptos que la ingesta no logró clasificar y que contesta el CLIENTE durante la

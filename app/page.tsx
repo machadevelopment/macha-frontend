@@ -1,53 +1,52 @@
-import { PublicScreen } from '@/components/ui/public-screen';
-import { ShowcaseHeading, showcaseCta } from '@/components/ui/showcase';
+import { ShowcaseFrame } from '@/components/ui/showcase';
+import { LandingNav } from '@/components/landing/landing-nav';
+import { LandingHero } from '@/components/landing/landing-hero';
+import { LandingCta } from '@/components/landing/landing-cta';
+import { LandingFooter } from '@/components/landing/landing-footer';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
-import { mostrarEntradaEnLanding } from '@/lib/landing-flags';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════════
  * `macha.finance` — LA LANDING PÚBLICA
  * ═══════════════════════════════════════════════════════════════════════════════════════════
  *
- * Pedido de Keneth, 2026-08-21: `macha.finance` es la landing, con el botón de entrar oculto
- * por ahora, y `macha.finance/login` sigue siendo la puerta para el equipo.
+ * Pedido de Keneth, 2026-08-21: `macha.finance` es la landing, el botón de entrar oculto por
+ * ahora, y `macha.finance/login` como puerta del equipo.
+ *
+ * El diseño sale del Figma `4aOl3snsDmFRsRQdOGM8z2`, leído por la API (frame `4:218`). Los 16
+ * frames de ese archivo NO son variantes a elegir: son 16 importaciones del mismo HTML con ruido
+ * entre iteraciones — comparados por contenido, las diferencias son de una a veinticuatro líneas
+ * sobre 244, del tipo "Obtener insights" contra "Obtener Insights".
  *
  * ═══ ESTA RUTA HACÍA DOS TRABAJOS Y AHORA HACE UNO ═══
  *
- * Hasta hoy `/` era la portada pública Y el enrutador de post-login: con sesión y empresa
- * redirigía a `/dashboard`, con una invitación pendiente la ofrecía, sin nada mandaba a
- * registrar, y si el backend estaba caído pintaba la salida de emergencia. Toda esa lógica se
- * mudó COMPLETA a `app/continue/page.tsx` — no se reescribió ni se recortó.
+ * Hasta hace poco `/` era la portada Y el enrutador de post-login: redirigía a `/dashboard`,
+ * ofrecía la invitación pendiente, mandaba a registrar o pintaba la salida de emergencia con el
+ * backend caído. Todo eso vive en `app/continue/page.tsx`, y `/callback` apunta ahí.
  *
- * La mudanza no era opcional: una landing que redirige a quien tiene sesión no es una landing.
- * Y dejar las dos cosas juntas significaba que agregar una sección de marketing te obligaba a
- * pensar en membresías.
+ * ═══ ACÁ NO SE LEE LA SESIÓN ═══
  *
- * ═══ ACÁ NO SE LEE LA SESIÓN, Y ES DELIBERADO ═══
+ * Ni `getOptionalSession()` ni una llamada al backend, y hay test que lo fija. Tres cosas se
+ * ganan juntas: la landing no puede caerse porque Railway esté caído (antes consultaba
+ * `/me/memberships`, o sea que una caída del backend se llevaba la portada del producto), Next la
+ * puede prerenderizar, y un cliente con sesión que escribe `macha.finance` ve la landing —
+ * exactamente lo que se pidió.
  *
- * Ni `getOptionalSession()` ni una sola llamada al backend. Tres consecuencias que se ganan de
- * una vez:
+ * ═══ QUÉ ESTÁ Y QUÉ FALTA, DICHO CLARO ═══
  *
- *   · **La landing no puede caerse porque macha-backend esté caído.** Antes esta ruta consultaba
- *     `/me/memberships`, así que una caída de Railway se llevaba puesta la portada del producto.
- *     Es la peor pantalla para tener acoplada a una API.
- *   · **Es estática de verdad.** Sin lectura de cookies, Next la puede prerenderizar; con
- *     `getOptionalSession()` quedaba dinámica por definición.
- *   · **Un cliente con sesión que escribe `macha.finance` ve la landing**, que es exactamente lo
- *     que Keneth pidió, y quien conozca `/dashboard` entra escribiéndolo.
+ * Construidas: nav, hero con el mockup, CTA de cierre y footer. Es la primera pantalla completa
+ * más el remate, o sea una landing publicable de punta a punta.
  *
- * ═══ EL AVISO DE LOGIN FALLIDO SE QUEDA ACÁ ═══
+ * Pendientes las 9 secciones intermedias del diseño: "por qué existe Macha", fragmentado contra
+ * centralizado, "cómo funciona", el producto, las cinco capacidades, el asesor con IA,
+ * automatización, antes/después, seguridad, planes y FAQ. El copy de TODAS ya está extraído del
+ * Figma; lo que falta es el layout de cada una, y varias necesitan estado de cliente (el
+ * acordeón numerado, el FAQ). Se agregan como componentes hermanos en `components/landing/` sin
+ * tocar nada de lo de acá.
  *
- * `/callback` redirige a `/?auth_error=1` cuando el intercambio código→sesión falla (cancelar
- * el acceso, código expirado, cookie PKCE perdida). Podría haber ido a una pantalla propia y no:
- * quien falla al entrar aterriza en la portada, que es el sitio donde puede volver a intentarlo.
- * Es el único motivo por el que esta página lee un `searchParam`.
- *
- * ═══ QUÉ FALTA ═══
- *
- * El CONTENIDO. Está pendiente el diseño de Figma (16 frames "MACHA HTML LANDING"), así que por
- * ahora se conserva el titular de vitrina que ya existía. La mecánica —rutas, flag, callback— es
- * lo que se resolvió acá y no cambia cuando entre el diseño: el cuerpo se reemplaza y nada más.
+ * Por eso el nav recibe `anclas={[]}`: los enlaces a secciones que todavía no existen no se
+ * pintan. Un nav con enlaces que no llevan a ninguna parte es peor que un nav corto.
  */
 export default function Home({ searchParams }: { searchParams?: { auth_error?: string } }) {
   const locale = getLocale();
@@ -55,46 +54,49 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
   const authError = searchParams?.auth_error === '1';
 
   return (
-    <PublicScreen locale={locale}>
-      <ShowcaseHeading eyebrow={t.home.eyebrow} title={t.home.title} subtitle={t.home.subtitle} />
-
-      {authError && (
-        // Color como señal de estado, con texto+fondo+borde juntos (design guide). Rojo
-        // funcional y no marca: esto dice "algo salió mal", no "esto es Macha".
-        <p
-          role="alert"
-          className="max-w-[52ch] rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-center text-body text-danger"
-        >
-          {t.home.authError}
-        </p>
-      )}
-
+    <ShowcaseFrame className="min-h-dvh">
       {/*
-        ═══ EL BOTÓN DE ENTRAR ESTÁ APAGADO POR FLAG, NO BORRADO ═══
-
-        Keneth: "botón de login (por ahora oculto)". El "por ahora" es la parte que decide la
-        implementación: volver a mostrarlo tiene que costar un cambio de variable, no rehacer el
-        botón, el texto y el estilo.
-
-        Que esté oculto NO cierra la puerta: `/login` sigue vivo y entrar es escribirlo. Lo que
-        se esconde es la invitación a entrar, no la entrada — el producto todavía no está abierto
-        al público, y una portada con "Iniciar sesión" promete algo que no puede cumplir.
-
-        Y si el aviso de login fallido está en pantalla, el botón se muestra IGUAL aunque el flag
-        esté apagado: alguien que acaba de fallar al entrar ya sabe que la puerta existe, y
-        dejarlo con un mensaje de error sin nada que apretar es el peor de los dos mundos.
+        `comfortable` y no `compact`: la landing no es una pantalla de datos. Y el ancho sale de
+        medir el diseño — el contenido del Figma va de x=375 a x=1545 sobre 1920, o sea 1170px de
+        caja centrada.
       */}
-      {(mostrarEntradaEnLanding() || authError) && (
-        /*
-          `/login` en vez de `await getSignInUrl()`: esa función escribe la cookie PKCE
-          (`getAuthURLAndSetPKCECookie`), y Next.js solo permite mutar cookies en Server Actions
-          y Route Handlers — desde acá lanzaba y `/` devolvía 500. Hay test que lo fija
-          (`app/auth-entrypoint.test.ts`). Ver `app/login/route.ts`.
-        */
-        <a href="/login" className={showcaseCta}>
-          {t.common.signIn}
-        </a>
-      )}
-    </PublicScreen>
+      <div
+        data-density="comfortable"
+        className="mx-auto flex min-h-dvh max-w-[1170px] flex-col px-6 py-6 app:px-8"
+      >
+        <LandingNav locale={locale} labels={t.landing} common={t.common} anclas={[]} />
+
+        {authError && (
+          /*
+            El aviso de login fallido. `/callback` redirige acá con `?auth_error=1` cuando el
+            intercambio código→sesión no sale (cancelar el acceso, código expirado, cookie PKCE
+            perdida).
+
+            Va ARRIBA y con el enlace a `/login` al lado, aunque el flag del botón esté apagado:
+            quien acaba de fallar al entrar ya sabe que la puerta existe, y dejarlo con un
+            mensaje de error y nada que apretar es el peor de los dos mundos.
+
+            Color como señal de estado con texto, fondo y borde juntos (design guide). Rojo
+            funcional, no marca: dice "algo salió mal", no "esto es Macha".
+          */
+          <p
+            role="alert"
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-center text-body text-danger"
+          >
+            {t.home.authError}
+            <a href="/login" className="font-semibold underline underline-offset-2">
+              {t.common.signIn}
+            </a>
+          </p>
+        )}
+
+        <div className="mt-16 flex flex-col gap-28 app:mt-24">
+          <LandingHero labels={t.landing} />
+          <LandingCta labels={t.landing} />
+        </div>
+
+        <LandingFooter labels={t.landing} />
+      </div>
+    </ShowcaseFrame>
   );
 }

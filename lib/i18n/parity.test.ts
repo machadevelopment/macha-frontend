@@ -76,6 +76,10 @@ describe('paridad de diccionarios ES/EN', () => {
     // Ticket B3: la pantalla de créditos pasó a ser gestión de plan y su eyebrow es
     // "PLAN", que se escribe igual en español y en inglés.
     'credits.eyebrow',
+    // Landing pública (2026-08-21). Los tres son idénticos por naturaleza, no por olvido:
+    'landing.nav.faq', // "FAQ" — sigla internacional, no se traduce
+    'landing.footer.email', // una dirección de correo no tiene versión en inglés
+    'landing.footer.copyright', // "© 2026 Macha Finance" — el nombre legal es uno solo
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {
