@@ -1,13 +1,14 @@
 import { ShowcaseFrame } from '@/components/ui/showcase';
+import { Banda } from '@/components/landing/banda';
 import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingHero } from '@/components/landing/landing-hero';
 import { LandingCta } from '@/components/landing/landing-cta';
 import { SeccionProducto } from '@/components/landing/landing-producto';
 import { SeccionCapacidades, SeccionFaq } from '@/components/landing/landing-acordeones';
+import { SeccionAsesor } from '@/components/landing/landing-asesor';
 import {
   SeccionPorque,
   SeccionComo,
-  SeccionAsesor,
   SeccionAutomatizacion,
   SeccionAntesDespues,
   SeccionSeguridad,
@@ -26,9 +27,9 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  * Pedido de Keneth, 2026-08-21: `macha.finance` es la landing, el botón de entrar oculto por
  * ahora, y `macha.finance/login` como puerta del equipo.
  *
- * El diseño sale del Figma `4aOl3snsDmFRsRQdOGM8z2`, leído por la API. Los 16 frames de ese
- * archivo NO son variantes a elegir ni copias: son la MISMA página con un item distinto abierto en
- * los acordeones, o sea la especificación completa de esos dos estados. Ver más abajo.
+ * El diseño sale del Figma `4aOl3snsDmFRsRQdOGM8z2`. Los 16 frames de ese archivo NO son
+ * variantes a elegir ni copias: son la MISMA página con un item distinto abierto en los
+ * acordeones, o sea la especificación completa de esos estados. Ver más abajo.
  *
  * ═══ ESTA RUTA HACÍA DOS TRABAJOS Y AHORA HACE UNO ═══
  *
@@ -44,22 +45,35 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  * puede prerenderizar, y un cliente con sesión que escribe `macha.finance` ve la landing —
  * exactamente lo que se pidió.
  *
+ * ═══ LA ESTRUCTURA SON BANDAS, Y ESO FUE EL SEGUNDO REPORTE ═══
+ *
+ * La primera versión metía las catorce secciones en UN contenedor de 1170px separadas por `gap`.
+ * Keneth lo reportó como "hay partes que tienen color negro y así, falta bastante trabajo": en el
+ * diseño los fondos ALTERNAN entre el lienzo y un gris casi blanco, y una sección —el asesor con
+ * IA— va sobre tinta de borde a borde. Sin bandas la página se leía como un documento largo, y la
+ * única sección que cambia de color simplemente no existía.
+ *
+ * Ahora cada sección va envuelta en `<Banda>`, que pone el fondo a todo el ancho y acota el
+ * contenido al centro. El orden y el tono de abajo salen de medir el frame; la tabla completa está
+ * en `banda.tsx`. Las secciones no conocen su color: por eso la oscura es la misma pieza que las
+ * claras, con `.inverse` redefiniendo los tokens hacia adentro.
+ *
  * ═══ LAS 14 SECCIONES, Y LO QUE COSTÓ LEERLAS BIEN ═══
  *
- * Están las catorce del diseño. La primera versión de esta página traía solo cuatro, porque leí
- * un solo frame del Figma y descarté los otros 15 como copias con ruido.
+ * La primera versión traía solo cuatro, porque leí un frame del Figma y descarté los otros 15 como
+ * copias con ruido.
  *
- * Era falso, y Keneth lo corrigió: cada frame tiene UN item distinto abierto en los acordeones.
- * Las diferencias de 1 a 24 líneas que tomé por ruido eran precisamente el contenido del item
- * expandido. Medido después: 190 textos son comunes a los 16 frames y 47 varían — y esos 47 son
- * los estados de los dos acordeones. Cruzándolos salen los 5 items de capacidades con sus dos
- * insights cada uno y las 6 preguntas del FAQ con su respuesta.
+ * Era falso, y Keneth lo corrigió: cada frame tiene UN item distinto abierto. Las diferencias de 1
+ * a 24 líneas que tomé por ruido eran el contenido del item expandido. Medido: 190 textos son
+ * comunes a los 16 frames y 47 varían — y esos 47 son los estados de los DOS acordeones y de las
+ * pestañas del asesor. Cruzándolos salen los 5 items de capacidades con sus dos insights, las 6
+ * preguntas del FAQ y las 3 del asesor.
  *
  * O sea que los 16 frames no eran redundancia: eran la especificación completa, y usar uno solo
  * dejaba cada acordeón con un item lleno y el resto vacío.
  *
- * Solo dos secciones llevan estado de cliente (`landing-acordeones.tsx`); el resto es estático y
- * se prerenderiza.
+ * Solo tres secciones llevan estado de cliente (los dos acordeones y el asesor); el resto es
+ * estático y se prerenderiza.
  */
 export default function Home({ searchParams }: { searchParams?: { auth_error?: string } }) {
   const locale = getLocale();
@@ -68,15 +82,8 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
 
   return (
     <ShowcaseFrame className="min-h-dvh">
-      {/*
-        `comfortable` y no `compact`: la landing no es una pantalla de datos. Y el ancho sale de
-        medir el diseño — el contenido del Figma va de x=375 a x=1545 sobre 1920, o sea 1170px de
-        caja centrada.
-      */}
-      <div
-        data-density="comfortable"
-        className="mx-auto flex min-h-dvh max-w-[1170px] flex-col px-6 py-6 app:px-8"
-      >
+      {/* `comfortable` y no `compact`: la landing no es una pantalla de datos. */}
+      <div data-density="comfortable" className="flex min-h-dvh flex-col">
         <LandingNav
           locale={locale}
           labels={t.landing}
@@ -91,43 +98,78 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
             perdida).
 
             Va ARRIBA y con el enlace a `/login` al lado, aunque el flag del botón esté apagado:
-            quien acaba de fallar al entrar ya sabe que la puerta existe, y dejarlo con un
-            mensaje de error y nada que apretar es el peor de los dos mundos.
+            quien acaba de fallar al entrar ya sabe que la puerta existe, y dejarlo con un mensaje
+            de error y nada que apretar es el peor de los dos mundos.
 
             Color como señal de estado con texto, fondo y borde juntos (design guide). Rojo
             funcional, no marca: dice "algo salió mal", no "esto es Macha".
           */
-          <p
-            role="alert"
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-center text-body text-danger"
-          >
-            {t.home.authError}
-            <a href="/login" className="font-semibold underline underline-offset-2">
-              {t.common.signIn}
-            </a>
-          </p>
+          <div className="mx-auto w-full max-w-[1170px] px-6 pt-6 app:px-8">
+            <p
+              role="alert"
+              className="flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-center text-body text-danger"
+            >
+              {t.home.authError}
+              <a href="/login" className="font-semibold underline underline-offset-2">
+                {t.common.signIn}
+              </a>
+            </p>
+          </div>
         )}
 
         {/*
-          Las 14 secciones en el orden del diseño. El `gap` es lo que da el ritmo de la página:
-          en el Figma la separación entre secciones ronda los 200px a 1920, y `gap-28` (112px) con
-          el `app:gap-40` (160px) de arriba se le acerca sin dejar huecos enormes en móvil, donde
-          el mismo aire se lee como una página vacía.
+          Las 14 secciones en el orden del diseño, con el tono de banda medido de cada una. El
+          hero lleva `id="inicio"` porque es a donde apunta el primer enlace del nav.
         */}
-        <div className="mt-16 flex flex-col gap-28 app:mt-24 app:gap-40">
-          <LandingHero labels={t.landing} />
-          <SeccionPorque labels={t.landing} />
-          <SeccionComo labels={t.landing} />
-          <SeccionProducto labels={t.landing} />
-          <SeccionCapacidades labels={t.landing} />
-          <SeccionAsesor labels={t.landing} />
-          <SeccionAutomatizacion labels={t.landing} />
-          <SeccionAntesDespues labels={t.landing} />
-          <SeccionSeguridad labels={t.landing} />
-          <SeccionPlanes labels={t.landing} hrefDemo={enlaceDemo(t.landing.demoAsunto)} />
-          <SeccionFaq labels={t.landing} />
-          <LandingCta labels={t.landing} />
-        </div>
+        <main>
+          <Banda id="inicio">
+            <LandingHero labels={t.landing} />
+          </Banda>
+
+          <Banda tono="sutil">
+            <SeccionPorque labels={t.landing} />
+          </Banda>
+
+          <Banda id="como-funciona">
+            <SeccionComo labels={t.landing} />
+          </Banda>
+
+          <Banda tono="sutil">
+            <SeccionProducto labels={t.landing} />
+          </Banda>
+
+          <Banda>
+            <SeccionCapacidades labels={t.landing} />
+          </Banda>
+
+          <Banda tono="tinta">
+            <SeccionAsesor labels={t.landing} />
+          </Banda>
+
+          <Banda>
+            <SeccionAutomatizacion labels={t.landing} />
+          </Banda>
+
+          <Banda tono="sutil">
+            <SeccionAntesDespues labels={t.landing} />
+          </Banda>
+
+          <Banda>
+            <SeccionSeguridad labels={t.landing} />
+          </Banda>
+
+          <Banda id="planes" tono="sutil">
+            <SeccionPlanes labels={t.landing} hrefDemo={enlaceDemo(t.landing.demoAsunto)} />
+          </Banda>
+
+          <Banda id="faq">
+            <SeccionFaq labels={t.landing} />
+          </Banda>
+
+          <Banda tono="sutil">
+            <LandingCta labels={t.landing} />
+          </Banda>
+        </main>
 
         <LandingFooter labels={t.landing} />
       </div>

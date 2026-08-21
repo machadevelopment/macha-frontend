@@ -46,7 +46,7 @@ export function SeccionCapacidades({ labels }: { labels: L }) {
   const activo = t.items[abierto] ?? t.items[0]!;
 
   return (
-    <section className="flex flex-col gap-12">
+    <div className="flex flex-col gap-12">
       <div className="flex flex-col gap-4">
         <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">{t.eyebrow}</p>
         <h2 className="max-w-[20ch] text-section text-foreground">{t.title}</h2>
@@ -120,7 +120,7 @@ export function SeccionCapacidades({ labels }: { labels: L }) {
           </ul>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -140,7 +140,7 @@ export function SeccionFaq({ labels }: { labels: L }) {
   const [abierta, setAbierta] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="grid grid-cols-1 gap-10 app:grid-cols-[1fr_1.4fr] app:gap-16">
+    <div className="grid grid-cols-1 gap-10 app:grid-cols-[1fr_1.4fr] app:gap-16">
       <div className="flex flex-col gap-4">
         <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">{t.eyebrow}</p>
         <h2 className="text-section text-foreground">{t.title}</h2>
@@ -175,6 +175,6 @@ export function SeccionFaq({ labels }: { labels: L }) {
           );
         })}
       </ul>
-    </section>
+    </div>
   );
 }

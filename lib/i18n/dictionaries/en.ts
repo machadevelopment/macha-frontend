@@ -678,7 +678,6 @@ export const en: Dictionary = {
     },
     footer: {
       tagline: 'AI-powered financial intelligence.',
-      email: 'contact@machafinance.com',
       privacidad: 'Privacy notice',
       terminos: 'Terms',
       datos: 'Data policy',
