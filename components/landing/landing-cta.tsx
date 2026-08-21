@@ -1,3 +1,4 @@
+import { InsightPoint } from '@/components/ui/insight-point';
 import { enlaceDemo } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
@@ -14,16 +15,25 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  */
 export function LandingCta({ labels }: { labels: Dictionary['landing'] }) {
   return (
-    <section className="flex flex-col items-center gap-6 py-8 text-center">
-      <h2 className="max-w-[24ch] text-sectionbig text-foreground">{labels.cta.title}</h2>
-      <p className="max-w-[52ch] text-lead text-muted-foreground">{labels.cta.subtitle}</p>
+    <div className="relative flex flex-col items-center gap-6 text-center">
+      {/*
+        La mancha de marca ARRIBA Y AL CENTRO, como en el diseño: es el cierre de la página y el
+        salvia vuelve a aparecer donde apareció en el hero, cerrando el paréntesis. Acá corresponde
+        porque no hay un solo dato en pantalla — un titular, una línea y un botón.
+      */}
+      <InsightPoint
+        variant="ambient"
+        className="-top-52 left-1/2 h-[420px] w-[420px] -translate-x-1/2"
+      />
+      <h2 className="relative max-w-[24ch] text-sectionbig text-foreground">{labels.cta.title}</h2>
+      <p className="relative max-w-[52ch] text-lead text-muted-foreground">{labels.cta.subtitle}</p>
       <a
         href={enlaceDemo(labels.demoAsunto)}
-        className="mt-2 inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-[17px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        className="relative mt-2 inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-[17px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
       >
         {labels.cta.demo}
         <span aria-hidden>→</span>
       </a>
-    </section>
+    </div>
   );
 }

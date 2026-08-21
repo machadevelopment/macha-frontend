@@ -78,7 +78,6 @@ describe('paridad de diccionarios ES/EN', () => {
     'credits.eyebrow',
     // Landing pública (2026-08-21). Los tres son idénticos por naturaleza, no por olvido:
     'landing.nav.faq', // "FAQ" — sigla internacional, no se traduce
-    'landing.footer.email', // una dirección de correo no tiene versión en inglés
     'landing.footer.copyright', // "© 2026 Macha Finance" — el nombre legal es uno solo
     'landing.como.flujo.macha', // "Macha Finance" — el nombre del producto no se traduce
   ]);
