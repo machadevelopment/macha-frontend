@@ -150,6 +150,13 @@ export const es: Dictionary = {
       invalidNumber: 'Escribe un número válido.',
       readOnlyNote:
         'Estos parámetros solo los edita un super_admin. Aquí se muestran en modo lectura.',
+      /*
+       * Un parámetro que todavía no tiene fila en `platform_settings`. Dice las dos cosas que
+       * importan: que nadie lo cambió, Y que el valor mostrado es el que el sistema está usando.
+       * Sin la segunda mitad se leería como "esto no está configurado", que es justo la
+       * conclusión equivocada que dejaba la pantalla vacía.
+       */
+      fromDefault: 'Valor de arranque · nadie lo ha cambiado, y es el que está en uso',
       updatedAt: 'Actualizado',
       updatedBy: 'por',
       saveError: 'No se pudo guardar. El valor sigue siendo el anterior.',
@@ -243,6 +250,30 @@ export const es: Dictionary = {
       flaggedSuffix: '({n} marcadas)',
     },
     industryTemplates: {
+      /*
+       * ═══ LA PLANTILLA DESCARGABLE, QUE NO ES LO MISMO QUE LAS VERSIONES ═══
+       *
+       * Las dos cosas se llaman "plantilla" y viven en la misma tarjeta, y confundirlas tiene
+       * consecuencias en direcciones opuestas: subir un .xlsx creyendo que mejora la
+       * clasificación de la IA no mejora nada, y editar sinónimos creyendo que cambia lo que el
+       * cliente descarga tampoco. Por eso el texto dice PARA QUIÉN es el archivo.
+       */
+      starterEyebrow: 'PLANTILLA PARA EL CLIENTE',
+      starterHint:
+        'El archivo de Excel que descarga un cliente de esta industria que no tiene contabilidad armada. No es el material que usa la IA para leer archivos: eso son las versiones de arriba.',
+      /*
+       * "Ninguna" NO es un problema, y el texto tiene que decirlo. Sin esta aclaración un
+       * operador puede creer que la descarga del cliente está rota, cuando lo que pasa es que
+       * recibe una plantilla generada con las categorías de su industria.
+       */
+      starterNone:
+        'Ninguna cargada. El cliente descarga igual una plantilla generada con las categorías de su industria.',
+      starterFile: 'Archivo',
+      starterNotes: 'Nota (opcional)',
+      starterNotesPlaceholder: 'Ej. actualizada con el catálogo 2026',
+      starterUpload: 'Publicar plantilla',
+      starterUploading: 'Publicando…',
+      starterUploadError: 'No se pudo publicar la plantilla. Vuelve a intentarlo.',
       eyebrow: 'CATÁLOGO',
       title: 'Plantillas por industria',
       colVersion: 'Versión',

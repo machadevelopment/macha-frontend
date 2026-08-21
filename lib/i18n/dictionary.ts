@@ -232,6 +232,8 @@ export interface Dictionary {
        */
       readOnlyNote: string;
       /** Prefijo de la marca de tiempo bajo cada parámetro. */
+      /** Un parámetro sin fila en la base: valor de arranque, y es el que está en uso. */
+      fromDefault: string;
       updatedAt: string;
       /** Autor del último cambio (ticket B7). Se antepone al correo. */
       updatedBy: string;
@@ -294,6 +296,20 @@ export interface Dictionary {
       flaggedSuffix: string;
     };
     industryTemplates: {
+      /**
+       * La plantilla .xlsx DESCARGABLE de una industria (Jose 2026-08-20) — el archivo para el
+       * cliente que no tiene un Excel armado. Distinta de las versiones de sinónimos/few-shot
+       * que están en la misma pantalla y que solo usa la IA.
+       */
+      starterEyebrow: string;
+      starterHint: string;
+      starterNone: string;
+      starterFile: string;
+      starterNotes: string;
+      starterNotesPlaceholder: string;
+      starterUpload: string;
+      starterUploading: string;
+      starterUploadError: string;
       eyebrow: string;
       title: string;
       colVersion: string;

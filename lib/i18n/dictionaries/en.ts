@@ -149,6 +149,7 @@ export const en: Dictionary = {
       invalidJson: 'The value is not valid JSON.',
       invalidNumber: 'Enter a valid number.',
       readOnlyNote: 'Only a super_admin can edit these parameters. They are shown read-only here.',
+      fromDefault: "Starting value · nobody has changed it, and it's the one in use",
       updatedAt: 'Updated',
       updatedBy: 'by',
       saveError: 'Could not save. The value is still the previous one.',
@@ -240,6 +241,17 @@ export const en: Dictionary = {
       flaggedSuffix: '({n} flagged)',
     },
     industryTemplates: {
+      starterEyebrow: 'TEMPLATE FOR THE CLIENT',
+      starterHint:
+        "The spreadsheet a client in this industry downloads when they have no books of their own. This is not the material the AI uses to read files — that's the versions above.",
+      starterNone:
+        'None uploaded. Clients still download a template generated from their industry categories.',
+      starterFile: 'File',
+      starterNotes: 'Note (optional)',
+      starterNotesPlaceholder: 'e.g. updated with the 2026 catalog',
+      starterUpload: 'Publish template',
+      starterUploading: 'Publishing…',
+      starterUploadError: 'Could not publish the template. Please try again.',
       eyebrow: 'CATALOG',
       title: 'Templates by industry',
       colVersion: 'Version',
