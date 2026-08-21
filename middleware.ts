@@ -41,6 +41,20 @@ export default authkitProxy({
 // Sumarlo a `unauthenticatedPaths` no alcanzaría igual de bien: eso lo deja pasar por el
 // middleware para que este decida no exigir sesión. Excluirlo del matcher es que el
 // middleware ni siquiera corra sobre un archivo estático, que es lo correcto.
+//
+// ═══ `icon.svg` (2026-08-21): EL FAVICON ESTABA ROTO POR ESTA MISMA LÍNEA ═══
+//
+// La lista excluía `favicon.ico` —que este proyecto NO tiene— y no `icon.svg`, que es el
+// archivo real: el App Router sirve `app/icon.svg` en `/icon.svg` y emite su `<link rel=icon>`
+// solo. O sea que el navegador pedía el ícono y recibía un **307 hacia api.workos.com**
+// (verificado en producción), y la pestaña se quedaba con el genérico.
+//
+// Vale decir cómo pasó desapercibido: al arreglar el logo de los correos usé `/icon.svg` como
+// EVIDENCIA de que este matcher redirige lo que no excluye. La prueba era correcta y era, al
+// mismo tiempo, un defecto activo que nadie estaba mirando.
+//
+// `favicon.ico` se queda en la lista aunque hoy no exista: si algún día se agrega uno, tiene
+// que estar excluido por el mismo motivo, y quitarlo ahora solo dejaría la trampa armada.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|monitoring|brand).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|monitoring|brand).*)'],
 };
