@@ -37,10 +37,15 @@ import type { ReactNode } from 'react';
  * (`#232323`), así que la banda sigue siendo una banda cuando el visitante tiene el sistema en
  * oscuro. Un `#F9F9F9` literal se volvería un bloque blanco cegador ahí.
  *
- * `tinta` es la clase `.inverse` de `globals.css`, que redefine `--surface`/`--ink`/`--border`
- * hacia adentro: los componentes de la sección siguen usando `text-foreground` y `border-border`
- * sin saber que están sobre negro. `--surface` vale `#141414` contra el `#191919` medido — cinco
- * partes en 255, y la alternativa era un color a mano que ningún token conoce.
+ * `tinta` es la clase `.tinta` de `globals.css`, que redefine la paleta completa hacia adentro:
+ * los componentes de la sección siguen usando `text-foreground` y `border-border` sin saber que
+ * están sobre negro. `--surface` vale `#171717` contra el `#191919` medido — dos partes en 255.
+ *
+ * ⚠️ NO es `.inverse`, y confundirlas fue un bug real. `.inverse` existe para la barra de
+ * organización del admin: define `--border` IGUAL a la superficie (deliberado en una tira sin
+ * hijos con contorno) y no toca `--fill`. Con ella, el panel y los chips de esta sección salían
+ * sin borde visible y el chip activo quedaba blanco sobre blanco. La explicación larga está en
+ * `globals.css`, arriba de `.tinta`.
  *
  * ═══ EL FULL-BLEED SIN ROMPER EL ANCHO DE LA PÁGINA ═══
  *
@@ -63,7 +68,7 @@ export function Banda({
   className?: string;
 }) {
   const fondo =
-    tono === 'sutil' ? 'bg-muted' : tono === 'tinta' ? 'inverse bg-card text-foreground' : '';
+    tono === 'sutil' ? 'bg-muted' : tono === 'tinta' ? 'tinta bg-card text-foreground' : '';
 
   return (
     /*
