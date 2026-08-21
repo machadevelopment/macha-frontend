@@ -413,6 +413,57 @@ export const es: Dictionary = {
       'Sube tu contabilidad, entiende tus números y decide con un asistente financiero que conoce tu empresa.',
     authError: 'No se pudo completar el inicio de sesión. Vuelve a intentarlo.',
   },
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════════════════════
+   * LANDING PÚBLICA (`macha.finance`) — copy tomado del Figma, 2026-08-21
+   * ═══════════════════════════════════════════════════════════════════════════════════════════
+   *
+   * El español es el ORIGINAL: sale del diseño (frame `4:218`, leído por la API de Figma), no de
+   * una traducción. El inglés de `en.ts` sí es traducción y está marcado como tal ahí.
+   *
+   * Va en el diccionario y no quemado en los componentes aunque hoy la landing solo exista en
+   * español, por la misma razón que el resto del producto: retrofitear textos después cuesta
+   * mucho más que ponerlos acá desde el principio.
+   */
+  landing: {
+    nav: {
+      inicio: 'Inicio',
+      comoFunciona: 'Cómo funciona',
+      planes: 'Planes',
+      faq: 'FAQ',
+      contacto: 'Contacto',
+      demo: 'Solicitar demo',
+    },
+    hero: {
+      eyebrow: 'TU CFO IMPULSADO CON IA',
+      title: 'Convierte los datos de tu negocio en decisiones inteligentes.',
+      subtitle:
+        'Centraliza tu información financiera y operativa, obtén insights claros y entiende mejor qué está pasando en tu negocio.',
+      demo: 'Solicitar demo',
+      how: 'Ver cómo funciona',
+      /* Texto alternativo del mockup. No es decoración: describe QUÉ muestra la imagen para
+         quien no la puede ver, y un `alt` vacío acá dejaría la única prueba visual del producto
+         invisible para un lector de pantalla. */
+      mockupAlt:
+        'Resumen del panel de Macha: ingresos, margen bruto y flujo de caja del mes, con la gráfica de ingresos y los insights del día.',
+    },
+    cta: {
+      title: 'Empieza a entender mejor tu negocio.',
+      subtitle: 'Descubre cómo Macha puede convertir tus datos en decisiones más claras.',
+      demo: 'Solicitar demo',
+    },
+    footer: {
+      tagline: 'Inteligencia financiera impulsada por IA.',
+      email: 'contact@machafinance.com',
+      privacidad: 'Aviso de privacidad',
+      terminos: 'Términos',
+      datos: 'Política de datos',
+      copyright: '© 2026 Macha Finance',
+    },
+    /* Asunto del correo del CTA. Prellenarlo es la diferencia entre un correo que se contesta y
+       uno que llega sin contexto: quien escribe no tiene que explicar de dónde salió. */
+    demoAsunto: 'Solicitar demo de Macha Finance',
+  },
   upload: {
     conceptos: {
       cta: 'Ayúdanos a clasificar {n} concepto(s)',
