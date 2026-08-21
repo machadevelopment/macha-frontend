@@ -54,6 +54,33 @@ describe('entrada al login', () => {
     expect(code).toMatch(/auth_error/);
   });
 
+  /**
+   * ═══ EL DESTINO DEL LOGIN NO PUEDE SER LA LANDING (2026-08-21) ═══
+   *
+   * `returnPathname` decía `/` mientras esa ruta cumplía dos papeles: portada pública Y
+   * enrutador de post-login. Cuando `/` pasó a ser la landing, dejarlo en `/` habría producido
+   * el peor fallo silencioso de todo el flujo: el usuario se autentica **correctamente**,
+   * aterriza en la portada de marketing, y no pasa nada visible. Ni error, ni log, ni señal de
+   * haber entrado — solo la sensación de que el login no funciona.
+   *
+   * No lo atraparía ningún otro test: `/callback` es un Route Handler generado por el SDK y
+   * `/` renderizaría perfecto. Por eso se fija sobre el fuente, igual que el `onError`.
+   *
+   * El camino de ERROR sí va a `/` a propósito (`?auth_error=1`), y el test de arriba lo cubre:
+   * quien no logró entrar no tiene nada que bifurcar y la portada es donde reintenta.
+   */
+  test('el login exitoso NO aterriza en la landing', () => {
+    const src = readFileSync(join(appDir, 'callback', 'route.ts'), 'utf8');
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+    const destino = code.match(/returnPathname:\s*'([^']*)'/)?.[1];
+    expect(destino).toBeDefined();
+    expect(destino).not.toBe('/');
+
+    // Y el destino tiene que existir como ruta, o el login termina en un 404.
+    expect(existsSync(join(appDir, destino!.replace(/^\//, ''), 'page.tsx'))).toBe(true);
+  });
+
   test('/login es público en el middleware — si no, quien no ha entrado no puede entrar', () => {
     const mw = readFileSync(join(appDir, '..', 'middleware.ts'), 'utf8');
     const paths = mw.match(/unauthenticatedPaths:\s*\[([^\]]*)\]/)?.[1] ?? '';
