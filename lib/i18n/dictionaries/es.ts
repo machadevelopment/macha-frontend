@@ -447,6 +447,293 @@ export const es: Dictionary = {
       mockupAlt:
         'Resumen del panel de Macha: ingresos, margen bruto y flujo de caja del mes, con la gráfica de ingresos y los insights del día.',
     },
+    producto: {
+      eyebrow: 'EL PRODUCTO',
+      title: 'Todo tu negocio en una sola vista.',
+      subtitle:
+        'Ventas, costos, rentabilidad, inventario y flujo de caja se integran en una misma visión.',
+      pestanas: ['Costos', 'Flujo de caja'],
+      mockupAlt:
+        'Vista de ventas del mes en Macha: el total del período con su variación, la tendencia de los últimos seis meses y el detalle por producto.',
+    },
+    porque: {
+      eyebrow: 'POR QUÉ EXISTE MACHA',
+      title: 'Tus datos ya están ahí. El problema es entenderlos.',
+      subtitle:
+        'La información vive repartida entre archivos, hojas de cálculo y procesos manuales. Preparar reportes toma tiempo y las decisiones llegan tarde.',
+      fragmentado: {
+        eyebrow: 'INFORMACIÓN FRAGMENTADA',
+        hoy: 'HOY',
+        filas: [
+          { archivo: 'Ventas_agosto_v4.xlsx', estado: 'Actualizado a mano' },
+          { archivo: 'Costos_actualizados.xlsx', estado: 'Versión anterior' },
+          { archivo: 'Reporte semanal', estado: 'Armado manual' },
+          { archivo: 'Inventario_final.xlsx', estado: 'Dos versiones' },
+        ],
+      },
+      centralizado: {
+        eyebrow: 'INTELIGENCIA FINANCIERA CENTRALIZADA',
+        titulo: 'Información centralizada y unificada',
+        colInfo: 'Información',
+        colEstado: 'Estado',
+        sincronizado: 'Sincronizado',
+        filas: [
+          { info: 'Ventas', estado: 'Organizado' },
+          { info: 'Costo', estado: 'Organizado' },
+          { info: 'Inventario', estado: 'Organizado' },
+          { info: 'Rentabilidad', estado: 'Organizado' },
+        ],
+        pie: 'Una sola visión de tu negocio, más clara y fácil de entender.',
+      },
+    },
+    como: {
+      eyebrow: '¿CÓMO FUNCIONA?',
+      title: 'Tres pasos entre tus datos y tu decisión.',
+      flujo: { datos: 'Tus datos', macha: 'Macha Finance', insights: 'Insights y decisiones' },
+      pasos: [
+        {
+          titulo: 'Centraliza tus datos.',
+          desc: 'Carga tu información desde Excel, utiliza las plantillas de Macha o ingresa los datos de forma manual.',
+        },
+        {
+          titulo: 'Macha los analiza.',
+          desc: 'Macha organiza y analiza tu información para convertir los datos en indicadores claros.',
+        },
+        {
+          titulo: 'Claridad para decidir',
+          desc: 'Visualiza dashboards, insights y alertas para entender qué cambió, detectar desvíos y tomar mejores decisiones.',
+        },
+      ],
+    },
+    capacidades: {
+      eyebrow: 'QUÉ PUEDE HACER MACHA',
+      title: 'Cinco formas de entender tu negocio.',
+      items: [
+        {
+          titulo: 'Obtener insights',
+          desc: 'Detecta cambios, tendencias y datos relevantes para entender mejor qué está pasando en tu negocio.',
+          insights: [
+            {
+              titulo: 'Tu margen bruto cayó 3.2 puntos en agosto',
+              desc: 'El costo de proveedores creció más rápido que los ingresos durante el período.',
+              meta: 'Hace 12 minutos · Márgenes',
+            },
+            {
+              titulo: 'La línea Premium sostiene el crecimiento del trimestre',
+              desc: 'Aporta el 39% de las ventas con el margen más alto del catálogo.',
+              meta: 'Hoy · Ventas',
+            },
+          ],
+        },
+        {
+          titulo: 'Analizar resultados',
+          desc: 'Macha organiza y analiza la información de ventas, costos, gastos e inventario para transformarla en datos claros.',
+          insights: [
+            {
+              titulo: 'Tus ventas muestran una tendencia positiva',
+              desc: 'Los resultados mejoraron respecto al período anterior.',
+              meta: 'Ventas · Resultados',
+            },
+            {
+              titulo: 'Tus costos están creciendo más rápido que tus ingresos',
+              desc: 'La diferencia está reduciendo la rentabilidad del negocio.',
+              meta: 'Costos · Resultados',
+            },
+          ],
+        },
+        {
+          titulo: 'Identificar oportunidades',
+          desc: 'Identifica productos, categorías o áreas con potencial para crecer, mejorar márgenes o aumentar rentabilidad.',
+          insights: [
+            {
+              titulo: 'Hay áreas con mayor potencial de crecimiento',
+              desc: 'El análisis permite identificar dónde se están generando mejores oportunidades.',
+              meta: 'Crecimiento · Oportunidades',
+            },
+            {
+              titulo: 'Existe potencial para mejorar los márgenes',
+              desc: 'Macha identifica áreas donde el rendimiento puede optimizarse.',
+              meta: 'Rentabilidad · Oportunidades',
+            },
+          ],
+        },
+        {
+          titulo: 'Automatizar reportes',
+          desc: 'Genera automáticamente reportes claros y a medida, sin perder tiempo preparando información.',
+          insights: [
+            {
+              titulo: 'Tu reporte está listo',
+              desc: 'La información fue organizada automáticamente para facilitar su análisis.',
+              meta: 'Reportes · Automatización',
+            },
+            {
+              titulo: 'Reporte actualizado',
+              desc: 'Los principales indicadores están organizados en una misma vista.',
+              meta: 'Reportes · Información',
+            },
+          ],
+        },
+        {
+          titulo: 'Detectar cambios importantes',
+          desc: 'Recibe alertas cuando Macha identifica variaciones relevantes en ventas, costos, inventario o márgenes.',
+          insights: [
+            {
+              titulo: 'Se detectó una variación en tus costos',
+              desc: 'Macha identificó un cambio relevante respecto al período anterior.',
+              meta: 'Costos · Alerta',
+            },
+            {
+              titulo: 'Tus ventas presentan un cambio relevante',
+              desc: 'La variación fue detectada para que puedas analizar qué está ocurriendo.',
+              meta: 'Ventas · Alerta',
+            },
+          ],
+        },
+      ],
+    },
+    asesor: {
+      eyebrow: 'TU CFO CON IA',
+      title: 'Tu negocio tiene preguntas. Macha tiene contexto.',
+      subtitle:
+        'Pregunta en lenguaje natural. Macha responde con tus propios números, explica el porqué y te ayuda a decidir.',
+      preguntas: [
+        {
+          q: '¿Por qué bajó mi margen este mes?',
+          a: 'Tu margen bruto pasó de 41.1% a 38.6%. La principal variación proviene del aumento en costos de proveedores.',
+        },
+        {
+          q: '¿Qué producto es más rentable?',
+          a: 'La Línea Premium es tu producto más rentable y también concentra el mayor volumen de ventas.',
+        },
+        {
+          q: '¿Dónde están aumentando mis costos?',
+          a: 'El mayor aumento se concentra en proveedores e insumos, lo que está impactando directamente tu margen.',
+        },
+      ],
+    },
+    automatizacion: {
+      eyebrow: 'AUTOMATIZACIÓN E INTELIGENCIA',
+      title: 'Lo que tomaba horas, ahora ocurre en segundos.',
+      subtitle:
+        'Macha analiza tus indicadores, genera reportes y detecta cambios relevantes para que puedas actuar a tiempo.',
+      etapas: [
+        { titulo: 'Cambios en ventas', sub: 'Semanal' },
+        { titulo: 'Aumentos de costos', sub: 'Detección' },
+        { titulo: 'Variaciones de margen', sub: 'Análisis' },
+        { titulo: 'Reportes automáticos', sub: 'Generación' },
+      ],
+      panel: {
+        titulo: 'Alertas',
+        items: [
+          {
+            titulo: 'Costo de proveedores +14.6%',
+            desc: 'Los costos de proveedores aumentaron frente al período anterior.',
+          },
+          {
+            titulo: 'Ventas de mayoreo -2.1%',
+            desc: 'Las ventas registraron una variación negativa frente al período anterior.',
+          },
+          {
+            titulo: 'Reporte generado',
+            desc: 'El reporte del período está listo para consultar.',
+            meta: 'Reportes',
+          },
+        ],
+      },
+    },
+    antesDespues: {
+      eyebrow: 'ANTES Y DESPUÉS CON MACHA',
+      title: 'La misma información, otra forma de trabajar.',
+      antesEyebrow: 'ANTES DE MACHA',
+      conEyebrow: 'CON MACHA',
+      pares: [
+        { antes: 'Información dispersa', con: 'Información centralizada' },
+        { antes: 'Reportes manuales', con: 'Automatización' },
+        { antes: 'Datos difíciles de interpretar', con: 'Insights claros' },
+        { antes: 'Cambios detectados tarde', con: 'Alertas oportunas' },
+      ],
+    },
+    seguridad: {
+      eyebrow: 'SEGURIDAD',
+      title: 'Tus datos son tuyos. Siempre.',
+      items: [
+        {
+          titulo: 'Conexiones seguras',
+          desc: 'Macha se conecta a tus fuentes mediante conexiones cifradas.',
+        },
+        { titulo: 'Información cifrada', desc: 'Tus datos viajan y se almacenan cifrados.' },
+        {
+          titulo: 'Acceso controlado',
+          desc: 'Tú defines quién de tu equipo ve qué información.',
+        },
+        {
+          titulo: 'Sin terceros',
+          desc: 'Tu información financiera no se comparte con terceros.',
+        },
+      ],
+    },
+    planes: {
+      eyebrow: 'PLANES',
+      title: 'Un plan según tu operación.',
+      nota: 'Definimos el alcance en la demo, según tus fuentes de datos y el tamaño de tu equipo.',
+      cta: 'Solicitar demo',
+      items: [
+        {
+          nombre: 'Emprendedor',
+          para: 'Para negocios que empiezan a ordenar sus finanzas.',
+          incluye: ['Dashboard financiero', 'Insights automáticos', 'Conexión con Excel'],
+        },
+        {
+          nombre: 'Empresa',
+          para: 'Para operaciones con varias fuentes de datos y equipos.',
+          incluye: [
+            'Todo lo de Emprendedor',
+            'Conexión con ERP y bancos',
+            'Reportes y alertas automáticas',
+            'Accesos por usuario',
+          ],
+        },
+        {
+          nombre: 'Personalizado',
+          para: 'Para grupos con necesidades específicas de integración.',
+          incluye: [
+            'Integraciones a medida',
+            'Modelos y reportes propios',
+            'Acompañamiento dedicado',
+          ],
+        },
+      ],
+    },
+    faq: {
+      eyebrow: 'PREGUNTAS FRECUENTES',
+      title: 'Antes de la demo.',
+      items: [
+        {
+          q: '¿Qué es Macha Finance?',
+          a: 'Una plataforma de inteligencia financiera con IA. Centraliza la información financiera y operativa de tu negocio y la convierte en indicadores, insights y reportes claros.',
+        },
+        {
+          q: '¿Qué datos necesito para empezar?',
+          a: 'Principalmente, información de ventas, costos y gastos desde Excel o tu ERP. También puedes incorporar inventario.',
+        },
+        {
+          q: '¿Funciona con mi Excel y mi ERP?',
+          a: 'Sí. Puedes cargar información desde Excel y, dependiendo de tu sistema, conectar Macha con tu ERP.',
+        },
+        {
+          q: '¿Cuánto tarda la implementación?',
+          a: 'Depende de la cantidad y estructura de tus datos. Con archivos de Excel organizados puedes comenzar rápidamente.',
+        },
+        {
+          q: '¿Cómo se protege mi información?',
+          a: 'Tu información se mantiene separada por empresa y con accesos controlados. Macha utiliza conexiones cifradas.',
+        },
+        {
+          q: '¿Qué acompañamiento recibo?',
+          a: 'Te acompañamos durante la configuración inicial, la organización de tus datos y la puesta en marcha.',
+        },
+      ],
+    },
     cta: {
       title: 'Empieza a entender mejor tu negocio.',
       subtitle: 'Descubre cómo Macha puede convertir tus datos en decisiones más claras.',
