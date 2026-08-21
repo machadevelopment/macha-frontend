@@ -19,9 +19,23 @@ import { handleAuth } from '@workos-inc/authkit-nextjs';
  * Ahora se redirige a `/` con `?auth_error=1`, que la landing traduce a un mensaje del
  * diccionario junto al botón de entrar, así el usuario puede reintentar en el sitio.
  * El error real va a Sentry: el usuario no necesita el detalle, nosotros sí.
+ *
+ * ═══ `returnPathname` APUNTA A `/continue`, NO A `/` (2026-08-21) ═══
+ *
+ * Decía `/` con la nota "coincide con el único destino que existe hoy en F1", y era cierto
+ * mientras `/` cumplía dos papeles: portada pública Y enrutador de post-login. Cuando `/` pasó
+ * a ser la landing (pedido de Keneth), dejar esto en `/` habría producido un fallo silencioso y
+ * de los peores: el usuario se autentica correctamente, aterriza en la portada de marketing, y
+ * **no pasa nada visible**. Ninguna señal de haber entrado, ningún error, ningún log.
+ *
+ * `/continue` es la bifurcación: manda a `/dashboard`, ofrece la invitación pendiente o lleva a
+ * registrar la empresa, según el caso. Ver `app/continue/page.tsx`.
+ *
+ * El camino de ERROR sigue yendo a `/` a propósito: quien no logró entrar no tiene nada que
+ * bifurcar, y la portada es donde puede volver a intentarlo.
  */
 export const GET = handleAuth({
-  returnPathname: '/',
+  returnPathname: '/continue',
   onError: ({ error, request }: { error?: unknown; request: NextRequest }) => {
     Sentry.captureException(error ?? new Error('AuthKit callback falló sin excepción'), {
       tags: { area: 'auth', route: 'callback' },
