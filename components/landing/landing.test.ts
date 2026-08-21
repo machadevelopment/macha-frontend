@@ -161,3 +161,123 @@ describe('la landing usa los tokens de tipografía medidos, no tamaños sueltos'
     }
   });
 });
+
+describe('las BANDAS de fondo — el reporte de "hay partes que tienen color negro"', () => {
+  /*
+   * ═══ QUÉ PROTEGE ESTE BLOQUE ═══
+   *
+   * La primera versión de la landing metía las catorce secciones en un contenedor de 1170px
+   * separadas por `gap`, sin una sola banda de fondo. Se veía como un documento y le faltaba la
+   * única sección que en el diseño cambia de tinta.
+   *
+   * Los tonos salen de MEDIR el frame del Figma (la tabla está en `banda.tsx`). Es un dato que no
+   * se puede deducir del código ni recuperar sin volver a la API de Figma, así que vive acá.
+   */
+  const TONOS_MEDIDOS = [
+    'lienzo', // hero
+    'sutil', // por qué existe        #F9F9F9
+    'lienzo', // cómo funciona
+    'sutil', // el producto           #F9F9F9
+    'lienzo', // capacidades
+    'tinta', // el asesor con IA      #191919
+    'lienzo', // automatización
+    'sutil', // antes y después       #F9F9F9
+    'lienzo', // seguridad
+    'sutil', // planes                #F9F9F9
+    'lienzo', // preguntas frecuentes
+    'sutil', // cierre                #F9F9F9
+  ];
+
+  /** Los tonos en el orden en que la página los monta. `<Banda>` sin `tono` es `lienzo`. */
+  function tonosDeLaPagina(): string[] {
+    const code = leerCodigo('app/page.tsx');
+    return [...code.matchAll(/<Banda\b([^>]*)>/g)].map(
+      (m) => m[1]!.match(/tono="([a-z]+)"/)?.[1] ?? 'lienzo',
+    );
+  }
+
+  test('la secuencia de fondos es la que se midió en el Figma', () => {
+    expect(tonosDeLaPagina()).toEqual(TONOS_MEDIDOS);
+  });
+
+  test('hay EXACTAMENTE una banda oscura', () => {
+    /*
+     * Una sola, y es la del asesor. Dos secciones oscuras romperían el ritmo alternado que hace
+     * legible la página y gastarían el énfasis que esa sección tiene por ser la única.
+     */
+    expect(tonosDeLaPagina().filter((t) => t === 'tinta')).toHaveLength(1);
+  });
+
+  test('el tono oscuro se consigue con `.inverse`, no con un color a mano', () => {
+    /*
+     * `.inverse` redefine `--surface`/`--ink`/`--border` hacia adentro, así que los componentes de
+     * la sección siguen usando `text-foreground` sin saber que están sobre negro. Un `bg-[#191919]`
+     * pintaría el fondo y dejaría el texto en tinta oscura sobre tinta oscura.
+     */
+    const banda = leerCodigo('components/landing/banda.tsx');
+    expect(banda).toContain('inverse');
+    expect(banda).toContain('bg-muted');
+  });
+
+  test('ningún componente de la landing escribe un color literal', () => {
+    /*
+     * Los hex medidos del Figma (#F9F9F9, #191919) están en los COMENTARIOS de `banda.tsx` como
+     * registro de la medición — de ahí que se lea el código sin comentarios. Lo que no puede
+     * aparecer es un hex en una clase: no tiene contraparte en tema oscuro, y el visitante que
+     * tiene el sistema en oscuro vería un bloque blanco donde va una banda gris.
+     */
+    for (const f of [
+      'banda.tsx',
+      'landing-nav.tsx',
+      'landing-hero.tsx',
+      'landing-secciones.tsx',
+      'landing-acordeones.tsx',
+      'landing-asesor.tsx',
+      'landing-producto.tsx',
+      'landing-cta.tsx',
+      'landing-footer.tsx',
+    ]) {
+      expect(leerCodigo(`components/landing/${f}`), f).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    }
+  });
+
+  test('el nav va FIJO, que es lo que hace que su fondo translúcido signifique algo', () => {
+    /*
+     * El diseño le da fondo blanco al 72 %: el contenido se ve pasar por detrás. Sobre una barra
+     * que se va con el scroll ese efecto no se ve nunca, así que quitar el `sticky` no rompe nada
+     * visible y deja el diseño a medias.
+     *
+     * Y el desenfoque tiene que traer su respaldo opaco: sin `backdrop-filter`, un blanco al 72 %
+     * deja leer el texto de abajo A TRAVÉS de los enlaces del nav.
+     */
+    const nav = leerCodigo('components/landing/landing-nav.tsx');
+    expect(nav).toContain('sticky');
+    expect(nav).toContain('backdrop-blur');
+    expect(nav).toMatch(/supports-\[not\(backdrop-filter/);
+  });
+});
+
+describe('el asesor es un selector, no tres respuestas apiladas', () => {
+  test('es un tablist con flechas de teclado', () => {
+    /*
+     * Lo había construido mostrando las tres preguntas con su respuesta a la vez. El diseño son
+     * tres chips y UN panel — y cuál chip está activo es una de las tres cosas que varían entre
+     * los 16 frames del Figma, o sea que los frames están especificando justamente ese estado.
+     *
+     * Tres botones que cambian un panel es el patrón de pestañas, y si se anuncia como pestañas
+     * hay que darle las flechas: media implementación es peor que ninguna, porque el lector de
+     * pantalla dice "pestaña 1 de 3" —le indica al usuario que use las flechas— y entonces las
+     * flechas tienen que responder.
+     */
+    const code = leerCodigo('components/landing/landing-asesor.tsx');
+    expect(code).toContain('role="tablist"');
+    expect(code).toContain('role="tab"');
+    expect(code).toContain('role="tabpanel"');
+    expect(code).toContain('aria-selected');
+    expect(code).toContain('ArrowRight');
+    expect(code).toContain('ArrowLeft');
+    // El foco tiene que seguir a la selección, o la flecha siguiente se mueve desde donde quedó
+    // el foco y el recorrido se vuelve impredecible.
+    expect(code).toContain('.focus()');
+  });
+});

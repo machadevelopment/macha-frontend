@@ -540,7 +540,6 @@ export interface Dictionary {
     cta: { title: string; subtitle: string; demo: string };
     footer: {
       tagline: string;
-      email: string;
       privacidad: string;
       terminos: string;
       datos: string;

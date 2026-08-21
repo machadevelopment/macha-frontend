@@ -741,7 +741,6 @@ export const es: Dictionary = {
     },
     footer: {
       tagline: 'Inteligencia financiera impulsada por IA.',
-      email: 'contact@machafinance.com',
       privacidad: 'Aviso de privacidad',
       terminos: 'Términos',
       datos: 'Política de datos',

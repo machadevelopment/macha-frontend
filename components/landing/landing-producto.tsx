@@ -15,7 +15,7 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
 export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
   const t = labels.producto;
   return (
-    <section className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-4 app:flex-row app:items-end app:justify-between">
         <div className="flex flex-col gap-4">
           <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
@@ -26,11 +26,24 @@ export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
         <p className="max-w-[52ch] text-body text-muted-foreground">{t.subtitle}</p>
       </div>
 
-      {/* Etiquetas, no pestañas: ver la nota de arriba. `aria-hidden` porque no aportan
-          información a quien no ve la imagen — describen lo que el mockup NO muestra. */}
-      <ul aria-hidden className="flex flex-wrap gap-6">
-        {t.pestanas.map((p) => (
-          <li key={p} className="text-[18px] font-light text-faint">
+      {/*
+        Etiquetas, no pestañas: ver la nota de arriba. `aria-hidden` porque no aportan información
+        a quien no ve la imagen — describen vistas que el mockup NO muestra.
+
+        La primera va subrayada y en tinta plena porque es la que la captura está mostrando. Sin
+        esa marca, cinco etiquetas iguales sobre una sola imagen se leen como cinco cosas que la
+        imagen contiene, cuando el mockup es solo la primera.
+      */}
+      <ul aria-hidden className="flex flex-wrap gap-7 border-b border-border">
+        {t.pestanas.map((p, i) => (
+          <li
+            key={p}
+            className={
+              i === 0
+                ? '-mb-px border-b border-foreground pb-3 text-[17px] font-normal text-foreground'
+                : 'pb-3 text-[17px] font-light text-faint'
+            }
+          >
             {p}
           </li>
         ))}
@@ -45,6 +58,6 @@ export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
           className="h-auto w-full"
         />
       </div>
-    </section>
+    </div>
   );
 }
