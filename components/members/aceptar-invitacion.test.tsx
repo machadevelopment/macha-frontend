@@ -183,6 +183,22 @@ describe('panel de aceptación', () => {
 const raiz = join(import.meta.dir, '..', '..');
 const leer = (rel: string) => readFileSync(join(raiz, rel), 'utf8');
 
+/**
+ * El archivo SIN comentarios, para las aserciones NEGATIVAS.
+ *
+ * Un `not.toContain('memberships')` sobre el fuente completo falla en cuanto un comentario
+ * menciona la palabra para explicar por qué eso NO está ahí — y ese comentario es justamente lo
+ * que evita que alguien lo reintroduzca. Un chequeo negativo tiene que mirar CÓDIGO, no prosa.
+ *
+ * Los tests de más abajo ya hacían este `replace` a mano cada uno. Extraerlo es lo que hace que
+ * el próximo no se olvide: acá se olvidó, y el test pasó a acusar al comentario en vez al código.
+ */
+const leerCodigo = (rel: string) =>
+  leer(rel)
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '')
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+
 describe('el camino del invitado nunca pasa por crear una empresa', () => {
   test('la pantalla de invitación vive FUERA del grupo (app)', () => {
     // Dentro de `(app)` el layout exige sesión, así que el enlace del correo mandaba
@@ -218,11 +234,30 @@ describe('el camino del invitado nunca pasa por crear una empresa', () => {
     expect(code).toContain('getSignUpUrl');
   });
 
-  test('/ ofrece la invitación antes que el alta cuando el usuario no tiene empresa', () => {
-    // Era la trampa: sin membresías, la única salida visible era "Registrar mi empresa",
-    // y el invitado sin token es exactamente un usuario sin membresías.
-    const code = leer('app/page.tsx');
+  test('el post-login ofrece la invitación antes que el alta cuando no hay empresa', () => {
+    /*
+     * Era la trampa: sin membresías, la única salida visible era "Registrar mi empresa", y el
+     * invitado sin token es exactamente un usuario sin membresías.
+     *
+     * La bifurcación vivía en `app/page.tsx` y se mudó a `app/continue/page.tsx` el 2026-08-21,
+     * cuando `/` pasó a ser la landing pública. Lo que se protege no cambió — el ORDEN de las
+     * dos salidas—, así que este test siguió al código en vez de relajarse.
+     */
+    const code = leer('app/continue/page.tsx');
     expect(code).toContain('href="/invitations/accept"');
     expect(code.indexOf('accept.pendingCta')).toBeLessThan(code.lastIndexOf('/register'));
+  });
+
+  test('la landing NO decide nada del post-login', () => {
+    /*
+     * La otra mitad de la mudanza, y la que evita que vuelva a mezclarse: si alguien reintroduce
+     * la lógica de membresías en `/`, la landing vuelve a depender del backend —una caída de
+     * Railway se llevaría la portada del producto— y quien tenga sesión dejaría de ver la
+     * landing, que es justo lo que se pidió.
+     */
+    const landing = leerCodigo('app/page.tsx');
+    expect(landing).not.toContain('memberships');
+    expect(landing).not.toContain('/invitations/pending');
+    expect(landing).not.toMatch(/redirect\(['"]\/dashboard/);
   });
 });
