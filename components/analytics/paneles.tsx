@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { chartColors } from '@/components/charts/chart-theme';
-import { TrendArea } from '@/components/charts/chart-primitives';
+import { CHART_HEIGHT, TrendArea } from '@/components/charts/chart-primitives';
 import { formatDateAxis, formatMoney, formatNumber, formatPct } from '@/lib/format';
 import { agruparSerieDeTendencia } from '@/lib/metrics/series-grouping';
 import type {
@@ -113,7 +113,7 @@ export function PanelTendencia({
   labels,
   kpiLabels,
   deltaIngreso,
-  alto = 'h-80',
+  alto = CHART_HEIGHT.area,
 }: {
   metricas: PeriodMetricsResponse;
   puntos: PuntoDeSerie[];
@@ -142,6 +142,25 @@ export function PanelTendencia({
           </span>
         )}
       </div>
+      {/*
+        ═══ ESTA GRÁFICA VA SIN EJE Y, Y NO ES UN RECORTE ═══
+
+        El prototipo la dibuja con `<YAxis hide>` (`Analytics.tsx`), y acá el argumento ya
+        estaba escrito cuatro párrafos arriba: la cifra del período corona la gráfica, así que
+        la curva solo tiene que explicar la FORMA. El eje repetía en cinco etiquetas
+        —`USD 30K`, `USD 22.5K`, …— una magnitud que el título ya da exacta y completa.
+
+        Lo que se gana es medible: cinco textos menos de cromo y los 64px de ancho que
+        `yAxisWidth` reservaba, que en el Resumen (donde comparte fila con los productos) es
+        justo el ancho que le faltaba a la curva para no verse alta y apretada.
+
+        Y no deja a nadie sin los números: las tablas accesibles equivalentes de esta misma
+        pantalla traen la serie completa, que es lo que un lector de pantalla lee de todos
+        modos —un SVG de Recharts no se puede leer.
+
+        `PanelFlujo` SÍ conserva su eje: en el Resumen no lleva cifra coronándola, así que ahí
+        el eje es la única referencia de magnitud que hay.
+      */}
       <TrendArea
         className={`mt-4 ${alto}`}
         data={puntos}
@@ -151,7 +170,7 @@ export function PanelTendencia({
         currency={moneda}
         locale={locale}
         showLegend={false}
-        yAxisWidth={64}
+        showYAxis={false}
       />
     </Card>
   );
@@ -169,7 +188,7 @@ export function PanelFlujo({
   moneda,
   locale,
   labels,
-  alto = 'h-64',
+  alto = CHART_HEIGHT.areaWide,
   resumen,
 }: {
   puntos: PuntoDeSerie[];

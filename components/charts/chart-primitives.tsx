@@ -43,6 +43,68 @@ import type { Locale } from '@/lib/i18n/config';
  * `chartColors`, porque el color señala estado del dato y eso depende de qué mide la serie.
  */
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * ALTOS DE GRÁFICA — MEDIDOS CONTRA EL PROTOTIPO, NO ELEGIDOS
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Jose reportó (2026-08-20) que las gráficas de Analítica se ven "mucho más grandes" que las
+ * del prototipo. El reporte apuntaba al RELLENO del área; medido, el relleno no era.
+ *
+ * ═══ LO QUE SÍ ERA: EL ALTO, Y NO ESTABA DONDE EL TICKET LO BUSCÓ ═══
+ *
+ * Medición contra `juanrodriguezbz/mvp-macha`, `src/pages/Analytics.tsx`:
+ *
+ *   pieza                        prototipo     nuestro (antes)     diferencia
+ *   ───────────────────────────  ───────────   ─────────────────   ──────────
+ *   tendencia, junto a otro      240px         h-80 = 320px        +33 %
+ *   tendencia, en su propio tab  240px         h-96 = 384px        +60 %
+ *   flujo de caja                260px         h-64 = 256px        ya coincidía
+ *   barras                       320px         —                   —
+ *
+ * El `h-96` de los tabs es el que produjo la captura del reporte: 384px con los mismos datos
+ * es una forma un 60 % más alta. El prototipo no tiene NINGUNA área por encima de 260px; sus
+ * 320 son para barras, que es otra pieza.
+ *
+ * ═══ POR QUÉ LA HIPÓTESIS DEL RELLENO ERA FALSA (verificado en el dist instalado) ═══
+ *
+ * `@tremor/react/dist/.../AreaChart.js` emite, con `showGradient`:
+ *     <stop offset="5%"  stopOpacity={0.4} />
+ *     <stop offset="95%" stopOpacity={0} />
+ * El prototipo usa `0.35 → 0`. O sea: prácticamente lo mismo, y en los dos casos el área se
+ * desvanece hasta cero abajo. El `stopOpacity: 0.3` que se puede encontrar en ese archivo es
+ * la rama SIN gradiente (relleno plano), que no es la nuestra.
+ *
+ * Se deja anotado porque la próxima persona que lea el ticket va a querer bajar la opacidad, y
+ * eso sería aclarar un área que ya está igual que la referencia, a cambio de nada.
+ *
+ * ═══ TAMPOCO ES EL GROSOR DE LÍNEA ═══
+ *
+ * Tremor traza con `strokeWidth: 2`; el prototipo usa `2.5` en su tendencia. La nuestra ya es
+ * MÁS FINA que la referencia: subirla iría en la dirección contraria al reporte.
+ *
+ * Los valores son clases de Tailwind y no píxeles sueltos porque el alto lo aplica el
+ * `className` del chart. `h-60` = 240px, `h-64` = 256px, `h-80` = 320px.
+ */
+export const CHART_HEIGHT = {
+  /**
+   * Área que comparte fila con otro panel. Prototipo: 240px.
+   *
+   * Es el caso del Resumen, donde la tendencia va al lado de la lista de productos: la gráfica
+   * tiene menos ancho, y una forma alta y angosta es exactamente la que se lee como "pesada".
+   */
+  area: 'h-60',
+  /**
+   * Área a ancho completo, en su propio tab. Prototipo: 260px (su máximo para un área).
+   *
+   * Que sea apenas 16px más que `area` es el punto: antes eran 144px más. Una gráfica que manda
+   * en su pantalla gana presencia por el ANCHO que ya tiene, no estirándose hacia abajo.
+   */
+  areaWide: 'h-64',
+  /** Barras. Prototipo: 320px — más que un área a propósito, cada barra necesita alto propio. */
+  bars: 'h-80',
+} as const;
+
 /** Toda cifra de estos charts es dinero, y el formato es locale-aware (`lib/format`). */
 type ConMoneda<P> = P & { currency: 'GTQ' | 'USD'; locale: Locale };
 

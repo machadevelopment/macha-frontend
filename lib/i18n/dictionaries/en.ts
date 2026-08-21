@@ -246,6 +246,10 @@ export const en: Dictionary = {
       colCreated: 'Created',
     },
     stagingRows: {
+      intro:
+        "When a client uploads their spreadsheet, the AI classifies every row. The ones it isn't sure about land here and do NOT enter their books until someone resolves them: while they sit in this list, they're missing from the client's dashboard.",
+      introScope:
+        'Anything that is a NAMING problem — not knowing which category a concept belongs to — is answered by the client during their own upload. What reaches this queue is what no category fixes: an unreadable date, an amount that makes no sense, a row that maybe should not go in at all.',
       eyebrow: 'INGESTION',
       title: 'Flagged rows',
       empty: 'No rows pending review.',

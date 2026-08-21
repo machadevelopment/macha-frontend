@@ -142,16 +142,48 @@ export function StagingRowsPanel({
     reload();
   }
 
-  if (state.status === 'loading') return null;
+  /*
+   * ═══ EL MARCO DE LA PANTALLA VA ANTES DE TODOS LOS RETURNS (2026-08-20) ═══
+   *
+   * Jose: "está muy compleja, no se logra entender qué tiene que hacer el equipo de MACHA
+   * ahí". Cada FILA ya se explicaba sola; lo que faltaba era la COLA.
+   *
+   * Y va arriba de los cortes por estado a propósito, porque el caso que más necesita
+   * contexto es el que antes se quedaba sin ninguno: **la cola vacía**. Alguien entraba, leía
+   * "Sin filas pendientes de revisión" y no tenía forma de saber si eso significaba que la
+   * pantalla estaba rota, que no le tocaba nada, o que todavía no había cargado. Es el estado
+   * más frecuente de una cola sana y era el único sin explicación.
+   */
+  const marco = (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-body text-muted-foreground">{labels.intro}</p>
+      {/* Qué NO le toca a este equipo. Va en su propio párrafo porque es la mitad que evita
+          trabajo de más, no la que explica el trabajo. */}
+      <p className="text-body text-faint">{labels.introScope}</p>
+    </div>
+  );
+
+  if (state.status === 'loading') return marco;
   if (state.status === 'error')
-    return <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />;
+    return (
+      <div className="flex flex-col gap-3">
+        {marco}
+        <AdminLoadError error={state.error} labels={common.loadError} onRetry={reload} />
+      </div>
+    );
 
   const rows = state.items;
-  if (rows.length === 0) return <p className="text-body text-muted-foreground">{labels.empty}</p>;
+  if (rows.length === 0)
+    return (
+      <div className="flex flex-col gap-3">
+        {marco}
+        <p className="text-body text-muted-foreground">{labels.empty}</p>
+      </div>
+    );
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-body text-muted-foreground">{labels.instructions}</p>
+      {marco}
 
       {rows.map((row) => (
         <Card key={row.id}>
@@ -168,6 +200,16 @@ export function StagingRowsPanel({
           </div>
 
           <MotivoDelMarcado flagReason={row.flagReason} labels={labels} />
+
+          {/*
+            `instructions` ("Revisa ESTA fila: corrige lo que esté mal y apruébala…") se movió
+            acá desde el encabezado de la pantalla. El texto no cambió —el ticket pide
+            conservarlo— pero arriba de una lista de veinte filas decía "esta fila" sin que
+            hubiera una: era una instrucción de acción ocupando el lugar del marco general, que
+            es lo que faltaba. Junto a los campos y los botones de SU tarjeta, el "esta" tiene
+            a qué referirse.
+          */}
+          <p className="mt-3 text-body text-muted-foreground">{labels.instructions}</p>
 
           <StagingRowFields
             targetEntity={row.targetEntity}
