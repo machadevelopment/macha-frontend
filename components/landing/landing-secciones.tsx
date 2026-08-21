@@ -38,11 +38,11 @@ function Encabezado({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">{eyebrow}</p>
+      <p className="text-leyebrow uppercase text-muted-foreground">{eyebrow}</p>
       <h2 className="text-section text-foreground" style={{ maxWidth: ancho }}>
         {title}
       </h2>
-      {subtitle && <p className="mt-2 max-w-[74ch] text-body text-muted-foreground">{subtitle}</p>}
+      {subtitle && <p className="mt-2 max-w-[74ch] text-lsub text-muted-foreground">{subtitle}</p>}
     </div>
   );
 }
@@ -60,9 +60,9 @@ function EncabezadoPartido({
   ancho?: string;
 }) {
   return (
-    <div className="flex flex-col gap-6 app:flex-row app:items-end app:justify-between app:gap-16">
+    <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-16">
       <Encabezado eyebrow={eyebrow} title={title} ancho={ancho} />
-      <p className="max-w-[46ch] text-body text-muted-foreground app:pb-2">{subtitle}</p>
+      <p className="max-w-[46ch] text-lsub text-muted-foreground md:pb-2">{subtitle}</p>
     </div>
   );
 }
@@ -84,15 +84,11 @@ export function SeccionPorque({ labels }: { labels: L }) {
     <div className="flex flex-col gap-14">
       <Encabezado eyebrow={t.eyebrow} title={t.title} subtitle={t.subtitle} ancho="26ch" />
 
-      <div className="grid grid-cols-1 gap-5 app:grid-cols-[45fr_55fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[45fr_55fr]">
         {/* Izquierda: el problema. */}
         <div className="rounded-xl border border-border bg-card p-5">
-          <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-            {t.fragmentado.eyebrow}
-          </p>
-          <p className="mt-6 font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-            {t.fragmentado.hoy}
-          </p>
+          <p className="text-leyebrow uppercase text-faint">{t.fragmentado.eyebrow}</p>
+          <p className="mt-6 text-leyebrow uppercase text-muted-foreground">{t.fragmentado.hoy}</p>
           <ul className="mt-3 flex flex-col">
             {t.fragmentado.filas.map((f) => (
               <li
@@ -101,11 +97,11 @@ export function SeccionPorque({ labels }: { labels: L }) {
               >
                 {/* La viñeta es un punto neutro, NO el punto de marca: acá está describiendo el
                     problema, y el salvia dice "esto es Macha". */}
-                <span className="flex items-center gap-2.5 text-body text-muted-foreground">
+                <span className="flex items-center gap-2.5 text-lprose text-muted-foreground">
                   <span aria-hidden className="h-1 w-1 rounded-full bg-faint" />
                   {f.archivo}
                 </span>
-                <span className="text-micro text-faint">{f.estado}</span>
+                <span className="text-lsmall text-faint">{f.estado}</span>
               </li>
             ))}
           </ul>
@@ -115,16 +111,12 @@ export function SeccionPorque({ labels }: { labels: L }) {
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-2">
             <InsightPoint variant="figure" size="sm" className="h-4 w-4 shrink-0" />
-            <p className="text-body font-semibold text-foreground">{t.centralizado.titulo}</p>
+            <p className="text-lcard text-foreground">{t.centralizado.titulo}</p>
           </div>
 
           <div className="mt-7 grid grid-cols-[1fr_1fr_auto] items-center gap-x-4">
-            <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-              {t.centralizado.colInfo}
-            </p>
-            <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-              {t.centralizado.colEstado}
-            </p>
+            <p className="text-leyebrow uppercase text-faint">{t.centralizado.colInfo}</p>
+            <p className="text-leyebrow uppercase text-faint">{t.centralizado.colEstado}</p>
             <span />
           </div>
 
@@ -134,8 +126,8 @@ export function SeccionPorque({ labels }: { labels: L }) {
                 key={f.info}
                 className="grid grid-cols-[1fr_1fr_auto] items-center gap-x-4 border-t border-border py-3"
               >
-                <span className="text-body text-foreground">{f.info}</span>
-                <span className="text-body text-muted-foreground">{f.estado}</span>
+                <span className="text-lrow text-foreground">{f.info}</span>
+                <span className="text-lrow text-muted-foreground">{f.estado}</span>
                 {/*
                   El chip va POR FILA, no uno para toda la tarjeta como lo tenía antes. La
                   diferencia no es estética: uno arriba dice "esta tarjeta está sincronizada" —una
@@ -146,7 +138,7 @@ export function SeccionPorque({ labels }: { labels: L }) {
                   además del color: es un rótulo de estado sin flecha ni otro canal, así que le
                   aplica el chip obligatorio de la regla de los dos verdes.
                 */}
-                <span className="flex items-center gap-1.5 rounded-pill border border-success-bd bg-success-bg px-2 py-0.5 text-micro font-medium text-success">
+                <span className="flex items-center gap-1.5 rounded-pill border border-success-bd bg-success-bg px-2 py-0.5 text-lchip text-success">
                   <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
                   {t.centralizado.sincronizado}
                 </span>
@@ -154,7 +146,7 @@ export function SeccionPorque({ labels }: { labels: L }) {
             ))}
           </ul>
 
-          <p className="mt-5 flex items-start gap-2.5 border-t border-border pt-5 text-micro text-muted-foreground">
+          <p className="mt-5 flex items-start gap-2.5 border-t border-border pt-5 text-lsmall text-muted-foreground">
             <InsightPoint size="sm" className="mt-0.5 h-3 w-3 shrink-0" />
             {t.centralizado.pie}
           </p>
@@ -180,31 +172,29 @@ export function SeccionComo({ labels }: { labels: L }) {
     <div className="flex flex-col gap-12">
       <Encabezado eyebrow={t.eyebrow} title={t.title} ancho="24ch" />
 
-      <div className="hidden items-center gap-4 border-b border-border pb-5 app:flex">
-        <span className="text-[17px] font-light text-muted-foreground">{t.flujo.datos}</span>
+      <div className="hidden items-center gap-4 border-b border-border pb-5 md:flex">
+        <span className="text-[18px] font-light text-muted-foreground">{t.flujo.datos}</span>
         <span aria-hidden className="text-[15px] text-faint">
           →
         </span>
-        <span className="text-[17px] font-semibold text-foreground">{t.flujo.macha}</span>
+        <span className="text-[18px] font-semibold text-foreground">{t.flujo.macha}</span>
         <span aria-hidden className="text-[15px] text-faint">
           →
         </span>
-        <span className="text-[17px] font-light text-muted-foreground">{t.flujo.insights}</span>
+        <span className="text-[18px] font-light text-muted-foreground">{t.flujo.insights}</span>
       </div>
 
-      <ol className="grid grid-cols-1 gap-10 app:grid-cols-3 app:gap-0">
+      <ol className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-0">
         {t.pasos.map((p, i) => (
           <li
             key={p.titulo}
-            className="flex flex-col gap-3 border-t border-border pt-5 app:border-t-0 app:border-l app:pl-8 app:pt-0 app:first:border-l-0 app:first:pl-0"
+            className="flex flex-col gap-3 border-t border-border pt-5 md:border-t-0 md:border-l md:pl-8 md:pt-0 md:first:border-l-0 md:first:pl-0"
           >
-            <span className="font-mono text-micro text-faint">
-              {String(i + 1).padStart(2, '0')}
-            </span>
+            <span className="text-lnum text-faint">{String(i + 1).padStart(2, '0')}</span>
             <h3 className="text-[24px] font-normal leading-tight tracking-[-0.02em] text-foreground">
               {p.titulo}
             </h3>
-            <p className="text-body text-muted-foreground">{p.desc}</p>
+            <p className="text-lprose text-muted-foreground">{p.desc}</p>
           </li>
         ))}
       </ol>
@@ -222,17 +212,15 @@ export function SeccionComo({ labels }: { labels: L }) {
 export function SeccionAutomatizacion({ labels }: { labels: L }) {
   const t = labels.automatizacion;
   return (
-    <div className="grid grid-cols-1 gap-12 app:grid-cols-2 app:gap-16">
+    <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
       <div className="flex flex-col gap-10">
         <Encabezado eyebrow={t.eyebrow} title={t.title} subtitle={t.subtitle} ancho="18ch" />
 
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-8 app:grid-cols-4 app:gap-x-4">
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4 md:gap-x-4">
           {t.etapas.map((e) => (
             <li key={e.titulo} className="flex flex-col gap-1.5 border-t border-border pt-4">
-              <span className="text-micro font-semibold leading-snug text-foreground">
-                {e.titulo}
-              </span>
-              <span className="text-micro text-faint">{e.sub}</span>
+              <span className="text-lstage text-foreground">{e.titulo}</span>
+              <span className="text-lsmall text-faint">{e.sub}</span>
             </li>
           ))}
         </ul>
@@ -241,16 +229,16 @@ export function SeccionAutomatizacion({ labels }: { labels: L }) {
       <div className="self-start rounded-xl border border-border bg-card p-5">
         <div className="flex items-center gap-2">
           <InsightPoint variant="figure" size="sm" className="h-4 w-4 shrink-0" />
-          <p className="text-body font-semibold text-foreground">{t.panel.titulo}</p>
+          <p className="text-lcard text-foreground">{t.panel.titulo}</p>
         </div>
         <ul className="mt-2 flex flex-col">
           {t.panel.items.map((i) => (
             <li key={i.titulo} className="flex gap-3 border-t border-border py-4 last:pb-0">
               <InsightPoint size="sm" className="mt-1 h-3 w-3 shrink-0" />
               <div className="flex min-w-0 flex-col gap-1">
-                <p className="text-body font-semibold text-foreground">{i.titulo}</p>
-                <p className="text-micro text-muted-foreground">{i.desc}</p>
-                {i.meta && <p className="text-micro text-faint">{i.meta}</p>}
+                <p className="text-lstrong text-foreground">{i.titulo}</p>
+                <p className="text-lrow text-muted-foreground">{i.desc}</p>
+                {i.meta && <p className="text-lmeta text-faint">{i.meta}</p>}
               </div>
             </li>
           ))}
@@ -274,20 +262,18 @@ export function SeccionAntesDespues({ labels }: { labels: L }) {
     <div className="flex flex-col gap-12">
       <Encabezado eyebrow={t.eyebrow} title={t.title} ancho="24ch" />
 
-      <div className="grid grid-cols-1 gap-x-12 app:grid-cols-2">
-        <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-          {t.antesEyebrow}
-        </p>
-        <p className="mt-10 font-mono text-eyebrow uppercase tracking-[0.08em] text-faint app:mt-0">
+      <div className="grid grid-cols-1 gap-x-12 md:grid-cols-2">
+        <p className="text-leyebrow uppercase text-faint">{t.antesEyebrow}</p>
+        <p className="mt-10 text-leyebrow uppercase text-muted-foreground md:mt-0">
           {t.conEyebrow}
         </p>
 
         {t.pares.map((p) => (
           <div key={p.antes} className="contents">
-            <p className="border-t border-border py-6 text-[22px] font-light leading-tight tracking-[-0.02em] text-faint">
+            <p className="border-t border-border py-6 text-lline font-light text-faint">
               {p.antes}
             </p>
-            <p className="flex items-baseline gap-2.5 border-t border-border py-6 text-[22px] font-normal leading-tight tracking-[-0.02em] text-foreground">
+            <p className="flex items-baseline gap-2.5 border-t border-border py-6 text-lline font-normal text-foreground">
               <span aria-hidden className="text-[13px] text-faint">
                 ↳
               </span>
@@ -304,13 +290,13 @@ export function SeccionAntesDespues({ labels }: { labels: L }) {
 export function SeccionSeguridad({ labels }: { labels: L }) {
   const t = labels.seguridad;
   return (
-    <div className="grid grid-cols-1 gap-12 app:grid-cols-[1fr_1.15fr] app:gap-20">
+    <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_1.15fr] lg:gap-20">
       <Encabezado eyebrow={t.eyebrow} title={t.title} ancho="14ch" />
-      <ul className="grid grid-cols-1 gap-x-10 gap-y-8 app:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-x-10 gap-y-8 sm:grid-cols-2">
         {t.items.map((i) => (
           <li key={i.titulo} className="flex flex-col gap-1.5 border-t border-border pt-4">
-            <p className="text-body font-semibold text-foreground">{i.titulo}</p>
-            <p className="text-micro leading-relaxed text-muted-foreground">{i.desc}</p>
+            <p className="text-lstrong text-foreground">{i.titulo}</p>
+            <p className="text-lprose text-muted-foreground">{i.desc}</p>
           </li>
         ))}
       </ul>
@@ -350,22 +336,22 @@ export function SeccionPlanes({ labels, hrefDemo }: { labels: L; hrefDemo: strin
     <div className="flex flex-col gap-14">
       <EncabezadoPartido eyebrow={t.eyebrow} title={t.title} subtitle={t.nota} ancho="16ch" />
 
-      <div className="grid grid-cols-1 gap-12 app:grid-cols-3 app:gap-0">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 lg:gap-0">
         {t.items.map((p, i) => (
           <div
             key={p.nombre}
-            className="flex flex-col gap-5 border-t border-border pt-6 app:border-t-0 app:border-l app:px-8 app:pt-0 app:first:border-l-0 app:first:pl-0 app:last:pr-0"
+            className="flex flex-col gap-5 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:px-8 lg:pt-0 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
           >
             <div className="flex flex-col gap-2">
-              <h3 className="text-[22px] font-normal leading-tight tracking-[-0.02em] text-foreground">
+              <h3 className="text-[24px] font-normal leading-tight tracking-[-0.02em] text-foreground">
                 {p.nombre}
               </h3>
-              <p className="text-micro leading-relaxed text-muted-foreground">{p.para}</p>
+              <p className="text-lprose text-muted-foreground">{p.para}</p>
             </div>
 
             <ul className="flex flex-1 flex-col gap-2.5 border-t border-border pt-5">
               {p.incluye.map((f) => (
-                <li key={f} className="flex gap-2.5 text-micro text-foreground">
+                <li key={f} className="flex gap-2.5 text-lprose text-foreground">
                   {/* El punto de marca como viñeta. Decorativo, y el propio componente lo pone
                       `aria-hidden`: el lector de pantalla ya anuncia los items de la lista. */}
                   <InsightPoint size="sm" className="mt-1 h-1.5 w-1.5 shrink-0" />
@@ -378,8 +364,8 @@ export function SeccionPlanes({ labels, hrefDemo }: { labels: L; hrefDemo: strin
               href={hrefDemo}
               className={
                 i === destacado
-                  ? 'inline-flex items-center justify-center self-start rounded-md bg-primary px-5 py-2.5 text-micro font-semibold text-primary-foreground transition-opacity hover:opacity-90'
-                  : 'inline-flex items-center justify-center self-start rounded-md border border-border bg-canvas px-5 py-2.5 text-micro font-semibold text-foreground transition-colors hover:bg-muted'
+                  ? 'inline-flex items-center justify-center self-start rounded-md bg-primary px-5 py-2.5 text-lstrong text-primary-foreground transition-opacity hover:opacity-90'
+                  : 'inline-flex items-center justify-center self-start rounded-md border border-border bg-canvas px-5 py-2.5 text-lstrong text-foreground transition-colors hover:bg-muted'
               }
             >
               {t.cta}

@@ -53,11 +53,9 @@ export function SeccionAsesor({ labels }: { labels: Dictionary['landing'] }) {
       />
 
       <div className="relative flex flex-col gap-4">
-        <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-muted-foreground">
-          {t.eyebrow}
-        </p>
+        <p className="text-leyebrow uppercase text-muted-foreground">{t.eyebrow}</p>
         <h2 className="max-w-[18ch] text-sectionbig text-foreground">{t.title}</h2>
-        <p className="mt-2 max-w-[56ch] text-body text-muted-foreground">{t.subtitle}</p>
+        <p className="mt-2 max-w-[56ch] text-lsub text-muted-foreground">{t.subtitle}</p>
       </div>
 
       <div
@@ -89,7 +87,7 @@ export function SeccionAsesor({ labels }: { labels: Dictionary['landing'] }) {
               aria-controls="asesor-panel"
               tabIndex={esta ? 0 : -1}
               onClick={() => setActiva(i)}
-              className={`rounded-pill border px-4 py-2 text-left text-micro transition-colors ${
+              className={`rounded-pill border px-4 py-2 text-left text-lprose transition-colors ${
                 esta
                   ? 'border-border-strong bg-muted text-foreground'
                   : 'border-border text-muted-foreground hover:text-foreground'
@@ -113,10 +111,10 @@ export function SeccionAsesor({ labels }: { labels: Dictionary['landing'] }) {
         tabIndex={0}
         className="relative mt-6 max-w-[62ch] rounded-xl border border-border p-6"
       >
-        <p className="text-[19px] font-light leading-snug text-muted-foreground">{actual.q}</p>
+        <p className="text-lline font-light text-muted-foreground">{actual.q}</p>
         <div className="mt-5 flex gap-3">
           <InsightPoint size="sm" className="mt-1.5 h-2.5 w-2.5 shrink-0" />
-          <p className="text-body leading-relaxed text-foreground">{actual.a}</p>
+          <p className="text-lanswer text-foreground">{actual.a}</p>
         </div>
       </div>
     </div>

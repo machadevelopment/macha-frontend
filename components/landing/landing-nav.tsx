@@ -66,7 +66,7 @@ export function LandingNav({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-canvas/[0.72] backdrop-blur-md supports-[not(backdrop-filter:blur(0))]:bg-canvas">
-      <div className="mx-auto flex h-16 max-w-[1170px] items-center justify-between gap-4 px-6 app:px-8">
+      <div className="mx-auto flex h-16 max-w-[1170px] items-center justify-between gap-4 px-6 lg:px-8">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
@@ -81,7 +81,7 @@ export function LandingNav({
           llega a todo haciendo scroll. Un desplegable acá sería un componente con estado, foco y
           trampa de teclado para navegar a lo que ya está abajo.
         */}
-        <nav className="hidden items-center gap-7 app:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           <a
             href="#inicio"
             className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
@@ -113,7 +113,7 @@ export function LandingNav({
           {mostrarEntradaEnLanding() && (
             <a
               href="/login"
-              className="hidden text-[13px] font-semibold text-foreground transition-opacity hover:opacity-70 app:block"
+              className="hidden text-[13px] font-semibold text-foreground transition-opacity hover:opacity-70 md:block"
             >
               {common.signIn}
             </a>

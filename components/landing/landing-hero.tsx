@@ -46,15 +46,13 @@ export function LandingHero({ labels }: { labels: Dictionary['landing'] }) {
         <InsightPoint variant="ambient" className="-right-40 -top-56 h-[620px] w-[620px]" />
       </div>
 
-      <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-        {labels.hero.eyebrow}
-      </p>
+      <p className="text-leyebrow uppercase text-muted-foreground">{labels.hero.eyebrow}</p>
 
       {/* `max-w` en CARACTERES y no en píxeles: lo que hace legible un titular es cuántas
           palabras entran por línea, y eso no cambia con el tamaño de la pantalla. */}
       <h1 className="mt-5 max-w-[22ch] text-hero text-foreground">{labels.hero.title}</h1>
 
-      <p className="mt-8 max-w-[58ch] text-lead text-muted-foreground">{labels.hero.subtitle}</p>
+      <p className="mt-8 max-w-[58ch] text-lhero text-muted-foreground">{labels.hero.subtitle}</p>
 
       <div className="mt-9 flex flex-wrap items-center gap-3">
         <a

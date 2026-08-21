@@ -104,7 +104,7 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
             Color como señal de estado con texto, fondo y borde juntos (design guide). Rojo
             funcional, no marca: dice "algo salió mal", no "esto es Macha".
           */
-          <div className="mx-auto w-full max-w-[1170px] px-6 pt-6 app:px-8">
+          <div className="mx-auto w-full max-w-[1170px] px-6 pt-6 lg:px-8">
             <p
               role="alert"
               className="flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-center text-body text-danger"

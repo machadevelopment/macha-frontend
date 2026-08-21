@@ -16,14 +16,12 @@ export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
   const t = labels.producto;
   return (
     <div className="flex flex-col gap-10">
-      <div className="flex flex-col gap-4 app:flex-row app:items-end app:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex flex-col gap-4">
-          <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">
-            {t.eyebrow}
-          </p>
+          <p className="text-leyebrow uppercase text-muted-foreground">{t.eyebrow}</p>
           <h2 className="max-w-[20ch] text-section text-foreground">{t.title}</h2>
         </div>
-        <p className="max-w-[52ch] text-body text-muted-foreground">{t.subtitle}</p>
+        <p className="max-w-[52ch] text-lsub text-muted-foreground">{t.subtitle}</p>
       </div>
 
       {/*
@@ -40,8 +38,8 @@ export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
             key={p}
             className={
               i === 0
-                ? '-mb-px border-b border-foreground pb-3 text-[17px] font-normal text-foreground'
-                : 'pb-3 text-[17px] font-light text-faint'
+                ? '-mb-px border-b border-foreground pb-3 text-[18px] font-semibold text-foreground'
+                : 'pb-3 text-[18px] font-light text-faint'
             }
           >
             {p}

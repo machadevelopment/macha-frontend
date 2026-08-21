@@ -26,7 +26,9 @@ export function LandingCta({ labels }: { labels: Dictionary['landing'] }) {
         className="-top-52 left-1/2 h-[420px] w-[420px] -translate-x-1/2"
       />
       <h2 className="relative max-w-[24ch] text-sectionbig text-foreground">{labels.cta.title}</h2>
-      <p className="relative max-w-[52ch] text-lead text-muted-foreground">{labels.cta.subtitle}</p>
+      <p className="relative max-w-[52ch] text-lhero text-muted-foreground">
+        {labels.cta.subtitle}
+      </p>
       <a
         href={enlaceDemo(labels.demoAsunto)}
         className="relative mt-2 inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-[17px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"

@@ -233,6 +233,62 @@ export default {
           'clamp(17px, 1.6vw, 22px)',
           { lineHeight: '1.5', letterSpacing: '-0.01em', fontWeight: '300' },
         ],
+
+        /*
+         * ═══════════════════════════════════════════════════════════════════════════════════
+         * ESCALA DE LA LANDING — MEDIDA DEL FIGMA, NO ELEGIDA
+         * ═══════════════════════════════════════════════════════════════════════════════════
+         *
+         * Keneth pidió que la landing quedara idéntica al Figma. Extraje de la API el tamaño,
+         * el peso y el tracking de los 201 nodos de texto del frame y salió esta tabla. El
+         * hallazgo que la hace necesaria: yo había construido la landing con los tokens del
+         * PRODUCTO, y no coinciden — `micro` vale 10px y el diseño usa 12, 13, 14 o 15 según el
+         * rol. O sea que todo el texto secundario de la landing estaba entre un 20 % y un 50 %
+         * más chico de lo diseñado, y eso es la mitad de por qué "se veía distinto" aun con el
+         * contenido correcto.
+         *
+         * Los tokens del producto NO se tocan: están medidos contra el prototipo de Lovable y
+         * tienen sus propios tests (`styles/densidad-prototipo.test.ts`). La landing es otra
+         * superficie con otra escala, y mezclarlas rompería una de las dos.
+         *
+         *     rol                                  medido        token
+         *     ─────────────────────────────────────────────────────────────────────
+         *     eyebrow de sección y de tarjeta      12 / 600 / +0.14em   leyebrow
+         *     numeración 01 02 03                  14 / 300 / +0.14em   lnum
+         *     bajada del hero y del cierre         22 / 300             lhero
+         *     bajada de sección                    17 / 300             lsub
+         *     prosa: descripciones, features       15 / 300             lprose
+         *     título de insight / garantía / botón 15 / 600             lstrong
+         *     fila de tabla, desc. de insight      14 / 300             lrow
+         *     título de etapa                      14 / 600             lstage
+         *     sub de etapa, copyright, "vs julio"  13 / 300             lsmall
+         *     título de tarjeta de mockup          13 / 600             lcard
+         *     meta ("Hace 12 minutos · Márgenes")  12 / 300             lmeta
+         *     chip de estado                       12 / 600             lchip
+         *     antes/después y pregunta del asesor  26 / 300             lline
+         *     respuesta del asesor                 21 / 300             lanswer
+         *
+         * SIN `clamp()` A PROPÓSITO, al revés que los titulares: entre 12 y 26px el texto no
+         * desborda un teléfono, y escalar la prosa con la ventana la vuelve ilegible en los
+         * extremos. Los titulares sí escalan porque 88px no entran en 375px de ancho.
+         *
+         * El PESO no va en el token —salvo donde es invariable— porque el diseño usa el mismo
+         * tamaño con dos pesos según el rol (26/300 para "antes" y 26/400 para "con Macha").
+         */
+        leyebrow: ['12px', { lineHeight: '1.2', letterSpacing: '0.14em', fontWeight: '600' }],
+        lnum: ['14px', { lineHeight: '1', letterSpacing: '0.14em', fontWeight: '300' }],
+        lhero: ['22px', { lineHeight: '1.45', fontWeight: '300' }],
+        lsub: ['17px', { lineHeight: '1.5', fontWeight: '300' }],
+        lprose: ['15px', { lineHeight: '1.55', fontWeight: '300' }],
+        lstrong: ['15px', { lineHeight: '1.35', fontWeight: '600' }],
+        lrow: ['14px', { lineHeight: '1.5', fontWeight: '300' }],
+        lstage: ['14px', { lineHeight: '1.3', fontWeight: '600' }],
+        lsmall: ['13px', { lineHeight: '1.4', fontWeight: '300' }],
+        lcard: ['13px', { lineHeight: '1.3', fontWeight: '600' }],
+        lmeta: ['12px', { lineHeight: '1.4', fontWeight: '300' }],
+        lchip: ['12px', { lineHeight: '1', fontWeight: '600' }],
+        lline: ['26px', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
+        lanswer: ['21px', { lineHeight: '1.5', letterSpacing: '-0.01em', fontWeight: '300' }],
         pagetitle: ['20px', { lineHeight: '1.25', letterSpacing: '-0.02em', fontWeight: '600' }],
         cardh2: ['15px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }],
         // 12px sin tracking: el subtítulo que el prototipo cuelga del título de pantalla
