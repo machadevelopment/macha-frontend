@@ -73,13 +73,10 @@ describe('las legales se nombran pero NO se enlazan', () => {
 describe('el nav no promete secciones que no existen', () => {
   test('cada ancla del nav tiene su sección con ese id', () => {
     /*
-     * Las 9 secciones intermedias del diseño están pendientes. Mientras no existan, sus enlaces
-     * no se pintan: un nav con cuatro enlaces de los que tres no llevan a ninguna parte es peor
-     * que un nav de uno.
-     *
-     * Cuando entre una sección, se agrega su ancla acá Y en la página. Este test es lo que obliga
-     * a que las dos cosas se muevan juntas: si alguien agrega la sección y olvida el ancla, el
-     * enlace nunca aparece; si agrega el ancla sin la sección, el enlace no lleva a nada.
+     * El nav solo pinta las anclas que la página le pasa, y este test obliga a que las dos cosas
+     * se muevan juntas: si alguien agrega la sección y olvida el ancla, el enlace nunca aparece;
+     * si agrega el ancla sin la sección, el enlace no lleva a nada — y eso último no falla en
+     * ninguna parte, solo deja un enlace del nav que no hace nada al apretarlo.
      */
     const page = leerCodigo('app/page.tsx');
     const anclas = page.match(/anclas=\{\[([\s\S]*?)\]\}/)?.[1] ?? null;

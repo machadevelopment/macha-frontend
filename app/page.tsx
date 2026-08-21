@@ -26,10 +26,9 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  * Pedido de Keneth, 2026-08-21: `macha.finance` es la landing, el botón de entrar oculto por
  * ahora, y `macha.finance/login` como puerta del equipo.
  *
- * El diseño sale del Figma `4aOl3snsDmFRsRQdOGM8z2`, leído por la API (frame `4:218`). Los 16
- * frames de ese archivo NO son variantes a elegir: son 16 importaciones del mismo HTML con ruido
- * entre iteraciones — comparados por contenido, las diferencias son de una a veinticuatro líneas
- * sobre 244, del tipo "Obtener insights" contra "Obtener Insights".
+ * El diseño sale del Figma `4aOl3snsDmFRsRQdOGM8z2`, leído por la API. Los 16 frames de ese
+ * archivo NO son variantes a elegir ni copias: son la MISMA página con un item distinto abierto en
+ * los acordeones, o sea la especificación completa de esos dos estados. Ver más abajo.
  *
  * ═══ ESTA RUTA HACÍA DOS TRABAJOS Y AHORA HACE UNO ═══
  *
