@@ -149,6 +149,7 @@ export const en: Dictionary = {
       invalidJson: 'The value is not valid JSON.',
       invalidNumber: 'Enter a valid number.',
       readOnlyNote: 'Only a super_admin can edit these parameters. They are shown read-only here.',
+      fromDefault: "Starting value · nobody has changed it, and it's the one in use",
       updatedAt: 'Updated',
       updatedBy: 'by',
       saveError: 'Could not save. The value is still the previous one.',
@@ -240,12 +241,27 @@ export const en: Dictionary = {
       flaggedSuffix: '({n} flagged)',
     },
     industryTemplates: {
+      starterEyebrow: 'TEMPLATE FOR THE CLIENT',
+      starterHint:
+        "The spreadsheet a client in this industry downloads when they have no books of their own. This is not the material the AI uses to read files — that's the versions above.",
+      starterNone:
+        'None uploaded. Clients still download a template generated from their industry categories.',
+      starterFile: 'File',
+      starterNotes: 'Note (optional)',
+      starterNotesPlaceholder: 'e.g. updated with the 2026 catalog',
+      starterUpload: 'Publish template',
+      starterUploading: 'Publishing…',
+      starterUploadError: 'Could not publish the template. Please try again.',
       eyebrow: 'CATALOG',
       title: 'Templates by industry',
       colVersion: 'Version',
       colCreated: 'Created',
     },
     stagingRows: {
+      intro:
+        "When a client uploads their spreadsheet, the AI classifies every row. The ones it isn't sure about land here and do NOT enter their books until someone resolves them: while they sit in this list, they're missing from the client's dashboard.",
+      introScope:
+        'Anything that is a NAMING problem — not knowing which category a concept belongs to — is answered by the client during their own upload. What reaches this queue is what no category fixes: an unreadable date, an amount that makes no sense, a row that maybe should not go in at all.',
       eyebrow: 'INGESTION',
       title: 'Flagged rows',
       empty: 'No rows pending review.',

@@ -6,6 +6,7 @@ import { LoadError } from '@/components/ui/load-error';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
 import { KpiCard } from '@/components/charts/kpi-card';
+import { CHART_HEIGHT } from '@/components/charts/chart-primitives';
 import { AnalyticsKpiHeader, totalDeCartera } from '@/components/analytics/kpi-header';
 import { TabCartera } from '@/components/analytics/tab-cartera';
 import {
@@ -287,8 +288,15 @@ export function AnalyticsClient({
           </TabsContent>
 
           <TabsContent value="revenue" className="mt-4 flex flex-col gap-4">
-            {/* La tendencia manda en su propio tab, así que va más alta que en el Resumen, y
-                los productos pasan a ancho completo en vez de al costado. */}
+            {/*
+              La tendencia manda en su propio tab, y eso lo gana por el ANCHO —los productos
+              pasan abajo en vez de al costado—, no estirándose hacia abajo.
+
+              Acá decía "va más alta que en el Resumen" y era `h-96` (384px). El prototipo no
+              tiene ninguna área por encima de 260px, y esa era la gráfica de la captura de
+              Jose: 384px con los mismos datos es una forma un 60 % más alta. Ver la tabla de
+              medición en `chart-primitives.tsx`.
+            */}
             <PanelTendencia
               metricas={metricas}
               puntos={puntos}
@@ -297,7 +305,7 @@ export function AnalyticsClient({
               labels={labels}
               kpiLabels={kpiLabels}
               deltaIngreso={deltaIngreso}
-              alto="h-96"
+              alto={CHART_HEIGHT.areaWide}
             />
             <PanelProductos items={itemsProducto} moneda={moneda} locale={locale} labels={labels} />
           </TabsContent>
@@ -308,7 +316,7 @@ export function AnalyticsClient({
               moneda={moneda}
               locale={locale}
               labels={labels}
-              alto="h-96"
+              alto={CHART_HEIGHT.areaWide}
               // El neto solo se corona en SU tab: en el Resumen la cifra ancla es el ingreso,
               // y dos números grandes compitiendo en la misma vista no dejan ancla a ninguno.
               resumen={{ neto: resultado(metricas.current) }}

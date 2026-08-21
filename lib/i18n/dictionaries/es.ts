@@ -150,6 +150,13 @@ export const es: Dictionary = {
       invalidNumber: 'Escribe un número válido.',
       readOnlyNote:
         'Estos parámetros solo los edita un super_admin. Aquí se muestran en modo lectura.',
+      /*
+       * Un parámetro que todavía no tiene fila en `platform_settings`. Dice las dos cosas que
+       * importan: que nadie lo cambió, Y que el valor mostrado es el que el sistema está usando.
+       * Sin la segunda mitad se leería como "esto no está configurado", que es justo la
+       * conclusión equivocada que dejaba la pantalla vacía.
+       */
+      fromDefault: 'Valor de arranque · nadie lo ha cambiado, y es el que está en uso',
       updatedAt: 'Actualizado',
       updatedBy: 'por',
       saveError: 'No se pudo guardar. El valor sigue siendo el anterior.',
@@ -243,12 +250,67 @@ export const es: Dictionary = {
       flaggedSuffix: '({n} marcadas)',
     },
     industryTemplates: {
+      /*
+       * ═══ LA PLANTILLA DESCARGABLE, QUE NO ES LO MISMO QUE LAS VERSIONES ═══
+       *
+       * Las dos cosas se llaman "plantilla" y viven en la misma tarjeta, y confundirlas tiene
+       * consecuencias en direcciones opuestas: subir un .xlsx creyendo que mejora la
+       * clasificación de la IA no mejora nada, y editar sinónimos creyendo que cambia lo que el
+       * cliente descarga tampoco. Por eso el texto dice PARA QUIÉN es el archivo.
+       */
+      starterEyebrow: 'PLANTILLA PARA EL CLIENTE',
+      starterHint:
+        'El archivo de Excel que descarga un cliente de esta industria que no tiene contabilidad armada. No es el material que usa la IA para leer archivos: eso son las versiones de arriba.',
+      /*
+       * "Ninguna" NO es un problema, y el texto tiene que decirlo. Sin esta aclaración un
+       * operador puede creer que la descarga del cliente está rota, cuando lo que pasa es que
+       * recibe una plantilla generada con las categorías de su industria.
+       */
+      starterNone:
+        'Ninguna cargada. El cliente descarga igual una plantilla generada con las categorías de su industria.',
+      starterFile: 'Archivo',
+      starterNotes: 'Nota (opcional)',
+      starterNotesPlaceholder: 'Ej. actualizada con el catálogo 2026',
+      starterUpload: 'Publicar plantilla',
+      starterUploading: 'Publicando…',
+      starterUploadError: 'No se pudo publicar la plantilla. Vuelve a intentarlo.',
       eyebrow: 'CATÁLOGO',
       title: 'Plantillas por industria',
       colVersion: 'Versión',
       colCreated: 'Creada',
     },
     stagingRows: {
+      /*
+       * ═══ EL MARCO DE LA PANTALLA, QUE ES LO QUE FALTABA ═══
+       *
+       * Jose (2026-08-20): "está muy compleja, no se logra entender qué tiene que hacer el
+       * equipo de MACHA ahí". La pantalla ya explicaba cada FILA —el motivo del marcado en
+       * texto legible, los campos con etiqueta, los botones nombrados—, pero no explicaba la
+       * COLA: de dónde salen estas filas, por qué existen y qué pasa si nadie las toca.
+       *
+       * El texto no se inventó: estaba escrito, palabra por palabra, en el comentario de
+       * cabecera de `staging-rows-panel.tsx`. Lo veía quien lee el código y no quien usa la
+       * pantalla.
+       *
+       * Dice las tres cosas que un operador nuevo necesita y ninguna más:
+       *  1. de dónde viene la fila (un cliente subió su Excel y la IA la clasificó),
+       *  2. por qué está acá (quedó con duda),
+       *  3. qué pasa si nadie la resuelve — que es lo único que le da urgencia al trabajo y
+       *     lo que no estaba en ningún lado: la fila NO está en la contabilidad del cliente
+       *     todavía, así que su dashboard está incompleto hasta que alguien decida.
+       */
+      intro:
+        'Cuando un cliente sube su Excel, la IA clasifica cada fila. Las que quedan con duda caen acá y NO entran a su contabilidad hasta que alguien las resuelva: mientras estén en esta lista, faltan en su dashboard.',
+      /*
+       * La otra mitad, y va aparte a propósito: qué NO le toca a este equipo.
+       *
+       * Desde el acuerdo con Semi (2026-08-20) el CLIENTE contesta sus propios conceptos sin
+       * clasificar durante la subida. Sin decirlo acá, un operador puede pasar la tarde
+       * poniéndole categorías a filas que el dueño del negocio va a contestar mejor — y
+       * pisándolo, porque la respuesta del cliente vale más que la de staff.
+       */
+      introScope:
+        'Lo que es un problema de NOMBRE —no saber a qué rubro va un concepto— lo contesta el cliente desde su propia carga. Acá llega lo que ninguna categoría arregla: una fecha ilegible, un monto que no se entiende, una fila que quizá no debería entrar.',
       eyebrow: 'INGESTA',
       title: 'Filas marcadas',
       empty: 'Sin filas pendientes de revisión.',

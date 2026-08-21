@@ -15,13 +15,26 @@ import { draftFor, editorFor, parseSettingDraft } from '@/components/admin/confi
 interface Setting {
   key: string;
   value: unknown;
-  updatedAt: string;
+  /** `null` cuando el parámetro todavía no tiene fila en la base: nadie lo editó nunca. */
+  updatedAt: string | null;
   /**
    * Correo de quien lo cambió (ticket B7). `null` cuando la fila viene del seed o el staff
    * que la tocó ya no existe — el backend hace `leftJoin` a propósito para que esas filas
    * SIGAN apareciendo en vez de desaparecer del panel.
    */
   updatedByEmail: string | null;
+  /**
+   * De dónde sale el valor que se está mostrando (2026-08-20).
+   *
+   * `stored` — alguien lo decidió y vive en `platform_settings`.
+   * `default` — es el valor de ARRANQUE del producto; no hay fila, y el sistema está usando
+   *   este número igual porque cada lector pasa su propio fallback.
+   *
+   * La distinción es la razón por la que esta pantalla dejó de verse vacía. En producción la
+   * tabla tiene 0 filas, así que el panel listaba nada mientras el sistema corría con cinco
+   * parámetros en efecto: un panel de configuración que ocultaba la configuración vigente.
+   */
+  source: 'stored' | 'default';
 }
 
 /**
@@ -206,6 +219,17 @@ export function ConfigPanel({
                 value={draft}
                 onChange={(e) => setDrafts({ ...drafts, [s.key]: e.target.value })}
               />
+            )}
+
+            {/*
+              Un parámetro que nadie tocó se dice EXPLÍCITAMENTE, no se deja sin línea.
+              "Sin línea" es indistinguible de un error de carga, y acá la información vale:
+              este número está en efecto ahora mismo aunque no haya fila en la base.
+            */}
+            {s.source === 'default' && (
+              <p className="mt-1 font-mono text-eyebrow uppercase text-faint">
+                {labels.fromDefault}
+              </p>
             )}
 
             {s.updatedAt && (
