@@ -208,15 +208,56 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     expect(tonosDeLaPagina().filter((t) => t === 'tinta')).toHaveLength(1);
   });
 
-  test('el tono oscuro se consigue con `.inverse`, no con un color a mano', () => {
+  test('el tono oscuro se consigue con `.tinta`, no con un color a mano ni con `.inverse`', () => {
     /*
-     * `.inverse` redefine `--surface`/`--ink`/`--border` hacia adentro, así que los componentes de
-     * la sección siguen usando `text-foreground` sin saber que están sobre negro. Un `bg-[#191919]`
-     * pintaría el fondo y dejaría el texto en tinta oscura sobre tinta oscura.
+     * La clase redefine la paleta hacia adentro, así que los componentes de la sección siguen
+     * usando `text-foreground` sin saber que están sobre negro. Un `bg-[#191919]` pintaría el fondo
+     * y dejaría el texto en tinta oscura sobre tinta oscura.
+     *
+     * Y tiene que ser `.tinta`, NO `.inverse`. Esto no es preferencia de nombres: `.inverse` es
+     * para la barra de organización del admin y define `--border` IGUAL a la superficie, además de
+     * no tocar `--fill`. La primera versión de esta banda la usó y el resultado fue el panel y los
+     * chips sin borde visible, y el chip activo blanco sobre blanco. Ver el comentario de `.tinta`
+     * en `globals.css`.
      */
     const banda = leerCodigo('components/landing/banda.tsx');
-    expect(banda).toContain('inverse');
+    expect(banda).toMatch(/'tinta bg-card/);
+    expect(banda).not.toMatch(/'inverse /);
     expect(banda).toContain('bg-muted');
+  });
+
+  test('la isla oscura no tiene colisiones de token', () => {
+    /*
+     * ═══ EL BUG QUE ESTE TEST HABRÍA ATRAPADO ═══
+     *
+     * Con `.inverse`, dentro de la banda oscura pasaban dos cosas y ninguna lanzaba un error:
+     * `--border` valía lo mismo que `--surface` (bordes invisibles) y `--fill` se quedaba en el
+     * valor CLARO mientras `--ink` pasaba a blanco (chip activo blanco sobre blanco).
+     *
+     * Las dos son colisiones entre pares de tokens que SIEMPRE tienen que diferir en una
+     * superficie con hijos delineados, y las dos se pueden comprobar leyendo el CSS. Lo que no se
+     * puede comprobar así es el contraste fino; para eso hace falta mirar. Esto cubre el caso
+     * grosero, que es el que se cuela.
+     */
+    const css = leer('styles/globals.css');
+    const bloque = css.match(/\n\.tinta \{([\s\S]*?)\n\}/)?.[1];
+    expect(bloque, 'falta el bloque .tinta en globals.css').toBeTruthy();
+
+    const val = (nombre: string) =>
+      bloque!.match(new RegExp(`--${nombre}:\\s*([^;]+);`))?.[1]?.trim();
+
+    // Cada primitiva que la banda usa tiene que estar DEFINIDA en la isla: si falta, hereda el
+    // valor claro del `:root` y ahí nacen los dos fallos de arriba.
+    for (const t of ['surface', 'ink', 'muted', 'faint', 'border', 'border-strong', 'fill']) {
+      expect(val(t), `.tinta no define --${t}`).toBeTruthy();
+    }
+
+    // El borde tiene que verse contra su fondo.
+    expect(val('border')).not.toBe(val('surface'));
+    // El relleno del chip activo tiene que verse contra el texto que lleva encima.
+    expect(val('fill')).not.toBe(val('ink'));
+    // Y contra el fondo de la banda, o el chip activo no se distingue del resto.
+    expect(val('fill')).not.toBe(val('surface'));
   });
 
   test('ningún componente de la landing escribe un color literal', () => {

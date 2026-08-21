@@ -373,6 +373,79 @@
 }
 
 /*
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * `.tinta` — UNA ISLA OSCURA COMPLETA, distinta de `.inverse` de arriba
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * La banda oscura de la landing (el asesor con IA) empezó usando `.inverse` y salió MAL. La
+ * diferencia entre las dos clases es la razón de que esta exista, y no es un matiz:
+ *
+ * `.inverse` se hizo para la BARRA DE ORGANIZACIÓN del panel admin: una tira sólida, sin hijos
+ * con contorno. Ahí `--border: #141414` —el mismo valor que la superficie— es DELIBERADO: no hay
+ * ningún borde que dibujar y así se garantiza que no aparezca ninguno. Y solo redefine cuatro
+ * primitivas, porque una tira con texto no necesita más.
+ *
+ * Una SECCIÓN oscura sí necesita más, y con `.inverse` fallaba de dos formas que no rompían nada:
+ *
+ *   · `border-border` quedaba en #141414, o sea el color del fondo: el panel de respuesta y los
+ *     chips salían SIN CONTORNO VISIBLE. En el diseño los tres tienen su filete.
+ *   · `--fill` NO se redefine, así que `bg-muted` seguía valiendo #f7f7f7 (casi blanco) mientras
+ *     `--ink` pasaba a #ffffff. El chip activo quedaba BLANCO SOBRE BLANCO — texto invisible, y
+ *     justo en el chip que indica qué pregunta se está respondiendo.
+ *
+ * Ninguna de las dos lanza un error ni falla un test de los que había: se ven, y solo si alguien
+ * mira. Keneth las vio.
+ *
+ * ═══ LOS VALORES SON LOS DEL TEMA OSCURO, NO INVENTADOS ═══
+ *
+ * Este proyecto ya tiene una paleta oscura coherente y probada: la del tema `.dark`. Una isla
+ * oscura dentro del tema claro necesita exactamente eso, así que se copian sus primitivas en vez
+ * de elegir grises a ojo. Consecuencia buena y no accidental: en tema oscuro `.tinta` vale lo
+ * mismo que su entorno, así que la banda no "salta" de tono — sigue leyéndose como una sección
+ * aparte por el borde y no por el color, que es lo correcto cuando toda la página ya es oscura.
+ *
+ * El diseño mide #191919 para el fondo de esa banda y `--surface` oscuro vale #171717: dos partes
+ * en 255. Elegir el token en vez del hex es lo que hace que la sección siga funcionando en el otro
+ * tema.
+ *
+ * Se redefinen también los colores de ESTADO y los acompañantes del salvia: si alguien pone un
+ * chip de éxito o el punto de marca dentro de una banda oscura, con las primitivas claras saldría
+ * un borrón casi blanco sobre el negro. Que la isla sea completa es lo que evita el próximo
+ * "blanco sobre blanco".
+ */
+.tinta {
+  --canvas: #121212;
+  --surface: #171717;
+  --surface-2: #1f1f1f;
+  --ink: #f2f2f2;
+  --muted: #999999;
+  --faint: #6b6b6b;
+  --border: #2b2b2b;
+  --border-strong: #3a3a3a;
+  --soft: #242424;
+  --fill: #232323;
+
+  --green: #46b970;
+  --green-bg: #0e1f16;
+  --green-bd: #194b31;
+  --red: #d74242;
+  --red-bg: #241111;
+  --red-bd: #5b1e1e;
+  --amber: #fbbf24;
+  --amber-bg: #221a08;
+  --amber-bd: #4a3714;
+  --amber-accent: #f59e0b;
+
+  /* El salvia no cambia de tono entre temas —es la marca— pero sus acompañantes sí, porque
+     tienen que vivir sobre negro. Misma decisión que en el tema oscuro. */
+  --brand-light: #b4c1af;
+  --brand-strong: #b4c1af;
+  --brand-soft: #191d17;
+  --brand-bd: #2f3a2b;
+  --brand-ink: #b4c1af;
+}
+
+/*
  * Density tokens (design guide.md §4.1). `compact` (dashboards/tables) is the
  * app-wide default; `comfortable` (forms/onboarding) is opt-in via
  * data-density="comfortable" on a container. Components read these vars
