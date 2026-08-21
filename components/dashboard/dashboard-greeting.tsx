@@ -3,6 +3,7 @@
 import { UploadCloud } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { InsightPoint } from '@/components/ui/insight-point';
 import { usePeriodScope } from '@/components/dashboard/period-scope';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -82,7 +83,30 @@ export function DashboardGreeting({
           calcar el prototipo al pixel son 24px/600 y hace falta un token; si se prefiere el
           peso normal de vuelta, es agregar `font-normal` acá.
         */}
-        <h1 className="mt-1 text-pagetitle">{saludo}</h1>
+        {/*
+          ═══ EL ACENTO DE MARCA VA ACÁ Y NO DE FONDO (2026-08-20, pedido de Jose) ═══
+
+          Jose pidió "el favicon o el isotipo verde en el Dashboard para darle más vida". Se usa
+          `InsightPoint` en modo `figure` —el componente que ya existe— y NO como atmósfera
+          detrás del contenido, por una regla que ese mismo componente lleva escrita: el salvia
+          **nunca** va detrás de una tabla o una gráfica, porque compite con el verde funcional
+          de las series y los deltas y hace dudar de si el color pertenece al dato.
+
+          Junto al título es justo donde el Brand Book pone este recurso: como acento del
+          titular de sección. El Dashboard ya lo usaba dentro del Consejo Financiero Diario,
+          pero no en la cabecera, que es el lugar del manual.
+
+          `sm` (24px) y no `md` (36px): al lado de un titular de 20px, un punto de 36 no es un
+          acento, es el elemento principal. Y va SIN ícono a propósito — dentro del Consejo el
+          ícono dice "esto lo escribió el asesor"; acá el punto no anuncia nada, es la marca.
+
+          Sin `label`, así que el componente lo marca `aria-hidden`: es decoración, y anunciarlo
+          le agregaría ruido a un lector de pantalla antes del saludo.
+        */}
+        <div className="mt-1 flex items-center gap-2">
+          <InsightPoint size="sm" />
+          <h1 className="text-pagetitle">{saludo}</h1>
+        </div>
         <p className="mt-1 text-body text-muted-foreground">{subtitulo}</p>
       </div>
       <Button asChild variant="outline" size="sm">

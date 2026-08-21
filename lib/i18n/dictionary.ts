@@ -300,6 +300,13 @@ export interface Dictionary {
       colCreated: string;
     };
     stagingRows: {
+      /**
+       * Marco de la PANTALLA: qué es esta cola y qué pasa si nadie la atiende (2026-08-20).
+       * Distinto de `instructions`, que habla de UNA fila y por eso vive en su tarjeta.
+       */
+      intro: string;
+      /** Qué NO le toca a staff: lo de nombre lo contesta el cliente en su propia carga. */
+      introScope: string;
       eyebrow: string;
       title: string;
       empty: string;

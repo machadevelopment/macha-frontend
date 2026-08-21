@@ -97,3 +97,57 @@ describe('los charts pasan por components/charts/chart-primitives', () => {
     expect(archivosFuente(join(RAIZ, 'components')).length).toBeGreaterThan(50);
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * LOS ALTOS DE GRÁFICA SALEN DE UNA MEDICIÓN, Y NADIE LOS ESCRIBE A MANO
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Jose reportó (2026-08-20) que las gráficas de Analítica se ven "mucho más grandes" que las
+ * del prototipo. La causa medida fue el ALTO, y no estaba en el default del componente sino en
+ * el `alto="h-96"` (384px) que la pantalla de Analítica le pasaba en sus tabs — o sea, en un
+ * string suelto lejos de donde se decide el estilo de los charts.
+ *
+ * Ese es exactamente el modo de fallo que `chart-primitives.tsx` existe para evitar, un nivel
+ * más adentro: la pieza estaba unificada, y el TAMAÑO se seguía decidiendo por pantalla.
+ *
+ * Los dos tests de acá cierran las dos mitades: que los valores sigan siendo los medidos, y que
+ * nadie vuelva a escribir un alto a mano sobre un chart.
+ */
+describe('altos de gráfica: medidos y en un solo lugar', () => {
+  const primitivos = readFileSync(join(import.meta.dir, 'chart-primitives.tsx'), 'utf8');
+
+  test('los valores son los del prototipo, no otros', () => {
+    /*
+     * Medido contra `juanrodriguezbz/mvp-macha`:
+     *   · área de tendencia          → 240px  (`h-60`)
+     *   · área a ancho completo       → 260px  (`h-64` = 256, lo más cercano de la escala)
+     *   · barras                      → 320px  (`h-80`)
+     *
+     * Si alguien los cambia, que sea con una medición nueva y actualizando este test — no
+     * subiéndolos porque "se ve mejor más grande", que es de donde salió el `h-96`.
+     */
+    expect(primitivos).toMatch(/area:\s*'h-60'/);
+    expect(primitivos).toMatch(/areaWide:\s*'h-64'/);
+    expect(primitivos).toMatch(/bars:\s*'h-80'/);
+  });
+
+  test('ninguna pantalla le pone un alto a mano a un chart', () => {
+    /*
+     * El `alto="h-96"` de Analítica es el caso real. Se busca la asignación de un alto de
+     * Tailwind al prop `alto` o al `className` de un chart, en cualquier archivo que NO sea
+     * `components/charts/`.
+     *
+     * `h-64` en un ESQUELETO de carga no cuenta y por eso el patrón exige el prop `alto=` o un
+     * `className` sobre un chart: el placeholder tiene que medir lo mismo que la gráfica que
+     * va a reemplazar, y ese valor sale de la constante igual que el otro.
+     */
+    const culpables: string[] = [];
+    for (const ruta of archivosFuente(RAIZ)) {
+      if (ruta.includes(join('components', 'charts'))) continue;
+      const texto = readFileSync(ruta, 'utf8');
+      if (/\balto=["']h-\d+["']/.test(texto)) culpables.push(ruta.replace(RAIZ + '/', ''));
+    }
+    expect(culpables).toEqual([]);
+  });
+});
