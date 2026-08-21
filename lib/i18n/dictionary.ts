@@ -460,6 +460,83 @@ export interface Dictionary {
       /** Describe QUÉ muestra el mockup, no que existe: es la única prueba visual del producto. */
       mockupAlt: string;
     };
+    producto: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      pestanas: string[];
+      mockupAlt: string;
+    };
+    porque: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      fragmentado: {
+        eyebrow: string;
+        hoy: string;
+        filas: { archivo: string; estado: string }[];
+      };
+      centralizado: {
+        eyebrow: string;
+        titulo: string;
+        colInfo: string;
+        colEstado: string;
+        sincronizado: string;
+        filas: { info: string; estado: string }[];
+        pie: string;
+      };
+    };
+    como: {
+      eyebrow: string;
+      title: string;
+      flujo: { datos: string; macha: string; insights: string };
+      pasos: { titulo: string; desc: string }[];
+    };
+    /** El acordeón de 5. Cada item trae el panel de insights que se muestra al abrirlo. */
+    capacidades: {
+      eyebrow: string;
+      title: string;
+      items: {
+        titulo: string;
+        desc: string;
+        insights: { titulo: string; desc: string; meta: string }[];
+      }[];
+    };
+    asesor: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      preguntas: { q: string; a: string }[];
+    };
+    automatizacion: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      etapas: { titulo: string; sub: string }[];
+      /**
+       * `meta` es OPCIONAL a propósito: el diseño solo se lo da a la alerta de reportes. Poner
+       * cadena vacía en las otras dos sería una clave vacía en el diccionario —que el test de
+       * paridad marca, con razón— e inventarles un texto sería agregar información que el diseño
+       * no quiso poner.
+       */
+      panel: { titulo: string; items: { titulo: string; desc: string; meta?: string }[] };
+    };
+    antesDespues: {
+      eyebrow: string;
+      title: string;
+      antesEyebrow: string;
+      conEyebrow: string;
+      pares: { antes: string; con: string }[];
+    };
+    seguridad: { eyebrow: string; title: string; items: { titulo: string; desc: string }[] };
+    planes: {
+      eyebrow: string;
+      title: string;
+      nota: string;
+      cta: string;
+      items: { nombre: string; para: string; incluye: string[] }[];
+    };
+    faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
     cta: { title: string; subtitle: string; demo: string };
     footer: {
       tagline: string;

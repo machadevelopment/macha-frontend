@@ -20,9 +20,9 @@ import type { Locale } from '@/lib/i18n/config';
  *
  * ═══ LOS ENLACES DE SECCIÓN SON ANCLAS ═══
  *
- * `#como-funciona`, `#planes`, `#faq` apuntan a secciones de ESTA página, no a rutas. Las que
- * todavía no existen no se pintan: un nav con cuatro enlaces de los que dos no llevan a ninguna
- * parte es peor que un nav de dos. Se van sumando a medida que las secciones entran.
+ * `#como-funciona`, `#planes`, `#faq` apuntan a secciones de ESTA página, no a rutas. La página
+ * declara cuáles existen y el nav filtra por esa lista: un enlace de nav que no lleva a ninguna
+ * parte no falla en ningún test, solo no hace nada al apretarlo, y de eso nadie se entera.
  *
  * "Contacto" no es ancla: es el mismo `mailto` del CTA. No hay sección de contacto en el diseño
  * y no la voy a inventar — lo que el nav promete es escribirle a alguien, y eso es lo que hace.

@@ -80,6 +80,7 @@ describe('paridad de diccionarios ES/EN', () => {
     'landing.nav.faq', // "FAQ" — sigla internacional, no se traduce
     'landing.footer.email', // una dirección de correo no tiene versión en inglés
     'landing.footer.copyright', // "© 2026 Macha Finance" — el nombre legal es uno solo
+    'landing.como.flujo.macha', // "Macha Finance" — el nombre del producto no se traduce
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {

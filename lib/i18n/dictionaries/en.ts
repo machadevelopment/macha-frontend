@@ -389,6 +389,288 @@ export const en: Dictionary = {
       mockupAlt:
         "Macha's dashboard overview: revenue, gross margin and cash flow for the month, with the revenue chart and the day's insights.",
     },
+    producto: {
+      eyebrow: 'THE PRODUCT',
+      title: 'Your whole business in a single view.',
+      subtitle: 'Sales, costs, profitability, inventory and cash flow come together in one view.',
+      pestanas: ['Costs', 'Cash flow'],
+      mockupAlt:
+        'Monthly sales view in Macha: the period total with its change, the six-month trend, and the per-product breakdown.',
+    },
+    porque: {
+      eyebrow: 'WHY MACHA EXISTS',
+      title: 'Your data is already there. The problem is making sense of it.',
+      subtitle:
+        'The information lives scattered across files, spreadsheets and manual processes. Preparing reports takes time, and decisions arrive late.',
+      fragmentado: {
+        eyebrow: 'FRAGMENTED INFORMATION',
+        hoy: 'TODAY',
+        filas: [
+          { archivo: 'Sales_august_v4.xlsx', estado: 'Updated by hand' },
+          { archivo: 'Costs_updated.xlsx', estado: 'Previous version' },
+          { archivo: 'Weekly report', estado: 'Built manually' },
+          { archivo: 'Inventory_final.xlsx', estado: 'Two versions' },
+        ],
+      },
+      centralizado: {
+        eyebrow: 'CENTRALIZED FINANCIAL INTELLIGENCE',
+        titulo: 'Centralized, unified information',
+        colInfo: 'Information',
+        colEstado: 'Status',
+        sincronizado: 'Synced',
+        filas: [
+          { info: 'Sales', estado: 'Organized' },
+          { info: 'Cost', estado: 'Organized' },
+          { info: 'Inventory', estado: 'Organized' },
+          { info: 'Profitability', estado: 'Organized' },
+        ],
+        pie: 'One single view of your business, clearer and easier to understand.',
+      },
+    },
+    como: {
+      eyebrow: 'HOW IT WORKS',
+      title: 'Three steps between your data and your decision.',
+      flujo: { datos: 'Your data', macha: 'Macha Finance', insights: 'Insights and decisions' },
+      pasos: [
+        {
+          titulo: 'Centralize your data.',
+          desc: 'Upload your information from Excel, use the Macha templates, or enter the data manually.',
+        },
+        {
+          titulo: 'Macha analyzes it.',
+          desc: 'Macha organizes and analyzes your information to turn the data into clear indicators.',
+        },
+        {
+          titulo: 'Clarity to decide',
+          desc: 'See dashboards, insights and alerts to understand what changed, spot deviations and make better decisions.',
+        },
+      ],
+    },
+    capacidades: {
+      eyebrow: 'WHAT MACHA CAN DO',
+      title: 'Five ways to understand your business.',
+      items: [
+        {
+          titulo: 'Get insights',
+          desc: 'Spots changes, trends and relevant data so you understand better what is happening in your business.',
+          insights: [
+            {
+              titulo: 'Your gross margin fell 3.2 points in August',
+              desc: 'Supplier costs grew faster than revenue during the period.',
+              meta: '12 minutes ago · Margins',
+            },
+            {
+              titulo: 'The Premium line is carrying the quarter',
+              desc: 'It brings 39% of sales with the highest margin in the catalog.',
+              meta: 'Today · Sales',
+            },
+          ],
+        },
+        {
+          titulo: 'Analyze results',
+          desc: 'Macha organizes and analyzes your sales, costs, expenses and inventory to turn them into clear data.',
+          insights: [
+            {
+              titulo: 'Your sales show a positive trend',
+              desc: 'Results improved compared with the previous period.',
+              meta: 'Sales · Results',
+            },
+            {
+              titulo: 'Your costs are growing faster than your revenue',
+              desc: 'The gap is reducing the profitability of the business.',
+              meta: 'Costs · Results',
+            },
+          ],
+        },
+        {
+          titulo: 'Identify opportunities',
+          desc: 'Finds products, categories or areas with room to grow, improve margins or increase profitability.',
+          insights: [
+            {
+              titulo: 'There are areas with greater growth potential',
+              desc: 'The analysis shows where the better opportunities are coming from.',
+              meta: 'Growth · Opportunities',
+            },
+            {
+              titulo: 'There is room to improve margins',
+              desc: 'Macha identifies areas where performance can be optimized.',
+              meta: 'Profitability · Opportunities',
+            },
+          ],
+        },
+        {
+          titulo: 'Automate reports',
+          desc: 'Generates clear, tailored reports automatically, without spending time preparing information.',
+          insights: [
+            {
+              titulo: 'Your report is ready',
+              desc: 'The information was organized automatically to make it easier to analyze.',
+              meta: 'Reports · Automation',
+            },
+            {
+              titulo: 'Report updated',
+              desc: 'The main indicators are organized in a single view.',
+              meta: 'Reports · Information',
+            },
+          ],
+        },
+        {
+          titulo: 'Detect important changes',
+          desc: 'Get alerts when Macha spots relevant shifts in sales, costs, inventory or margins.',
+          insights: [
+            {
+              titulo: 'A shift was detected in your costs',
+              desc: 'Macha identified a relevant change from the previous period.',
+              meta: 'Costs · Alert',
+            },
+            {
+              titulo: 'Your sales show a relevant change',
+              desc: 'The shift was detected so you can look into what is going on.',
+              meta: 'Sales · Alert',
+            },
+          ],
+        },
+      ],
+    },
+    asesor: {
+      eyebrow: 'YOUR AI CFO',
+      title: 'Your business has questions. Macha has context.',
+      subtitle:
+        'Ask in plain language. Macha answers with your own numbers, explains why, and helps you decide.',
+      preguntas: [
+        {
+          q: 'Why did my margin drop this month?',
+          a: 'Your gross margin went from 41.1% to 38.6%. The main shift comes from the increase in supplier costs.',
+        },
+        {
+          q: 'Which product is most profitable?',
+          a: 'The Premium line is your most profitable product and also carries the highest sales volume.',
+        },
+        {
+          q: 'Where are my costs going up?',
+          a: 'The biggest increase is concentrated in suppliers and inputs, which is directly hitting your margin.',
+        },
+      ],
+    },
+    automatizacion: {
+      eyebrow: 'AUTOMATION AND INTELLIGENCE',
+      title: 'What used to take hours now happens in seconds.',
+      subtitle:
+        'Macha analyzes your indicators, generates reports and detects relevant changes so you can act in time.',
+      etapas: [
+        { titulo: 'Changes in sales', sub: 'Weekly' },
+        { titulo: 'Cost increases', sub: 'Detection' },
+        { titulo: 'Margin shifts', sub: 'Analysis' },
+        { titulo: 'Automatic reports', sub: 'Generation' },
+      ],
+      panel: {
+        titulo: 'Alerts',
+        items: [
+          {
+            titulo: 'Supplier cost +14.6%',
+            desc: 'Supplier costs went up compared with the previous period.',
+          },
+          {
+            titulo: 'Wholesale sales -2.1%',
+            desc: 'Sales recorded a negative shift compared with the previous period.',
+          },
+          {
+            titulo: 'Report generated',
+            desc: "The period's report is ready to review.",
+            meta: 'Reports',
+          },
+        ],
+      },
+    },
+    antesDespues: {
+      eyebrow: 'BEFORE AND AFTER MACHA',
+      title: 'The same information, a different way of working.',
+      antesEyebrow: 'BEFORE MACHA',
+      conEyebrow: 'WITH MACHA',
+      pares: [
+        { antes: 'Scattered information', con: 'Centralized information' },
+        { antes: 'Manual reports', con: 'Automation' },
+        { antes: 'Data that is hard to read', con: 'Clear insights' },
+        { antes: 'Changes noticed late', con: 'Timely alerts' },
+      ],
+    },
+    seguridad: {
+      eyebrow: 'SECURITY',
+      title: 'Your data is yours. Always.',
+      items: [
+        {
+          titulo: 'Secure connections',
+          desc: 'Macha connects to your sources through encrypted connections.',
+        },
+        { titulo: 'Encrypted information', desc: 'Your data travels and is stored encrypted.' },
+        {
+          titulo: 'Controlled access',
+          desc: 'You decide who on your team sees which information.',
+        },
+        {
+          titulo: 'No third parties',
+          desc: 'Your financial information is not shared with third parties.',
+        },
+      ],
+    },
+    planes: {
+      eyebrow: 'PRICING',
+      title: 'A plan that fits your operation.',
+      nota: 'We define the scope during the demo, based on your data sources and the size of your team.',
+      cta: 'Request a demo',
+      items: [
+        {
+          nombre: 'Starter',
+          para: 'For businesses starting to put their finances in order.',
+          incluye: ['Financial dashboard', 'Automatic insights', 'Excel connection'],
+        },
+        {
+          nombre: 'Business',
+          para: 'For operations with several data sources and teams.',
+          incluye: [
+            'Everything in Starter',
+            'ERP and bank connections',
+            'Automatic reports and alerts',
+            'Per-user access',
+          ],
+        },
+        {
+          nombre: 'Custom',
+          para: 'For groups with specific integration needs.',
+          incluye: ['Tailored integrations', 'Custom models and reports', 'Dedicated support'],
+        },
+      ],
+    },
+    faq: {
+      eyebrow: 'FREQUENTLY ASKED QUESTIONS',
+      title: 'Before the demo.',
+      items: [
+        {
+          q: 'What is Macha Finance?',
+          a: 'An AI financial intelligence platform. It centralizes your business financial and operational information and turns it into clear indicators, insights and reports.',
+        },
+        {
+          q: 'What data do I need to start?',
+          a: 'Mainly sales, cost and expense information from Excel or your ERP. You can also bring in inventory.',
+        },
+        {
+          q: 'Does it work with my Excel and my ERP?',
+          a: 'Yes. You can upload information from Excel and, depending on your system, connect Macha to your ERP.',
+        },
+        {
+          q: 'How long does implementation take?',
+          a: 'It depends on the amount and structure of your data. With organized Excel files you can start quickly.',
+        },
+        {
+          q: 'How is my information protected?',
+          a: 'Your information is kept separate per company and with controlled access. Macha uses encrypted connections.',
+        },
+        {
+          q: 'What kind of support do I get?',
+          a: 'We support you through the initial setup, organizing your data and going live.',
+        },
+      ],
+    },
     cta: {
       title: 'Start understanding your business better.',
       subtitle: 'See how Macha turns your data into clearer decisions.',
