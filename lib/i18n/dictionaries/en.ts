@@ -362,6 +362,48 @@ export const en: Dictionary = {
       'Upload your books, understand your numbers, and decide with a financial assistant that knows your business.',
     authError: "We couldn't complete your sign-in. Please try again.",
   },
+  /**
+   * LANDING — TRADUCCIÓN del original en español (`es.ts`), 2026-08-21.
+   *
+   * Se marca como traducción a propósito: el copy de marca lo escribió el equipo en español y
+   * esto es una versión mía. Conviene que alguien de Macha lo revise línea por línea antes de
+   * ofrecer la landing en inglés a un cliente o a un inversionista — una landing con inglés
+   * aproximado resta justo donde tiene que sumar.
+   */
+  landing: {
+    nav: {
+      inicio: 'Home',
+      comoFunciona: 'How it works',
+      planes: 'Pricing',
+      faq: 'FAQ',
+      contacto: 'Contact',
+      demo: 'Request a demo',
+    },
+    hero: {
+      eyebrow: 'YOUR AI-POWERED CFO',
+      title: 'Turn your business data into smart decisions.',
+      subtitle:
+        'Bring your financial and operational information together, get clear insights, and understand what is actually happening in your business.',
+      demo: 'Request a demo',
+      how: 'See how it works',
+      mockupAlt:
+        "Macha's dashboard overview: revenue, gross margin and cash flow for the month, with the revenue chart and the day's insights.",
+    },
+    cta: {
+      title: 'Start understanding your business better.',
+      subtitle: 'See how Macha turns your data into clearer decisions.',
+      demo: 'Request a demo',
+    },
+    footer: {
+      tagline: 'AI-powered financial intelligence.',
+      email: 'contact@machafinance.com',
+      privacidad: 'Privacy notice',
+      terminos: 'Terms',
+      datos: 'Data policy',
+      copyright: '© 2026 Macha Finance',
+    },
+    demoAsunto: 'Macha Finance demo request',
+  },
   upload: {
     conceptos: {
       cta: 'Help us classify {n} item(s)',

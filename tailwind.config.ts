@@ -181,6 +181,58 @@ export default {
          * dashboard, analítica, reportes— ya no lo usa, porque ahí el título compite con
          * KPIs y tablas y a 27px se lleva un peso visual que el dato debería tener.
          */
+        /**
+         * ═══════════════════════════════════════════════════════════════════════════════════
+         * TIPOGRAFÍA DE LA LANDING — medida del Figma, no elegida (2026-08-21)
+         * ═══════════════════════════════════════════════════════════════════════════════════
+         *
+         * `macha.finance` es una landing de marketing y su escala no es la del producto ni la
+         * de las pantallas de vitrina. Medido con la API de Figma sobre el frame `4:218`:
+         *
+         *   pieza                        Figma        token
+         *   ──────────────────────────    ─────────    ──────────────
+         *   titular del hero             88px / 400   `hero`
+         *   titular grande de sección    68px / 400   `sectionbig`
+         *   titular de sección           52px / 400   `section`
+         *   bajada                       22px / 300   `lead`
+         *
+         * ═══ PESO 400 Y 300, NO 700 ═══
+         *
+         * `display` (38px/700) no sirve acá y no es cuestión de tamaño: en la landing los
+         * titulares son GRANDES Y FINOS, que es lo que los hace leerse como una portada. A
+         * 88px el peso 700 es un muro; el diseño lo resuelve con tamaño, no con grosor. Reusar
+         * `display` habría dado un titular más chico y más pesado a la vez.
+         *
+         * `lead` va en 300 —más liviano que `body` (400)— porque a 22px el peso normal compite
+         * con el titular que tiene arriba.
+         *
+         * ═══ `clamp()` Y NO BREAKPOINTS ═══
+         *
+         * 88px en un teléfono no entra: son cuatro caracteres por línea. Se escala con `clamp()`
+         * en el propio token en vez de con clases responsive por pantalla, por dos razones:
+         * el valor mínimo y el máximo quedan JUNTOS donde se lee el tamaño, y ninguna sección
+         * puede olvidarse de poner la variante móvil — que es exactamente cómo un titular
+         * termina desbordando en un teléfono sin que nadie lo note en el escritorio.
+         *
+         * El `vw` intermedio se eligió para que el cruce ocurra cerca de los 1280px: por encima
+         * de eso se ve el tamaño del diseño, por debajo baja de forma continua.
+         */
+        hero: [
+          'clamp(38px, 6.2vw, 88px)',
+          { lineHeight: '1.05', letterSpacing: '-0.035em', fontWeight: '400' },
+        ],
+        sectionbig: [
+          'clamp(32px, 4.8vw, 68px)',
+          { lineHeight: '1.08', letterSpacing: '-0.03em', fontWeight: '400' },
+        ],
+        section: [
+          'clamp(28px, 3.7vw, 52px)',
+          { lineHeight: '1.12', letterSpacing: '-0.03em', fontWeight: '400' },
+        ],
+        lead: [
+          'clamp(17px, 1.6vw, 22px)',
+          { lineHeight: '1.5', letterSpacing: '-0.01em', fontWeight: '300' },
+        ],
         pagetitle: ['20px', { lineHeight: '1.25', letterSpacing: '-0.02em', fontWeight: '600' }],
         cardh2: ['15px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }],
         // 12px sin tracking: el subtítulo que el prototipo cuelga del título de pantalla
