@@ -128,6 +128,44 @@ describe('el favicon llega al navegador y coincide con el logo de la app', () =>
   const tokens = readFileSync(new URL('./styles/globals.css', import.meta.url), 'utf8');
   const marca = readFileSync(new URL('./components/ui/macha-mark.tsx', import.meta.url), 'utf8');
 
+  test('el comentario no rompe el XML: sin dos guiones seguidos', () => {
+    /*
+     * ═══ ESTO YA FALLÓ, Y ES EL BUG QUE NINGÚN OTRO TEST DE ACÁ ATRAPABA ═══
+     *
+     * Un SVG servido como `image/svg+xml` se parsea como XML, y XML prohíbe la secuencia de dos
+     * guiones dentro de un comentario. El comentario de cabecera la tenía dos veces, al citar
+     * nombres de tokens CSS con su prefijo: el archivo quedó mal formado, el navegador no lo pudo
+     * parsear, y la pestaña mostró el ícono de globo genérico.
+     *
+     * POR QUÉ SE ESCAPÓ, que es lo instructivo: verifiqué que producción respondiera 200 con
+     * `image/svg+xml`, y que el contenido tuviera las tres barras, la tinta correcta y el
+     * `prefers-color-scheme`. Todo eso era cierto, y ninguna de esas comprobaciones mira lo único
+     * que el navegador necesita — que el documento se pueda PARSEAR.
+     *
+     * ═══ POR QUÉ ESTA REGLA Y NO UN VALIDADOR XML ═══
+     *
+     * El primer intento usaba `DOMParser` y NO SERVÍA: el que provee el entorno de test
+     * (happy-dom) es permisivo y no reporta `parsererror` ni con este archivo roto a propósito.
+     * Comprobado por mutación — pasaba con el `--` reintroducido.
+     *
+     * Traer un parser XML estricto sería una dependencia nueva para cubrir un archivo, y este
+     * proyecto exige verificar compatibilidad con Bun antes de sumar una. Así que se fija la
+     * REGLA CONCRETA que rompió, y se dice lo que no cubre: esto no valida XML entero. No
+     * atraparía una etiqueta sin cerrar — pero ese no es el modo de fallo de este archivo, que
+     * es tres `<rect>` estables debajo de sesenta líneas de prosa que se editan seguido.
+     *
+     * La verificación de que el navegador SÍ lo parsea se hace contra producción después de cada
+     * deploy, con un parser de verdad. Un test de unidad no puede reemplazar eso.
+     */
+    const comentarios = [...icono.matchAll(/<!--([\s\S]*?)-->/g)].map((m) => m[1]!);
+    expect(comentarios.length).toBeGreaterThan(0);
+    for (const c of comentarios) {
+      expect(c.includes('--'), 'un comentario XML no puede contener dos guiones seguidos').toBe(
+        false,
+      );
+    }
+  });
+
   test('`icon.svg` está FUERA del matcher del middleware', () => {
     // La regresión que ya ocurrió. Dentro del matcher, authkitProxy responde 307 hacia WorkOS
     // y la pestaña se queda con el ícono genérico del host.
