@@ -2,6 +2,18 @@ import { ShowcaseFrame } from '@/components/ui/showcase';
 import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingHero } from '@/components/landing/landing-hero';
 import { LandingCta } from '@/components/landing/landing-cta';
+import { SeccionProducto } from '@/components/landing/landing-producto';
+import { SeccionCapacidades, SeccionFaq } from '@/components/landing/landing-acordeones';
+import {
+  SeccionPorque,
+  SeccionComo,
+  SeccionAsesor,
+  SeccionAutomatizacion,
+  SeccionAntesDespues,
+  SeccionSeguridad,
+  SeccionPlanes,
+} from '@/components/landing/landing-secciones';
+import { enlaceDemo } from '@/components/landing/demo-link';
 import { LandingFooter } from '@/components/landing/landing-footer';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
@@ -33,20 +45,22 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  * puede prerenderizar, y un cliente con sesión que escribe `macha.finance` ve la landing —
  * exactamente lo que se pidió.
  *
- * ═══ QUÉ ESTÁ Y QUÉ FALTA, DICHO CLARO ═══
+ * ═══ LAS 14 SECCIONES, Y LO QUE COSTÓ LEERLAS BIEN ═══
  *
- * Construidas: nav, hero con el mockup, CTA de cierre y footer. Es la primera pantalla completa
- * más el remate, o sea una landing publicable de punta a punta.
+ * Están las catorce del diseño. La primera versión de esta página traía solo cuatro, porque leí
+ * un solo frame del Figma y descarté los otros 15 como copias con ruido.
  *
- * Pendientes las 9 secciones intermedias del diseño: "por qué existe Macha", fragmentado contra
- * centralizado, "cómo funciona", el producto, las cinco capacidades, el asesor con IA,
- * automatización, antes/después, seguridad, planes y FAQ. El copy de TODAS ya está extraído del
- * Figma; lo que falta es el layout de cada una, y varias necesitan estado de cliente (el
- * acordeón numerado, el FAQ). Se agregan como componentes hermanos en `components/landing/` sin
- * tocar nada de lo de acá.
+ * Era falso, y Keneth lo corrigió: cada frame tiene UN item distinto abierto en los acordeones.
+ * Las diferencias de 1 a 24 líneas que tomé por ruido eran precisamente el contenido del item
+ * expandido. Medido después: 190 textos son comunes a los 16 frames y 47 varían — y esos 47 son
+ * los estados de los dos acordeones. Cruzándolos salen los 5 items de capacidades con sus dos
+ * insights cada uno y las 6 preguntas del FAQ con su respuesta.
  *
- * Por eso el nav recibe `anclas={[]}`: los enlaces a secciones que todavía no existen no se
- * pintan. Un nav con enlaces que no llevan a ninguna parte es peor que un nav corto.
+ * O sea que los 16 frames no eran redundancia: eran la especificación completa, y usar uno solo
+ * dejaba cada acordeón con un item lleno y el resto vacío.
+ *
+ * Solo dos secciones llevan estado de cliente (`landing-acordeones.tsx`); el resto es estático y
+ * se prerenderiza.
  */
 export default function Home({ searchParams }: { searchParams?: { auth_error?: string } }) {
   const locale = getLocale();
@@ -64,7 +78,12 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
         data-density="comfortable"
         className="mx-auto flex min-h-dvh max-w-[1170px] flex-col px-6 py-6 app:px-8"
       >
-        <LandingNav locale={locale} labels={t.landing} common={t.common} anclas={[]} />
+        <LandingNav
+          locale={locale}
+          labels={t.landing}
+          common={t.common}
+          anclas={['como-funciona', 'planes', 'faq']}
+        />
 
         {authError && (
           /*
@@ -90,8 +109,24 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
           </p>
         )}
 
-        <div className="mt-16 flex flex-col gap-28 app:mt-24">
+        {/*
+          Las 14 secciones en el orden del diseño. El `gap` es lo que da el ritmo de la página:
+          en el Figma la separación entre secciones ronda los 200px a 1920, y `gap-28` (112px) con
+          el `app:gap-40` (160px) de arriba se le acerca sin dejar huecos enormes en móvil, donde
+          el mismo aire se lee como una página vacía.
+        */}
+        <div className="mt-16 flex flex-col gap-28 app:mt-24 app:gap-40">
           <LandingHero labels={t.landing} />
+          <SeccionPorque labels={t.landing} />
+          <SeccionComo labels={t.landing} />
+          <SeccionProducto labels={t.landing} />
+          <SeccionCapacidades labels={t.landing} />
+          <SeccionAsesor labels={t.landing} />
+          <SeccionAutomatizacion labels={t.landing} />
+          <SeccionAntesDespues labels={t.landing} />
+          <SeccionSeguridad labels={t.landing} />
+          <SeccionPlanes labels={t.landing} hrefDemo={enlaceDemo(t.landing.demoAsunto)} />
+          <SeccionFaq labels={t.landing} />
           <LandingCta labels={t.landing} />
         </div>
 

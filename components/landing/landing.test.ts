@@ -71,7 +71,7 @@ describe('las legales se nombran pero NO se enlazan', () => {
 });
 
 describe('el nav no promete secciones que no existen', () => {
-  test('las anclas se pasan explícitas y hoy están vacías', () => {
+  test('cada ancla del nav tiene su sección con ese id', () => {
     /*
      * Las 9 secciones intermedias del diseño están pendientes. Mientras no existan, sus enlaces
      * no se pintan: un nav con cuatro enlaces de los que tres no llevan a ninguna parte es peor
@@ -82,12 +82,26 @@ describe('el nav no promete secciones que no existen', () => {
      * enlace nunca aparece; si agrega el ancla sin la sección, el enlace no lleva a nada.
      */
     const page = leerCodigo('app/page.tsx');
-    const anclas = page.match(/anclas=\{\[(.*?)\]\}/)?.[1] ?? null;
+    const anclas = page.match(/anclas=\{\[([\s\S]*?)\]\}/)?.[1] ?? null;
     expect(anclas).not.toBeNull();
+
+    /*
+     * Los `id` viven en los COMPONENTES de sección, no en la página: `id="como-funciona"` está
+     * dentro de `SeccionComo`. La primera versión de este test los buscaba solo en `app/page.tsx`
+     * y fallaba en cuanto las secciones existieron de verdad — buscaba en el archivo equivocado.
+     */
+    const marcado = [
+      page,
+      leerCodigo('components/landing/landing-secciones.tsx'),
+      leerCodigo('components/landing/landing-acordeones.tsx'),
+      leerCodigo('components/landing/landing-producto.tsx'),
+    ].join('\n');
 
     for (const a of (anclas as string).split(',').map((x) => x.trim().replace(/['"]/g, ''))) {
       if (!a) continue;
-      expect(page, `el ancla "${a}" necesita un id="${a}" en la página`).toContain(`id="${a}"`);
+      expect(marcado, `el ancla "${a}" necesita un id="${a}" en alguna sección`).toContain(
+        `id="${a}"`,
+      );
     }
   });
 });
