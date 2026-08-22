@@ -81,6 +81,19 @@ describe('entrada al login', () => {
     expect(existsSync(join(appDir, destino!.replace(/^\//, ''), 'page.tsx'))).toBe(true);
   });
 
+  test('el default de returnTo tampoco es la landing', () => {
+    /*
+     * El callback solo aplica `returnPathname: '/continue'` si la cookie PKCE NO trae
+     * otro destino. `/login` sin `?returnTo` pasaba `returnTo: '/'` (vía destinoSeguro),
+     * y ese valor GANABA: login correcto → portada de marketing. Fijamos el default acá
+     * porque es el mismo fallo silencioso, por otra puerta.
+     */
+    const src = readFileSync(join(appDir, '..', 'lib', 'auth', 'return-to.ts'), 'utf8');
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(code).toMatch(/DESPUES_DEL_LOGIN\s*=\s*'\/continue'/);
+    expect(code).not.toMatch(/const RAIZ\s*=\s*'\/'/);
+  });
+
   test('/login es público en el middleware — si no, quien no ha entrado no puede entrar', () => {
     const mw = readFileSync(join(appDir, '..', 'middleware.ts'), 'utf8');
     const paths = mw.match(/unauthenticatedPaths:\s*\[([^\]]*)\]/)?.[1] ?? '';

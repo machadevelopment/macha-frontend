@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { destinoSeguro } from '@/lib/auth/return-to';
+import { DESPUES_DEL_LOGIN, destinoSeguro } from '@/lib/auth/return-to';
 import { nombreDeReporte } from '@/lib/download';
 
 /**
@@ -17,10 +17,17 @@ describe('destinoSeguro (a dónde vuelve el login)', () => {
     expect(destinoSeguro('/chat?thread=xyz')).toBe('/chat?thread=xyz');
   });
 
-  test('sin parámetro, va a la raíz — el comportamiento de antes', () => {
-    expect(destinoSeguro(null)).toBe('/');
-    expect(destinoSeguro(undefined)).toBe('/');
-    expect(destinoSeguro('')).toBe('/');
+  test('sin parámetro, va a /continue — no a la landing', () => {
+    /*
+     * `/` es la portada de marketing. Si el default fuera la raíz, `getSignInUrl` metería
+     * `returnTo: '/'` en la cookie PKCE y el callback la preferiría sobre
+     * `returnPathname: '/continue'`: login OK → landing → sensación de que "no entró".
+     */
+    expect(DESPUES_DEL_LOGIN).toBe('/continue');
+    expect(destinoSeguro(null)).toBe('/continue');
+    expect(destinoSeguro(undefined)).toBe('/continue');
+    expect(destinoSeguro('')).toBe('/continue');
+    expect(destinoSeguro('/')).toBe('/continue');
   });
 
   describe('no se convierte en un redirector abierto', () => {
@@ -36,30 +43,30 @@ describe('destinoSeguro (a dónde vuelve el login)', () => {
      * que alguien "simplifica" el día que le estorbe. Por eso está probada.
      */
     test('una URL absoluta se rechaza', () => {
-      expect(destinoSeguro('https://sitio-malo.example/')).toBe('/');
-      expect(destinoSeguro('http://sitio-malo.example/')).toBe('/');
+      expect(destinoSeguro('https://sitio-malo.example/')).toBe('/continue');
+      expect(destinoSeguro('http://sitio-malo.example/')).toBe('/continue');
     });
 
     test('`//host` se rechaza: es absoluta disfrazada de ruta', () => {
       // El navegador lee `//evil.com` como `https://evil.com`. Empieza por `/`, así que un
       // chequeo ingenuo de "empieza por barra" la deja pasar.
-      expect(destinoSeguro('//sitio-malo.example/')).toBe('/');
+      expect(destinoSeguro('//sitio-malo.example/')).toBe('/continue');
     });
 
     test('la barra invertida también, porque el navegador la normaliza', () => {
-      expect(destinoSeguro('/\\\\sitio-malo.example')).toBe('/');
-      expect(destinoSeguro('\\\\sitio-malo.example')).toBe('/');
+      expect(destinoSeguro('/\\\\sitio-malo.example')).toBe('/continue');
+      expect(destinoSeguro('\\\\sitio-malo.example')).toBe('/continue');
     });
 
     test('un esquema sin barra inicial se rechaza', () => {
-      expect(destinoSeguro('javascript:alert(1)')).toBe('/');
-      expect(destinoSeguro('data:text/html,hola')).toBe('/');
+      expect(destinoSeguro('javascript:alert(1)')).toBe('/continue');
+      expect(destinoSeguro('data:text/html,hola')).toBe('/continue');
     });
 
     test('espacios y control chars se rechazan', () => {
       // Es la vía clásica para colar un salto de línea en una cabecera de redirección.
-      expect(destinoSeguro('/ruta con espacio')).toBe('/');
-      expect(destinoSeguro('/ruta\\nX')).toBe('/');
+      expect(destinoSeguro('/ruta con espacio')).toBe('/continue');
+      expect(destinoSeguro('/ruta\\nX')).toBe('/continue');
     });
   });
 });

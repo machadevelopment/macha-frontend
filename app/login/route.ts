@@ -24,7 +24,9 @@ import { destinoSeguro } from '@/lib/auth/return-to';
  * más que métodos HTTP).
  *
  * El SDK lo expone como `returnTo` y lo guarda en la cookie PKCE; el callback lo prefiere
- * sobre su `returnPathname` por defecto.
+ * sobre su `returnPathname` por defecto. Por eso el default de `destinoSeguro` es
+ * `/continue` y no `/`: si acá se pasara la raíz, el usuario autenticado aterrizaría en
+ * la landing y el `returnPathname: '/continue'` del callback no llegaría a aplicarse.
  *
  * CU-868ktkq8r: `?screenHint=sign-up` abre la hosted UI en CREAR CUENTA en vez de en
  * entrar. Lo usa la pantalla de invitación, y no es un detalle estético: el invitado que
