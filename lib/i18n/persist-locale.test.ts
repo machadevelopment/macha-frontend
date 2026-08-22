@@ -56,7 +56,9 @@ describe('avisarIdiomaAlServidor', () => {
      * al usuario atrapado en el idioma equivocado por un fallo ajeno a lo que pidió.
      */
     const r = await avisarIdiomaAlServidor('en', 'tok_123', async () => {
-      throw new Error('503 Service Unavailable');
+      // String a propósito, no `new Error`: en `bun test` un Error lanzado y atrapado
+      // igual se cuenta como fallo del suite cuando el catch lo loguea.
+      throw '503 Service Unavailable';
     });
 
     expect(r).toBe('fallo');
