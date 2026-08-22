@@ -227,7 +227,7 @@ export const es: Dictionary = {
       deactivate: 'Retirar',
     },
     demoRequests: {
-      eyebrow: 'LANDING',
+      eyebrow: 'CAPTACION',
       title: 'Solicitudes de demo',
       empty: 'Todavía no hay solicitudes.',
       colWhen: 'Cuándo',
@@ -416,7 +416,7 @@ export const es: Dictionary = {
       config: 'Configuración',
       aiCost: 'Costo IA',
       uploads: 'Cargas',
-      demoRequests: 'Demos',
+      demoRequests: 'Solicitudes',
     },
   },
   home: {

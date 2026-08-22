@@ -6,6 +6,7 @@ import { Field } from '@/components/ui/field';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { InsightPoint } from '@/components/ui/insight-point';
+import { request } from '@/lib/api/browser';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -21,7 +22,7 @@ type Estado = 'idle' | 'enviando' | 'ok' | 'error' | 'rate_limited';
  *
  * El envío va al BFF público (`/api/public/demo-requests`), que reenvía al backend sin
  * sesión. El señuelo `website` va oculto: un bot simple lo llena y el backend responde 200
- * sin guardar.
+ * sin guardar. Usa `request` (nunca `fetch` crudo): clasifica red/http/parse sin lanzar.
  */
 export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; locale: Locale }) {
   const [name, setName] = useState('');
@@ -37,38 +38,31 @@ export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; 
     if (estado === 'enviando') return;
     setEstado('enviando');
 
-    try {
-      const res = await fetch('/api/public/demo-requests', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          companyName,
-          email,
-          phone: phone || undefined,
-          message: message || undefined,
-          locale,
-          website: website || undefined,
-        }),
-      });
+    const result = await request<{ ok: true }>('/api/public/demo-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        companyName,
+        email,
+        phone: phone || undefined,
+        message: message || undefined,
+        locale,
+        website: website || undefined,
+      }),
+    });
 
-      if (res.status === 429) {
-        setEstado('rate_limited');
-        return;
-      }
-      if (!res.ok) {
-        setEstado('error');
-        return;
-      }
-      setEstado('ok');
-      setName('');
-      setCompanyName('');
-      setEmail('');
-      setPhone('');
-      setMessage('');
-    } catch {
-      setEstado('error');
+    if (!result.ok) {
+      setEstado(result.error.status === 429 ? 'rate_limited' : 'error');
+      return;
     }
+
+    setEstado('ok');
+    setName('');
+    setCompanyName('');
+    setEmail('');
+    setPhone('');
+    setMessage('');
   }
 
   return (
