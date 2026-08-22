@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { MachaMark } from '@/components/ui/macha-mark';
 import { mostrarEntradaEnLanding } from '@/lib/landing-flags';
-import { enlaceDemo } from '@/components/landing/demo-link';
+import { ANCLA_DEMO } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -43,8 +43,8 @@ import type { Locale } from '@/lib/i18n/config';
  * filtra por esa lista: un enlace de nav que no lleva a ninguna parte no falla en ningún test,
  * solo no hace nada al apretarlo, y de eso nadie se entera.
  *
- * "Inicio" no es ancla de sección sino el volver arriba, y "Contacto" es el mismo `mailto` del
- * CTA: no hay sección de contacto en el diseño y no la voy a inventar.
+ * "Inicio" no es ancla de sección sino el volver arriba, y "Contacto"/demo apuntan al formulario
+ * (`#demo`).
  */
 export function LandingNav({
   locale,
@@ -56,7 +56,7 @@ export function LandingNav({
   locale: Locale;
   labels: Dictionary['landing'];
   common: Dictionary['common'];
-  anclas?: ('como-funciona' | 'planes' | 'faq')[];
+  anclas?: ('como-funciona' | 'planes' | 'faq' | 'demo')[];
 }) {
   const enlaces: { ancla: 'como-funciona' | 'planes' | 'faq'; texto: string }[] = [
     { ancla: 'como-funciona', texto: labels.nav.comoFunciona },
@@ -66,7 +66,7 @@ export function LandingNav({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-canvas/[0.72] backdrop-blur-md supports-[not(backdrop-filter:blur(0))]:bg-canvas">
-      <div className="mx-auto flex h-16 max-w-[1170px] items-center justify-between gap-4 px-6 app:px-8">
+      <div className="mx-auto flex h-16 max-w-[1170px] items-center justify-between gap-4 px-6 lg:px-8">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
@@ -81,7 +81,7 @@ export function LandingNav({
           llega a todo haciendo scroll. Un desplegable acá sería un componente con estado, foco y
           trampa de teclado para navegar a lo que ya está abajo.
         */}
-        <nav className="hidden items-center gap-7 app:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           <a
             href="#inicio"
             className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
@@ -100,7 +100,7 @@ export function LandingNav({
               </a>
             ))}
           <a
-            href={enlaceDemo(labels.demoAsunto)}
+            href={ANCLA_DEMO}
             className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
           >
             {labels.nav.contacto}
@@ -113,14 +113,14 @@ export function LandingNav({
           {mostrarEntradaEnLanding() && (
             <a
               href="/login"
-              className="hidden text-[13px] font-semibold text-foreground transition-opacity hover:opacity-70 app:block"
+              className="hidden text-[13px] font-semibold text-foreground transition-opacity hover:opacity-70 md:block"
             >
               {common.signIn}
             </a>
           )}
 
           <a
-            href={enlaceDemo(labels.demoAsunto)}
+            href={ANCLA_DEMO}
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             {labels.nav.demo}

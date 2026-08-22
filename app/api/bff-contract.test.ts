@@ -203,7 +203,21 @@ const SIN_COMPANY_ID: Record<string, string> = {
     'es la ruta con la que se descubren las empresas del usuario: scoparla por una de ellas sería circular.',
   'app/api/register/plans/route.ts':
     'catálogo de planes del wizard de alta: quien lo mira todavía no tiene empresa. Cuelga de `identityDerive` (sesión y nada más), no de `tenantDerive`, y adjuntar una cookie vieja de otra sesión sería peor que no mandar nada.',
+  'app/api/public/demo-requests/route.ts':
+    'formulario de la landing: el visitante no tiene sesión ni empresa. El backend frena por hash de origen, no por JWT ni tenant.',
 };
+
+/**
+ * Rutas deliberadamente PÚBLICAS: no exigen sesión ni reenvían Bearer. El contrato de
+ * seguridad de arriba no aplica; se listan acá para que el barrido no las juzgue con las
+ * reglas de las BFF autenticadas, y para que agregar otra pública sea un cambio revisable.
+ */
+const RUTAS_PUBLICAS: Record<string, string> = {
+  'app/api/public/demo-requests/route.ts':
+    'conversión de la landing (Jose 2026-08-21). Sin sesión a propósito: quien pide demo todavía no es cliente.',
+};
+
+const esPublica = (ruta: RutaBff) => ruta.id in RUTAS_PUBLICAS;
 
 // ---------------------------------------------------------------------------
 // Invocación de un handler
@@ -276,36 +290,59 @@ describe('inventario de rutas BFF', () => {
     // acumulan justificaciones de algo que ya no existe.
     expect(Object.keys(SIN_COMPANY_ID).filter((id) => !ids.has(id))).toEqual([]);
   });
+
+  test('toda ruta pública declarada en RUTAS_PUBLICAS sigue existiendo', () => {
+    const ids = new Set(RUTAS.map((r) => r.id));
+    expect(Object.keys(RUTAS_PUBLICAS).filter((id) => !ids.has(id))).toEqual([]);
+  });
 });
 
 describe('criterio 1 — ninguna ruta BFF responde sin sesión', () => {
-  test.each(CASOS)('%s no llega al backend sin sesión', async (_etiqueta, ruta, metodo) => {
-    haySesion = false;
+  test.each(CASOS.filter(([, ruta]) => !esPublica(ruta)))(
+    '%s no llega al backend sin sesión',
+    async (_etiqueta, ruta, metodo) => {
+      haySesion = false;
 
-    // Sin sesión el handler o lanza (la redirección de AuthKit) o responde un error.
-    // Lo que NO puede pasar, en ninguno de los dos casos, es que salga una petición al
-    // backend: eso significaría una ruta que no exige sesión.
-    await invocar(ruta, metodo).catch(() => undefined);
+      // Sin sesión el handler o lanza (la redirección de AuthKit) o responde un error.
+      // Lo que NO puede pasar, en ninguno de los dos casos, es que salga una petición al
+      // backend: eso significaría una ruta que no exige sesión.
+      await invocar(ruta, metodo).catch(() => undefined);
 
-    expect(salientes).toEqual([]);
-  });
+      expect(salientes).toEqual([]);
+    },
+  );
+
+  test.each(CASOS.filter(([, ruta]) => esPublica(ruta)))(
+    '%s SÍ llega al backend sin sesión (es pública a propósito)',
+    async (_etiqueta, ruta, metodo) => {
+      haySesion = false;
+      await invocar(ruta, metodo);
+      expect(salientes.length).toBeGreaterThanOrEqual(1);
+      for (const saliente of salientes) {
+        expect(saliente.headers.get('authorization')).toBeNull();
+      }
+    },
+  );
 });
 
 describe('criterio 2 — token y empresa salen del servidor, no del cliente', () => {
-  test.each(CASOS)('%s reenvía al backend con el token del servidor', async (_e, ruta, metodo) => {
-    await invocar(ruta, metodo);
+  test.each(CASOS.filter(([, ruta]) => !esPublica(ruta)))(
+    '%s reenvía al backend con el token del servidor',
+    async (_e, ruta, metodo) => {
+      await invocar(ruta, metodo);
 
-    // Si un handler no llama al backend es que se cortó antes: o falta el reenvío o
-    // este test dejó de ejercitarlo. En ambos casos hay que mirarlo.
-    expect(salientes.length).toBeGreaterThanOrEqual(1);
+      // Si un handler no llama al backend es que se cortó antes: o falta el reenvío o
+      // este test dejó de ejercitarlo. En ambos casos hay que mirarlo.
+      expect(salientes.length).toBeGreaterThanOrEqual(1);
 
-    for (const saliente of salientes) {
-      expect(saliente.url.startsWith(API_BASE)).toBe(true);
-      expect(saliente.headers.get('authorization')).toBe(`Bearer ${TOKEN_DEL_SERVIDOR}`);
-      // El token que mandó el navegador no se reenvía jamás.
-      expect(saliente.headers.get('authorization')).not.toContain(TOKEN_DEL_CLIENTE);
-    }
-  });
+      for (const saliente of salientes) {
+        expect(saliente.url.startsWith(API_BASE)).toBe(true);
+        expect(saliente.headers.get('authorization')).toBe(`Bearer ${TOKEN_DEL_SERVIDOR}`);
+        // El token que mandó el navegador no se reenvía jamás.
+        expect(saliente.headers.get('authorization')).not.toContain(TOKEN_DEL_CLIENTE);
+      }
+    },
+  );
 
   test.each(CASOS)('%s ignora el X-Company-Id que manda el cliente', async (_e, ruta, metodo) => {
     await invocar(ruta, metodo);

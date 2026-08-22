@@ -53,7 +53,12 @@ export async function avisarIdiomaAlServidor(
      * en cada cambio: la próxima vez que toque el selector, se corrige sola. Y queda en el
      * log del servidor, así que no desaparece sin dejar rastro.
      */
-    console.error('[locale] no se pudo guardar la preferencia en el servidor', error);
+    // Se loguea el mensaje, no el Error: en `bun test`, `console.error(..., error)` cuenta
+    // el objeto Error como fallo del suite aunque el catch lo haya tragado a propósito.
+    console.error(
+      '[locale] no se pudo guardar la preferencia en el servidor',
+      error instanceof Error ? error.message : error,
+    );
     return 'fallo';
   }
 }

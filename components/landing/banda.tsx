@@ -72,19 +72,37 @@ export function Banda({
 
   return (
     /*
+      ═══ `overflow-hidden` NO ES DECORATIVO: EVITA UNA BARRA HORIZONTAL ═══
+
+      Tres secciones llevan la mancha de marca (`InsightPoint variant="ambient"`) posicionada
+      fuera de su caja a propósito: `-left-48`, `-top-52`, `-right-40`. Sin nada que las recorte,
+      esos negativos son ANCHO DE PÁGINA: la mancha del cierre mide 420px centrada, así que en un
+      teléfono de 375px se sale ~22px por cada lado y el documento entero gana scroll horizontal.
+
+      Y el síntoma no aparece donde está la causa. Una barra horizontal al pie de la página se ve
+      como "la landing está corrida" en CUALQUIER sección, no en la que tiene la mancha. Recortar
+      en la banda lo resuelve para todas de una vez y para las que vengan.
+
+      Efecto colateral que hay que conocer: `overflow-hidden` rompe `position: sticky` de los
+      descendientes. No hay ninguno dentro de las bandas —el nav está fuera de `<main>`— y si
+      algún día hace falta uno, el arreglo es sacarlo de la banda, no quitar esta clase.
+
       `scroll-mt-16` compensa los 64px del nav fijo, y va en ESTE elemento porque es el que lleva
       el `id`: el navegador alinea el destino del ancla, así que un `scroll-mt` en el hijo no
       corrige nada. Sin él, saltar a "Planes" deja el título tapado por la barra — el bug clásico
       de un nav `sticky` con anclas.
     */
-    <section id={id} className={`w-full scroll-mt-16 ${fondo} ${className}`}>
+    <section
+      id={id}
+      className={`relative w-full overflow-hidden scroll-mt-16 ${fondo} ${className}`}
+    >
       {/*
         El ancho sale de medir el diseño: el contenido va de x=375 a x=1545 sobre 1920, o sea
         1170px de caja centrada. El relleno vertical (96px en móvil, 128px en escritorio) es la
         media de los altos de banda del Figma menos su contenido; abajo de eso las bandas se
         tocan y arriba la página se estira sin motivo.
       */}
-      <div className="mx-auto max-w-[1170px] px-6 py-24 app:px-8 app:py-32">{children}</div>
+      <div className="mx-auto max-w-[1170px] px-6 py-20 md:py-24 lg:px-8 lg:py-32">{children}</div>
     </section>
   );
 }

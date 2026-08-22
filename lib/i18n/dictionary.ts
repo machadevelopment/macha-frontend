@@ -271,6 +271,22 @@ export interface Dictionary {
       activate: string;
       deactivate: string;
     };
+    /**
+     * Solicitudes de demo de la landing. Solo lectura: la tabla es append-only y no hay
+     * estado "contactado" (migración backend 0036).
+     */
+    demoRequests: {
+      eyebrow: string;
+      title: string;
+      empty: string;
+      colWhen: string;
+      colName: string;
+      colCompany: string;
+      colEmail: string;
+      colPhone: string;
+      colMessage: string;
+      colLocale: string;
+    };
     creditRules: {
       eyebrow: string;
       title: string;
@@ -424,6 +440,8 @@ export interface Dictionary {
       config: string;
       aiCost: string;
       uploads: string;
+      /** Solicitudes de demo de la landing (Jose 2026-08-21). */
+      demoRequests: string;
     };
   };
   home: {
@@ -538,6 +556,24 @@ export interface Dictionary {
     };
     faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
     cta: { title: string; subtitle: string; demo: string };
+    /**
+     * Formulario de solicitud de demo (Jose 2026-08-21). Reemplaza el `mailto` del CTA.
+     * `title`/`subtitle` reusan el tono del cierre; los labels son los campos del form.
+     */
+    form: {
+      title: string;
+      subtitle: string;
+      name: string;
+      company: string;
+      email: string;
+      phone: string;
+      message: string;
+      submit: string;
+      submitting: string;
+      success: string;
+      error: string;
+      rateLimited: string;
+    };
     footer: {
       tagline: string;
       privacidad: string;
@@ -545,7 +581,7 @@ export interface Dictionary {
       datos: string;
       copyright: string;
     };
-    /** Asunto prellenado del correo del CTA. */
+    /** @deprecated Asunto del mailto; el CTA ahora es el formulario `#demo`. */
     demoAsunto: string;
   };
   upload: {

@@ -48,11 +48,11 @@ export function SeccionCapacidades({ labels }: { labels: L }) {
   return (
     <div className="flex flex-col gap-12">
       <div className="flex flex-col gap-4">
-        <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">{t.eyebrow}</p>
+        <p className="text-leyebrow uppercase text-muted-foreground">{t.eyebrow}</p>
         <h2 className="max-w-[20ch] text-section text-foreground">{t.title}</h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 app:grid-cols-[1fr_1.05fr] app:gap-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_1.05fr] lg:gap-12">
         {/* La lista numerada. */}
         <ul className="flex flex-col">
           {t.items.map((item, i) => {
@@ -66,9 +66,7 @@ export function SeccionCapacidades({ labels }: { labels: L }) {
                   aria-controls={`capacidad-${i}`}
                   className="flex w-full items-baseline gap-4 py-5 text-left"
                 >
-                  <span className="font-mono text-body text-faint">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
+                  <span className="text-lnum text-faint">{String(i + 1).padStart(2, '0')}</span>
                   {/*
                     El item cerrado va en tinta apagada y el abierto en plena. Es la única señal
                     de estado y alcanza: el peso no cambia, así que la lista no “salta” al abrir
@@ -85,7 +83,7 @@ export function SeccionCapacidades({ labels }: { labels: L }) {
                 </button>
 
                 {esteAbierto && (
-                  <p id={`capacidad-${i}`} className="pb-6 pl-10 text-body text-muted-foreground">
+                  <p id={`capacidad-${i}`} className="pb-6 pl-10 text-lprose text-muted-foreground">
                     {item.desc}
                   </p>
                 )}
@@ -111,9 +109,9 @@ export function SeccionCapacidades({ labels }: { labels: L }) {
               >
                 <InsightPoint size="sm" className="mt-0.5 h-4 w-4 shrink-0" />
                 <div className="flex min-w-0 flex-col gap-1.5">
-                  <p className="text-body font-semibold text-foreground">{ins.titulo}</p>
-                  <p className="text-micro text-muted-foreground">{ins.desc}</p>
-                  <p className="text-micro text-faint">{ins.meta}</p>
+                  <p className="text-lstrong text-foreground">{ins.titulo}</p>
+                  <p className="text-lrow text-muted-foreground">{ins.desc}</p>
+                  <p className="text-lmeta text-faint">{ins.meta}</p>
                 </div>
               </li>
             ))}
@@ -140,9 +138,9 @@ export function SeccionFaq({ labels }: { labels: L }) {
   const [abierta, setAbierta] = useState<number | null>(0);
 
   return (
-    <div className="grid grid-cols-1 gap-10 app:grid-cols-[1fr_1.4fr] app:gap-16">
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
       <div className="flex flex-col gap-4">
-        <p className="font-mono text-eyebrow uppercase tracking-[0.08em] text-faint">{t.eyebrow}</p>
+        <p className="text-leyebrow uppercase text-muted-foreground">{t.eyebrow}</p>
         <h2 className="text-section text-foreground">{t.title}</h2>
       </div>
 
@@ -161,13 +159,13 @@ export function SeccionFaq({ labels }: { labels: L }) {
                 <span className="text-[21px] font-normal leading-snug tracking-[-0.02em] text-foreground">
                   {item.q}
                 </span>
-                <span aria-hidden className="shrink-0 text-lead text-faint">
+                <span aria-hidden className="shrink-0 text-[22px] font-light text-faint">
                   {esta ? '–' : '+'}
                 </span>
               </button>
 
               {esta && (
-                <p id={`faq-${i}`} className="max-w-[70ch] pb-6 text-body text-muted-foreground">
+                <p id={`faq-${i}`} className="max-w-[70ch] pb-6 text-lprose text-muted-foreground">
                   {item.a}
                 </p>
               )}
