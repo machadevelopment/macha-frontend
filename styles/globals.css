@@ -443,6 +443,32 @@
   --brand-soft: #191d17;
   --brand-bd: #2f3a2b;
   --brand-ink: #b4c1af;
+
+  /*
+   * ═══ SEMÁNTICOS + FONDO PROPIO ═══
+   *
+   * Las primitivas de arriba no bastan solas: `--card` / `--foreground` / etc. viven en
+   * `:root` como `var(--surface)`. En la práctica, si un ancestro (ThemeProvider, vitrina,
+   * o un wrapper con fondo de lienzo) gana la cascada, la banda se ve BLANCA con texto claro
+   * — exactamente el reporte de Keneth sobre el asesor. Re-anclar los semánticos acá y pintar
+   * el fondo en la propia clase hace que la isla no dependa de `bg-card` de Tailwind.
+   */
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-2);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #ffffff;
+  --muted-foreground: var(--muted);
+  --accent: var(--fill);
+  --accent-foreground: var(--ink);
+  --input: var(--border);
+  --ring: #f2f2f2;
+
+  background-color: var(--surface);
+  color: var(--ink);
 }
 
 /*

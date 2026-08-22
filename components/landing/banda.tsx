@@ -67,17 +67,21 @@ export function Banda({
   children: ReactNode;
   className?: string;
 }) {
-  const fondo =
-    tono === 'sutil' ? 'bg-muted' : tono === 'tinta' ? 'tinta bg-card text-foreground' : '';
+  /*
+   * `tinta` ya pinta fondo y color en CSS (ver `.tinta` en globals.css). No se suma
+   * `bg-card`: si esa utilidad pierde la cascada, la banda vuelve a verse blanca — el bug
+   * que Keneth reportó sobre el asesor.
+   */
+  const fondo = tono === 'sutil' ? 'bg-muted' : tono === 'tinta' ? 'tinta' : '';
 
   return (
     /*
       ═══ `overflow-hidden` NO ES DECORATIVO: EVITA UNA BARRA HORIZONTAL ═══
 
-      Tres secciones llevan la mancha de marca (`InsightPoint variant="ambient"`) posicionada
-      fuera de su caja a propósito: `-left-48`, `-top-52`, `-right-40`. Sin nada que las recorte,
-      esos negativos son ANCHO DE PÁGINA: la mancha del cierre mide 420px centrada, así que en un
-      teléfono de 375px se sale ~22px por cada lado y el documento entero gana scroll horizontal.
+      El hero y el asesor llevan la mancha de marca (`InsightPoint variant="ambient"`) posicionada
+      fuera de su caja a propósito: `-left-48`, `-top-56`, `-right-40`. Sin nada que las recorte,
+      esos negativos son ANCHO DE PÁGINA: la mancha del asesor mide 460px, así que en un
+      teléfono de 375px se sale por el lado y el documento entero gana scroll horizontal.
 
       Y el síntoma no aparece donde está la causa. Una barra horizontal al pie de la página se ve
       como "la landing está corrida" en CUALQUIER sección, no en la que tiene la mancha. Recortar

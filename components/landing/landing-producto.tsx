@@ -32,14 +32,21 @@ export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
         esa marca, cinco etiquetas iguales sobre una sola imagen se leen como cinco cosas que la
         imagen contiene, cuando el mockup es solo la primera.
       */}
-      <ul aria-hidden className="flex flex-wrap gap-7 border-b border-border">
+      {/*
+        En móvil las cinco etiquetas no caben en wrap sin pelearse con el mockup: scroll
+        horizontal dentro de la caja, sin empujar el ancho de la página.
+      */}
+      <ul
+        aria-hidden
+        className="-mx-1 flex gap-7 overflow-x-auto border-b border-border px-1 pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         {t.pestanas.map((p, i) => (
           <li
             key={p}
             className={
               i === 0
-                ? '-mb-px border-b border-foreground pb-3 text-[18px] font-semibold text-foreground'
-                : 'pb-3 text-[18px] font-light text-faint'
+                ? '-mb-px shrink-0 border-b border-foreground pb-3 text-[16px] font-semibold text-foreground sm:text-[18px]'
+                : 'shrink-0 pb-3 text-[16px] font-light text-faint sm:text-[18px]'
             }
           >
             {p}
@@ -47,13 +54,14 @@ export function SeccionProducto({ labels }: { labels: Dictionary['landing'] }) {
         ))}
       </ul>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <Image
           src="/landing/mockup-ventas.png"
           alt={t.mockupAlt}
           width={1316}
           height={628}
-          className="h-auto w-full"
+          sizes="(max-width: 1170px) calc(100vw - 3rem), 1170px"
+          className="h-auto w-full max-w-full"
         />
       </div>
     </div>

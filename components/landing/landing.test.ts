@@ -230,9 +230,11 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
      * en `globals.css`.
      */
     const banda = leerCodigo('components/landing/banda.tsx');
-    expect(banda).toMatch(/'tinta bg-card/);
+    expect(banda).toMatch(/tono === 'tinta' \? 'tinta'/);
     expect(banda).not.toMatch(/'inverse /);
     expect(banda).toContain('bg-muted');
+    // El fondo lo pinta `.tinta` en CSS, no `bg-card` — esa utilidad fue la que falló en prod.
+    expect(banda).not.toMatch(/tinta bg-card/);
   });
 
   test('la isla oscura no tiene colisiones de token', () => {
@@ -260,6 +262,15 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     for (const t of ['surface', 'ink', 'muted', 'faint', 'border', 'border-strong', 'fill']) {
       expect(val(t), `.tinta no define --${t}`).toBeTruthy();
     }
+
+    // Semánticos re-anclados: sin esto `bg-card` / `text-foreground` pueden seguir leyendo el
+    // tema claro del ancestro y la banda se ve blanca.
+    for (const t of ['card', 'foreground', 'background', 'muted-foreground']) {
+      expect(val(t), `.tinta no define --${t}`).toBeTruthy();
+    }
+
+    // Fondo propio en la clase — no depende de una utilidad de Tailwind.
+    expect(bloque).toMatch(/background-color:\s*var\(--surface\)/);
 
     // El borde tiene que verse contra su fondo.
     expect(val('border')).not.toBe(val('surface'));
@@ -517,13 +528,35 @@ describe('responsive', () => {
 
   test('las capturas del producto son fluidas', () => {
     /*
-     * Los dos mockups son PNG de 1316px de ancho intrínseco. Sin `w-full h-auto` empujan el ancho
-     * de la página en cualquier pantalla más chica que eso, que son todas las de un teléfono.
+     * Los dos mockups son PNG de 2632px de ancho intrínseco. Sin `w-full h-auto max-w-full`
+     * empujan el ancho de la página en cualquier pantalla más chica. `min-w-0` en el contenedor
+     * evita que un padre flex ignore el tope; `sizes` evita servir el 2x a un teléfono.
      */
     for (const f of ['landing-hero.tsx', 'landing-producto.tsx']) {
       const code = leerCodigo(`components/landing/${f}`);
-      expect(code, f).toContain('h-auto w-full');
+      expect(code, f).toContain('h-auto w-full max-w-full');
+      expect(code, f).toContain('min-w-0');
+      expect(code, f).toMatch(/sizes=/);
     }
+  });
+
+  test('el formulario de contacto es compacto, no una tarjeta de app', () => {
+    const code = leerCodigo('components/landing/landing-formulario.tsx');
+    // Sin caja con borde/sombra: eso era lo que se leía "de ahuevo" contra el Figma.
+    expect(code).not.toMatch(/shadow-sm/);
+    expect(code).not.toMatch(/Textarea/);
+    expect(code).not.toMatch(/InsightPoint/);
+    // El honeypot no puede ir a left:-9999px: empuja el scroll horizontal en móvil.
+    expect(code).not.toMatch(/-left-\[9999px\]/);
+    expect(code).toMatch(/sr-only/);
+  });
+
+  test('la landing no usa ShowcaseFrame', () => {
+    /*
+     * ShowcaseFrame es para pantallas cortas de vitrina. En la landing metía manchas ambient
+     * a escala de página y competía con las bandas (incluida la oscura).
+     */
+    expect(leerCodigo('app/page.tsx')).not.toMatch(/ShowcaseFrame/);
   });
 
   test('nada de la landing fija un ancho mayor que un teléfono', () => {

@@ -1,4 +1,3 @@
-import { ShowcaseFrame } from '@/components/ui/showcase';
 import { Banda } from '@/components/landing/banda';
 import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingHero } from '@/components/landing/landing-hero';
@@ -55,7 +54,12 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  * Ahora cada sección va envuelta en `<Banda>`, que pone el fondo a todo el ancho y acota el
  * contenido al centro. El orden y el tono de abajo salen de medir el frame; la tabla completa está
  * en `banda.tsx`. Las secciones no conocen su color: por eso la oscura es la misma pieza que las
- * claras, con `.inverse` redefiniendo los tokens hacia adentro.
+ * claras, con `.tinta` redefiniendo los tokens hacia adentro.
+ *
+ * ⚠️ NO va dentro de `ShowcaseFrame`. Esa pieza es para pantallas cortas de vitrina (registro,
+ * 404): mete dos manchas ambient a escala de página. En una landing de catorce secciones esas
+ * manchas solo cubren el hero y el resto hereda un marco pensado para otra cosa. Cada sección
+ * que necesita atmósfera la pone ella.
  *
  * ═══ LAS 14 SECCIONES, Y LO QUE COSTÓ LEERLAS BIEN ═══
  *
@@ -80,7 +84,11 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
   const authError = searchParams?.auth_error === '1';
 
   return (
-    <ShowcaseFrame className="min-h-dvh">
+    /*
+      Sin ShowcaseFrame: ver la nota de arriba. `overflow-x-hidden` en la raíz es el último
+      corte contra scroll horizontal en móvil (manchas, honeypot, mockups).
+    */
+    <div className="min-h-dvh overflow-x-hidden">
       {/* `comfortable` y no `compact`: la landing no es una pantalla de datos. */}
       <div data-density="comfortable" className="flex min-h-dvh flex-col">
         <LandingNav
@@ -173,6 +181,6 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
 
         <LandingFooter labels={t.landing} />
       </div>
-    </ShowcaseFrame>
+    </div>
   );
 }

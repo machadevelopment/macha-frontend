@@ -3,9 +3,6 @@
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { InsightPoint } from '@/components/ui/insight-point';
 import { request } from '@/lib/api/browser';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -15,21 +12,21 @@ type FormLabels = Dictionary['landing']['form'];
 type Estado = 'idle' | 'enviando' | 'ok' | 'error' | 'rate_limited';
 
 /**
- * Formulario de solicitud de demo — conversión de la landing.
+ * Formulario de solicitud de demo — conversión de la landing (ancla `#demo` / Contacto).
  *
- * Pedido de Jose (2026-08-21): "un form básico, para que pongan como datos básicos".
- * Vive en la banda CTA (ancla `#demo`): los botones del nav/hero/planes apuntan acá.
+ * Pedido de Jose: "un form básico". Pedido de Keneth: que no se vea "de ahuevo" — o sea,
+ * que se lea como el CIERRE del Figma (titular + bajada + acción), no como un formulario de
+ * app con tarjeta, sombra y cinco campos gordos.
  *
- * El envío va al BFF público (`/api/public/demo-requests`), que reenvía al backend sin
- * sesión. El señuelo `website` va oculto: un bot simple lo llena y el backend responde 200
- * sin guardar. Usa `request` (nunca `fetch` crudo): clasifica red/http/parse sin lanzar.
+ * Por eso: sin caja envolvente, sin mancha ambient, sin textarea de mensaje. Nombre,
+ * empresa, correo, teléfono opcional y el botón. El envío sigue igual (BFF público → lead
+ * en base + aviso best-effort).
  */
 export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; locale: Locale }) {
   const [name, setName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
   const [website, setWebsite] = useState('');
   const [estado, setEstado] = useState<Estado>('idle');
 
@@ -46,7 +43,6 @@ export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; 
         companyName,
         email,
         phone: phone || undefined,
-        message: message || undefined,
         locale,
         website: website || undefined,
       }),
@@ -62,35 +58,26 @@ export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; 
     setCompanyName('');
     setEmail('');
     setPhone('');
-    setMessage('');
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[640px] flex-col items-center gap-8 text-center">
-      <InsightPoint
-        variant="ambient"
-        className="-top-52 left-1/2 h-[420px] w-[420px] -translate-x-1/2"
-      />
-      <div className="relative space-y-3">
-        <h2 className="text-sectionbig text-foreground">{labels.title}</h2>
-        <p className="mx-auto max-w-[52ch] text-lhero text-muted-foreground">{labels.subtitle}</p>
+    <div className="mx-auto flex w-full max-w-[520px] flex-col gap-8">
+      <div className="space-y-3 text-center">
+        <h2 className="text-section text-foreground">{labels.title}</h2>
+        <p className="mx-auto max-w-[42ch] text-lsub text-muted-foreground">{labels.subtitle}</p>
       </div>
 
       {estado === 'ok' ? (
         <p
           role="status"
-          className="relative w-full rounded-md border border-success-bd bg-success-bg px-4 py-3 text-left text-[15px] text-success"
+          className="rounded-md border border-success-bd bg-success-bg px-4 py-3 text-center text-lprose text-success"
         >
           {labels.success}
         </p>
       ) : (
-        <form
-          onSubmit={onSubmit}
-          className="relative w-full space-y-4 rounded-xl border border-border bg-canvas p-5 text-left shadow-sm sm:p-6"
-          noValidate
-        >
-          {/* Señuelo anti-bot: fuera de pantalla, tabIndex -1, autocomplete off. */}
-          <div aria-hidden className="absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden">
+        <form onSubmit={onSubmit} className="flex w-full min-w-0 flex-col gap-3" noValidate>
+          {/* Señuelo anti-bot: sr-only, no absolute off-screen (eso empuja el scroll horizontal). */}
+          <div className="sr-only" aria-hidden>
             <label htmlFor="demo-website">Website</label>
             <input
               id="demo-website"
@@ -103,7 +90,7 @@ export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; 
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field
               id="demo-name"
               label={labels.name}
@@ -122,7 +109,7 @@ export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; 
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field
               id="demo-email"
               label={labels.email}
@@ -142,24 +129,13 @@ export function LandingFormularioDemo({ labels, locale }: { labels: FormLabels; 
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="demo-message">{labels.message}</Label>
-            <Textarea
-              id="demo-message"
-              rows={4}
-              value={message}
-              onChange={(ev) => setMessage(ev.target.value)}
-              className="min-h-[96px] resize-y"
-            />
-          </div>
-
           {(estado === 'error' || estado === 'rate_limited') && (
-            <p role="alert" className="text-[14px] text-danger">
+            <p role="alert" className="text-lprose text-danger">
               {estado === 'rate_limited' ? labels.rateLimited : labels.error}
             </p>
           )}
 
-          <Button type="submit" className="w-full sm:w-auto" disabled={estado === 'enviando'}>
+          <Button type="submit" className="mt-1 w-full" disabled={estado === 'enviando'}>
             {estado === 'enviando' ? labels.submitting : labels.submit}
           </Button>
         </form>

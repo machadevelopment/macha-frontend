@@ -61,7 +61,7 @@ export function SeccionAsesor({ labels }: { labels: Dictionary['landing'] }) {
       <div
         role="tablist"
         aria-label={t.title}
-        className="relative mt-10 flex flex-wrap gap-2.5"
+        className="relative mt-10 flex max-w-full flex-col gap-2.5 sm:flex-row sm:flex-wrap"
         onKeyDown={(e) => {
           if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
             e.preventDefault();

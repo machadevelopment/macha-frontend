@@ -72,14 +72,20 @@ export function LandingHero({ labels }: { labels: Dictionary['landing'] }) {
         </a>
       </div>
 
-      <div className="mt-20 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/*
+        `min-w-0` + `max-w-full`: en un flex/grid el default `min-width: auto` deja que el PNG
+        de 2632px dicte el ancho del hijo y rompa el layout en móvil. `sizes` evita que Next
+        sirva el 2x completo a un teléfono.
+      */}
+      <div className="mt-20 min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <Image
           src="/landing/mockup-resumen.png"
           alt={labels.hero.mockupAlt}
           width={1316}
           height={655}
           priority
-          className="h-auto w-full"
+          sizes="(max-width: 1170px) calc(100vw - 3rem), 1170px"
+          className="h-auto w-full max-w-full"
         />
       </div>
     </section>
