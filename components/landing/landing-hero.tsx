@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { InsightPoint } from '@/components/ui/insight-point';
-import { enlaceDemo } from '@/components/landing/demo-link';
+import { ANCLA_DEMO } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -56,7 +56,7 @@ export function LandingHero({ labels }: { labels: Dictionary['landing'] }) {
 
       <div className="mt-9 flex flex-wrap items-center gap-3">
         <a
-          href={enlaceDemo(labels.demoAsunto)}
+          href={ANCLA_DEMO}
           className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-[17px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
         >
           {labels.hero.demo}

@@ -14,6 +14,7 @@ import {
   Sparkles,
   UploadCloud,
   Users,
+  Inbox,
   type LucideIcon,
 } from 'lucide-react';
 import type { Dictionary } from '@/lib/i18n/dictionary';
@@ -113,6 +114,7 @@ export function adminNav(t: Dictionary['shell']): NavSection[] {
         { href: '/admin', icon: Building2, label: t.adminNav.companies, exact: true },
         { href: '/admin/staging-rows', icon: AlertTriangle, label: t.adminNav.stagingRows },
         { href: '/admin/documents', icon: UploadCloud, label: t.adminNav.uploads },
+        { href: '/admin/demo-requests', icon: Inbox, label: t.adminNav.demoRequests },
       ],
     },
     {

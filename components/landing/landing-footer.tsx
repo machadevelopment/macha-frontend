@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MachaMark } from '@/components/ui/macha-mark';
-import { CORREO_DEMO, enlaceDemo } from '@/components/landing/demo-link';
+import { ANCLA_DEMO, CORREO_DEMO } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -38,7 +38,7 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
     { texto: labels.nav.comoFunciona, href: '#como-funciona' },
     { texto: labels.nav.planes, href: '#planes' },
     { texto: labels.nav.faq, href: '#faq' },
-    { texto: labels.nav.contacto, href: enlaceDemo(labels.demoAsunto) },
+    { texto: labels.nav.contacto, href: ANCLA_DEMO },
   ];
 
   return (
@@ -69,9 +69,9 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
           </nav>
 
           <div className="flex flex-col gap-3">
-            {/* El correo SÍ es un enlace: es el único camino de conversión de la página y existe. */}
+            {/* El correo sigue visible como canal paralelo al formulario. */}
             <a
-              href={enlaceDemo(labels.demoAsunto)}
+              href={`mailto:${CORREO_DEMO}`}
               className="text-[15px] font-normal text-foreground transition-opacity hover:opacity-70"
             >
               {CORREO_DEMO}

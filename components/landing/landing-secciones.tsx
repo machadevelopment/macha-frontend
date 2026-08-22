@@ -1,4 +1,5 @@
 import { InsightPoint } from '@/components/ui/insight-point';
+import { ANCLA_DEMO } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 type L = Dictionary['landing'];
@@ -328,7 +329,7 @@ export function SeccionSeguridad({ labels }: { labels: L }) {
  * el diccionario a propósito — una bandera invitaría a marcar dos, y dos planes destacados es
  * ninguno.
  */
-export function SeccionPlanes({ labels, hrefDemo }: { labels: L; hrefDemo: string }) {
+export function SeccionPlanes({ labels, hrefDemo }: { labels: L; hrefDemo?: string }) {
   const t = labels.planes;
   const destacado = Math.floor(t.items.length / 2);
 
@@ -361,7 +362,7 @@ export function SeccionPlanes({ labels, hrefDemo }: { labels: L; hrefDemo: strin
             </ul>
 
             <a
-              href={hrefDemo}
+              href={hrefDemo ?? ANCLA_DEMO}
               className={
                 i === destacado
                   ? 'inline-flex items-center justify-center self-start rounded-md bg-primary px-5 py-2.5 text-lstrong text-primary-foreground transition-opacity hover:opacity-90'

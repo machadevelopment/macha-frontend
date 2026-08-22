@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { MachaMark } from '@/components/ui/macha-mark';
 import { mostrarEntradaEnLanding } from '@/lib/landing-flags';
-import { enlaceDemo } from '@/components/landing/demo-link';
+import { ANCLA_DEMO } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -43,8 +43,8 @@ import type { Locale } from '@/lib/i18n/config';
  * filtra por esa lista: un enlace de nav que no lleva a ninguna parte no falla en ningún test,
  * solo no hace nada al apretarlo, y de eso nadie se entera.
  *
- * "Inicio" no es ancla de sección sino el volver arriba, y "Contacto" es el mismo `mailto` del
- * CTA: no hay sección de contacto en el diseño y no la voy a inventar.
+ * "Inicio" no es ancla de sección sino el volver arriba, y "Contacto"/demo apuntan al formulario
+ * (`#demo`).
  */
 export function LandingNav({
   locale,
@@ -56,7 +56,7 @@ export function LandingNav({
   locale: Locale;
   labels: Dictionary['landing'];
   common: Dictionary['common'];
-  anclas?: ('como-funciona' | 'planes' | 'faq')[];
+  anclas?: ('como-funciona' | 'planes' | 'faq' | 'demo')[];
 }) {
   const enlaces: { ancla: 'como-funciona' | 'planes' | 'faq'; texto: string }[] = [
     { ancla: 'como-funciona', texto: labels.nav.comoFunciona },
@@ -100,7 +100,7 @@ export function LandingNav({
               </a>
             ))}
           <a
-            href={enlaceDemo(labels.demoAsunto)}
+            href={ANCLA_DEMO}
             className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
           >
             {labels.nav.contacto}
@@ -120,7 +120,7 @@ export function LandingNav({
           )}
 
           <a
-            href={enlaceDemo(labels.demoAsunto)}
+            href={ANCLA_DEMO}
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             {labels.nav.demo}

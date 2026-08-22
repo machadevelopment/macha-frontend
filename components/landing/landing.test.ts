@@ -22,22 +22,31 @@ const leerCodigo = (rel: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\/\/.*$/gm, '');
 
-describe('el CTA de demo lleva a un contacto que existe', () => {
-  test('apunta al correo que dio Keneth', () => {
-    // Si alguien lo cambia por un `#` o por una ruta que no existe, el único camino de conversión
-    // de la landing deja de funcionar sin que nada falle.
+describe('el CTA de demo lleva al formulario', () => {
+  test('el correo de contacto sigue publicado', () => {
+    // Canal paralelo al formulario; si desaparece, el footer pierde el único contacto directo.
     expect(leer('components/landing/demo-link.ts')).toContain('contact@machafinance.com');
   });
 
-  test('el asunto va prellenado y CODIFICADO', () => {
-    /*
-     * El asunto lleva espacios y acentos. Sin `encodeURIComponent` el `mailto` se corta en el
-     * primer espacio en varios clientes de correo: el enlace "funciona" y llega un correo con
-     * asunto vacío o truncado.
-     */
-    const code = leerCodigo('components/landing/demo-link.ts');
-    expect(code).toContain('encodeURIComponent(asunto)');
-    for (const d of [es, en]) expect(d.landing.demoAsunto.trim()).not.toBe('');
+  test('los CTAs apuntan al ancla del formulario, no a mailto', () => {
+    const link = leerCodigo('components/landing/demo-link.ts');
+    expect(link).toContain("ANCLA_DEMO = '#demo'");
+    expect(link).not.toContain('mailto:');
+    expect(link).not.toContain('encodeURIComponent');
+
+    for (const f of ['landing-nav.tsx', 'landing-hero.tsx', 'landing-secciones.tsx']) {
+      const code = leerCodigo(`components/landing/${f}`);
+      expect(code, f).not.toMatch(/mailto:/);
+      expect(code, f).toContain('ANCLA_DEMO');
+    }
+    // El footer muestra el correo como canal paralelo (mailto del buzón), no como CTA principal.
+    expect(leerCodigo('components/landing/landing-footer.tsx')).toContain('ANCLA_DEMO');
+    expect(leerCodigo('app/page.tsx')).toContain('id="demo"');
+    expect(leerCodigo('app/page.tsx')).toContain('LandingFormularioDemo');
+    for (const d of [es, en]) {
+      expect(d.landing.form.submit.trim()).not.toBe('');
+      expect(d.landing.form.success.trim()).not.toBe('');
+    }
   });
 });
 
@@ -185,7 +194,7 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     'lienzo', // seguridad
     'sutil', // planes                #F9F9F9
     'lienzo', // preguntas frecuentes
-    'sutil', // cierre                #F9F9F9
+    'sutil', // formulario de demo    #F9F9F9
   ];
 
   /** Los tonos en el orden en que la página los monta. `<Banda>` sin `tono` es `lienzo`. */
@@ -275,7 +284,7 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
       'landing-acordeones.tsx',
       'landing-asesor.tsx',
       'landing-producto.tsx',
-      'landing-cta.tsx',
+      'landing-formulario.tsx',
       'landing-footer.tsx',
     ]) {
       expect(leerCodigo(`components/landing/${f}`), f).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
@@ -386,7 +395,7 @@ describe('la escala tipográfica es la MEDIDA del Figma', () => {
       'landing-acordeones.tsx',
       'landing-asesor.tsx',
       'landing-producto.tsx',
-      'landing-cta.tsx',
+      'landing-formulario.tsx',
       'landing-footer.tsx',
     ]) {
       const code = leerCodigo(`components/landing/${f}`);
@@ -416,7 +425,7 @@ describe('la escala tipográfica es la MEDIDA del Figma', () => {
       'landing-acordeones.tsx',
       'landing-asesor.tsx',
       'landing-producto.tsx',
-      'landing-cta.tsx',
+      'landing-formulario.tsx',
       'landing-footer.tsx',
     ]) {
       expect(leerCodigo(`components/landing/${f}`), f).not.toContain('font-mono');
@@ -448,7 +457,7 @@ describe('responsive', () => {
     'landing-acordeones.tsx',
     'landing-asesor.tsx',
     'landing-producto.tsx',
-    'landing-cta.tsx',
+    'landing-formulario.tsx',
     'landing-footer.tsx',
     'banda.tsx',
   ];

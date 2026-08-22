@@ -66,20 +66,15 @@ describe('modelo de navegación', () => {
     ]);
   });
 
-  it('cubre las ocho rutas del backoffice', () => {
-    // Las siete que tenía `components/admin/admin-nav.tsx` antes de borrarse —si alguna se
-    // hubiera perdido en la migración, la pantalla quedaría inalcanzable— más
-    // `/admin/plans`, el catálogo de planes del ticket B3.
-    //
-    // Esta lista es explícita a propósito y NO se deriva del propio `adminNav`: derivarla
-    // haría que el test pasara siempre, incluida la vez en que alguien borre una ruta sin
-    // querer. Que agregar una pantalla obligue a tocar este archivo ES la función del test.
+  it('cubre las rutas del backoffice', () => {
+    // Lista explícita a propósito: agregar una pantalla obliga a tocar este archivo.
     const hrefs = adminNav(t).flatMap((s) => s.items.map((i) => i.href));
     expect(hrefs.sort()).toEqual([
       '/admin',
       '/admin/ai-cost',
       '/admin/config',
       '/admin/credit-rules',
+      '/admin/demo-requests',
       '/admin/documents',
       '/admin/industry-templates',
       '/admin/plans',
