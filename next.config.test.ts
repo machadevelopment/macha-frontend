@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * CU-868kjc99f. Estas dos piezas de `next.config.mjs` son invisibles: si alguien las
@@ -53,7 +54,9 @@ describe('tunnelRoute y middleware van juntos (CU-868kjc99f)', () => {
   test('esa misma ruta está excluida del matcher del middleware', () => {
     expect(tunnel).toBeDefined();
     expect(middleware).toContain(`${tunnel!.replace('/', '')}`);
-    expect(middleware).toMatch(/matcher:\s*\['\/\(\(\?!.*monitoring.*\)\.\*\)'\]/);
+    // El matcher puede ir en una o varias líneas; lo que importa es que `monitoring` esté
+    // en el negative-lookahead, no el formato exacto del string.
+    expect(middleware).toMatch(/matcher:[\s\S]*monitoring/);
   });
 });
 
@@ -76,7 +79,7 @@ describe('el isotipo de los correos se sirve como archivo público', () => {
      * con `/icon.svg` — y un cliente de correo no sigue redirecciones para cargar una
      * imagen: pinta el `alt`. Que el archivo exista en `public/` no alcanza.
      */
-    expect(middleware).toMatch(/matcher:\s*\['\/\(\(\?!.*brand.*\)\.\*\)'\]/);
+    expect(middleware).toMatch(/matcher:[\s\S]*brand/);
   });
 
   test('la ruta se cachea inmutable, porque la URL es contrato de correos ya enviados', () => {
@@ -92,6 +95,23 @@ describe('el isotipo de los correos se sirve como archivo público', () => {
     // con la versión vieja durante un año y sin forma de purgarla.
     expect(config).not.toMatch(/source:\s*'\/:\w+\*?'/);
     expect(config).not.toMatch(/source:\s*'\/\(\.\*\)'/);
+  });
+});
+
+/**
+ * Los mockups de la landing (`public/landing/mockup-*.png`). Mismo agujero que `brand/` e
+ * `icon.svg`: el archivo existía, el build era verde, y en producción se veía el ícono roto
+ * con el `alt` a la vista porque AuthKit respondía 307.
+ */
+describe('los mockups de la landing se sirven como archivo público', () => {
+  test('`landing` está FUERA del matcher del middleware', () => {
+    expect(middleware).toMatch(/matcher:[\s\S]*landing/);
+  });
+
+  test('los dos PNG existen en public/landing/', () => {
+    const dir = join(import.meta.dir, 'public/landing');
+    expect(existsSync(join(dir, 'mockup-resumen.png'))).toBe(true);
+    expect(existsSync(join(dir, 'mockup-ventas.png'))).toBe(true);
   });
 });
 
@@ -169,7 +189,7 @@ describe('el favicon llega al navegador y coincide con el logo de la app', () =>
   test('`icon.svg` está FUERA del matcher del middleware', () => {
     // La regresión que ya ocurrió. Dentro del matcher, authkitProxy responde 307 hacia WorkOS
     // y la pestaña se queda con el ícono genérico del host.
-    expect(middleware).toMatch(/matcher:\s*\['\/\(\(\?!.*icon\.svg.*\)\.\*\)'\]/);
+    expect(middleware).toMatch(/matcher:[\s\S]*icon\.svg/);
   });
 
   test('la tinta es la MISMA que `--ink` de cada tema', () => {

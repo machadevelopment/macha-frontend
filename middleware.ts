@@ -55,6 +55,17 @@ export default authkitProxy({
 //
 // `favicon.ico` se queda en la lista aunque hoy no exista: si algún día se agrega uno, tiene
 // que estar excluido por el mismo motivo, y quitarlo ahora solo dejaría la trampa armada.
+//
+// ═══ `landing/` (2026-08-21): LOS MOCKUPS DE LA PORTADA, MISMO AGUJERO ═══
+//
+// Los PNG del hero y del producto viven en `public/landing/` y se piden como
+// `/landing/mockup-*.png`. Dentro del matcher, `authkitProxy` responde 307 a WorkOS; el
+// navegador (y el optimizador de `next/image` cuando va a buscar el origen) recibe HTML de
+// login en vez del PNG y pinta el ícono roto con el `alt` a la vista. Keneth lo reportó
+// desde producción: "osea las imágenes aparecen así".
+//
+// Es el mismo defecto que `brand/` e `icon.svg`. Queda fuera del matcher, no en
+// `unauthenticatedPaths`, por la misma razón: un estático no tiene por qué pasar por AuthKit.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|monitoring|brand).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|monitoring|brand|landing).*)'],
 };
