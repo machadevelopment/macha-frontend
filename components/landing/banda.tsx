@@ -37,10 +37,15 @@ import type { ReactNode } from 'react';
  * (`#232323`), así que la banda sigue siendo una banda cuando el visitante tiene el sistema en
  * oscuro. Un `#F9F9F9` literal se volvería un bloque blanco cegador ahí.
  *
- * `tinta` es la clase `.inverse` de `globals.css`, que redefine `--surface`/`--ink`/`--border`
- * hacia adentro: los componentes de la sección siguen usando `text-foreground` y `border-border`
- * sin saber que están sobre negro. `--surface` vale `#141414` contra el `#191919` medido — cinco
- * partes en 255, y la alternativa era un color a mano que ningún token conoce.
+ * `tinta` es la clase `.tinta` de `globals.css`, que redefine la paleta completa hacia adentro:
+ * los componentes de la sección siguen usando `text-foreground` y `border-border` sin saber que
+ * están sobre negro. `--surface` vale `#171717` contra el `#191919` medido — dos partes en 255.
+ *
+ * ⚠️ NO es `.inverse`, y confundirlas fue un bug real. `.inverse` existe para la barra de
+ * organización del admin: define `--border` IGUAL a la superficie (deliberado en una tira sin
+ * hijos con contorno) y no toca `--fill`. Con ella, el panel y los chips de esta sección salían
+ * sin borde visible y el chip activo quedaba blanco sobre blanco. La explicación larga está en
+ * `globals.css`, arriba de `.tinta`.
  *
  * ═══ EL FULL-BLEED SIN ROMPER EL ANCHO DE LA PÁGINA ═══
  *
@@ -63,23 +68,41 @@ export function Banda({
   className?: string;
 }) {
   const fondo =
-    tono === 'sutil' ? 'bg-muted' : tono === 'tinta' ? 'inverse bg-card text-foreground' : '';
+    tono === 'sutil' ? 'bg-muted' : tono === 'tinta' ? 'tinta bg-card text-foreground' : '';
 
   return (
     /*
+      ═══ `overflow-hidden` NO ES DECORATIVO: EVITA UNA BARRA HORIZONTAL ═══
+
+      Tres secciones llevan la mancha de marca (`InsightPoint variant="ambient"`) posicionada
+      fuera de su caja a propósito: `-left-48`, `-top-52`, `-right-40`. Sin nada que las recorte,
+      esos negativos son ANCHO DE PÁGINA: la mancha del cierre mide 420px centrada, así que en un
+      teléfono de 375px se sale ~22px por cada lado y el documento entero gana scroll horizontal.
+
+      Y el síntoma no aparece donde está la causa. Una barra horizontal al pie de la página se ve
+      como "la landing está corrida" en CUALQUIER sección, no en la que tiene la mancha. Recortar
+      en la banda lo resuelve para todas de una vez y para las que vengan.
+
+      Efecto colateral que hay que conocer: `overflow-hidden` rompe `position: sticky` de los
+      descendientes. No hay ninguno dentro de las bandas —el nav está fuera de `<main>`— y si
+      algún día hace falta uno, el arreglo es sacarlo de la banda, no quitar esta clase.
+
       `scroll-mt-16` compensa los 64px del nav fijo, y va en ESTE elemento porque es el que lleva
       el `id`: el navegador alinea el destino del ancla, así que un `scroll-mt` en el hijo no
       corrige nada. Sin él, saltar a "Planes" deja el título tapado por la barra — el bug clásico
       de un nav `sticky` con anclas.
     */
-    <section id={id} className={`w-full scroll-mt-16 ${fondo} ${className}`}>
+    <section
+      id={id}
+      className={`relative w-full overflow-hidden scroll-mt-16 ${fondo} ${className}`}
+    >
       {/*
         El ancho sale de medir el diseño: el contenido va de x=375 a x=1545 sobre 1920, o sea
         1170px de caja centrada. El relleno vertical (96px en móvil, 128px en escritorio) es la
         media de los altos de banda del Figma menos su contenido; abajo de eso las bandas se
         tocan y arriba la página se estira sin motivo.
       */}
-      <div className="mx-auto max-w-[1170px] px-6 py-24 app:px-8 app:py-32">{children}</div>
+      <div className="mx-auto max-w-[1170px] px-6 py-20 md:py-24 lg:px-8 lg:py-32">{children}</div>
     </section>
   );
 }

@@ -22,22 +22,31 @@ const leerCodigo = (rel: string) =>
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\/\/.*$/gm, '');
 
-describe('el CTA de demo lleva a un contacto que existe', () => {
-  test('apunta al correo que dio Keneth', () => {
-    // Si alguien lo cambia por un `#` o por una ruta que no existe, el único camino de conversión
-    // de la landing deja de funcionar sin que nada falle.
+describe('el CTA de demo lleva al formulario', () => {
+  test('el correo de contacto sigue publicado', () => {
+    // Canal paralelo al formulario; si desaparece, el footer pierde el único contacto directo.
     expect(leer('components/landing/demo-link.ts')).toContain('contact@machafinance.com');
   });
 
-  test('el asunto va prellenado y CODIFICADO', () => {
-    /*
-     * El asunto lleva espacios y acentos. Sin `encodeURIComponent` el `mailto` se corta en el
-     * primer espacio en varios clientes de correo: el enlace "funciona" y llega un correo con
-     * asunto vacío o truncado.
-     */
-    const code = leerCodigo('components/landing/demo-link.ts');
-    expect(code).toContain('encodeURIComponent(asunto)');
-    for (const d of [es, en]) expect(d.landing.demoAsunto.trim()).not.toBe('');
+  test('los CTAs apuntan al ancla del formulario, no a mailto', () => {
+    const link = leerCodigo('components/landing/demo-link.ts');
+    expect(link).toContain("ANCLA_DEMO = '#demo'");
+    expect(link).not.toContain('mailto:');
+    expect(link).not.toContain('encodeURIComponent');
+
+    for (const f of ['landing-nav.tsx', 'landing-hero.tsx', 'landing-secciones.tsx']) {
+      const code = leerCodigo(`components/landing/${f}`);
+      expect(code, f).not.toMatch(/mailto:/);
+      expect(code, f).toContain('ANCLA_DEMO');
+    }
+    // El footer muestra el correo como canal paralelo (mailto del buzón), no como CTA principal.
+    expect(leerCodigo('components/landing/landing-footer.tsx')).toContain('ANCLA_DEMO');
+    expect(leerCodigo('app/page.tsx')).toContain('id="demo"');
+    expect(leerCodigo('app/page.tsx')).toContain('LandingFormularioDemo');
+    for (const d of [es, en]) {
+      expect(d.landing.form.submit.trim()).not.toBe('');
+      expect(d.landing.form.success.trim()).not.toBe('');
+    }
   });
 });
 
@@ -185,7 +194,7 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     'lienzo', // seguridad
     'sutil', // planes                #F9F9F9
     'lienzo', // preguntas frecuentes
-    'sutil', // cierre                #F9F9F9
+    'sutil', // formulario de demo    #F9F9F9
   ];
 
   /** Los tonos en el orden en que la página los monta. `<Banda>` sin `tono` es `lienzo`. */
@@ -208,15 +217,56 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     expect(tonosDeLaPagina().filter((t) => t === 'tinta')).toHaveLength(1);
   });
 
-  test('el tono oscuro se consigue con `.inverse`, no con un color a mano', () => {
+  test('el tono oscuro se consigue con `.tinta`, no con un color a mano ni con `.inverse`', () => {
     /*
-     * `.inverse` redefine `--surface`/`--ink`/`--border` hacia adentro, así que los componentes de
-     * la sección siguen usando `text-foreground` sin saber que están sobre negro. Un `bg-[#191919]`
-     * pintaría el fondo y dejaría el texto en tinta oscura sobre tinta oscura.
+     * La clase redefine la paleta hacia adentro, así que los componentes de la sección siguen
+     * usando `text-foreground` sin saber que están sobre negro. Un `bg-[#191919]` pintaría el fondo
+     * y dejaría el texto en tinta oscura sobre tinta oscura.
+     *
+     * Y tiene que ser `.tinta`, NO `.inverse`. Esto no es preferencia de nombres: `.inverse` es
+     * para la barra de organización del admin y define `--border` IGUAL a la superficie, además de
+     * no tocar `--fill`. La primera versión de esta banda la usó y el resultado fue el panel y los
+     * chips sin borde visible, y el chip activo blanco sobre blanco. Ver el comentario de `.tinta`
+     * en `globals.css`.
      */
     const banda = leerCodigo('components/landing/banda.tsx');
-    expect(banda).toContain('inverse');
+    expect(banda).toMatch(/'tinta bg-card/);
+    expect(banda).not.toMatch(/'inverse /);
     expect(banda).toContain('bg-muted');
+  });
+
+  test('la isla oscura no tiene colisiones de token', () => {
+    /*
+     * ═══ EL BUG QUE ESTE TEST HABRÍA ATRAPADO ═══
+     *
+     * Con `.inverse`, dentro de la banda oscura pasaban dos cosas y ninguna lanzaba un error:
+     * `--border` valía lo mismo que `--surface` (bordes invisibles) y `--fill` se quedaba en el
+     * valor CLARO mientras `--ink` pasaba a blanco (chip activo blanco sobre blanco).
+     *
+     * Las dos son colisiones entre pares de tokens que SIEMPRE tienen que diferir en una
+     * superficie con hijos delineados, y las dos se pueden comprobar leyendo el CSS. Lo que no se
+     * puede comprobar así es el contraste fino; para eso hace falta mirar. Esto cubre el caso
+     * grosero, que es el que se cuela.
+     */
+    const css = leer('styles/globals.css');
+    const bloque = css.match(/\n\.tinta \{([\s\S]*?)\n\}/)?.[1];
+    expect(bloque, 'falta el bloque .tinta en globals.css').toBeTruthy();
+
+    const val = (nombre: string) =>
+      bloque!.match(new RegExp(`--${nombre}:\\s*([^;]+);`))?.[1]?.trim();
+
+    // Cada primitiva que la banda usa tiene que estar DEFINIDA en la isla: si falta, hereda el
+    // valor claro del `:root` y ahí nacen los dos fallos de arriba.
+    for (const t of ['surface', 'ink', 'muted', 'faint', 'border', 'border-strong', 'fill']) {
+      expect(val(t), `.tinta no define --${t}`).toBeTruthy();
+    }
+
+    // El borde tiene que verse contra su fondo.
+    expect(val('border')).not.toBe(val('surface'));
+    // El relleno del chip activo tiene que verse contra el texto que lleva encima.
+    expect(val('fill')).not.toBe(val('ink'));
+    // Y contra el fondo de la banda, o el chip activo no se distingue del resto.
+    expect(val('fill')).not.toBe(val('surface'));
   });
 
   test('ningún componente de la landing escribe un color literal', () => {
@@ -234,7 +284,7 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
       'landing-acordeones.tsx',
       'landing-asesor.tsx',
       'landing-producto.tsx',
-      'landing-cta.tsx',
+      'landing-formulario.tsx',
       'landing-footer.tsx',
     ]) {
       expect(leerCodigo(`components/landing/${f}`), f).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
@@ -279,5 +329,218 @@ describe('el asesor es un selector, no tres respuestas apiladas', () => {
     // El foco tiene que seguir a la selección, o la flecha siguiente se mueve desde donde quedó
     // el foco y el recorrido se vuelve impredecible.
     expect(code).toContain('.focus()');
+  });
+});
+
+describe('la escala tipográfica es la MEDIDA del Figma', () => {
+  /*
+   * ═══ POR QUÉ ESTE BLOQUE EXISTE ═══
+   *
+   * Keneth pidió que la landing quedara idéntica al Figma. Extraje de la API el tamaño, el peso y
+   * el tracking de los 201 nodos de texto del frame, y el resultado descubrió un error de fondo:
+   * yo había construido la landing con los tokens del PRODUCTO, que no coinciden. `micro` vale
+   * 10px y el diseño usa 12, 13, 14 o 15 según el rol — o sea que TODO el texto secundario de la
+   * landing estaba entre un 20 % y un 50 % más chico de lo diseñado.
+   *
+   * Es un fallo que no rompe nada y que solo se ve comparando con el diseño al lado. Por eso los
+   * valores medidos viven en un test y no en un comentario: un comentario ya falló antes en este
+   * repo (la nota de `pagetitle`, que el dashboard siguió ignorando cinco semanas).
+   */
+  const MEDIDO: Record<string, { px: string; peso?: string; tracking?: string }> = {
+    leyebrow: { px: '12px', peso: '600', tracking: '0.14em' },
+    lnum: { px: '14px', peso: '300', tracking: '0.14em' },
+    lhero: { px: '22px', peso: '300' },
+    lsub: { px: '17px', peso: '300' },
+    lprose: { px: '15px', peso: '300' },
+    lstrong: { px: '15px', peso: '600' },
+    lrow: { px: '14px', peso: '300' },
+    lstage: { px: '14px', peso: '600' },
+    lsmall: { px: '13px', peso: '300' },
+    lcard: { px: '13px', peso: '600' },
+    lmeta: { px: '12px', peso: '300' },
+    lchip: { px: '12px', peso: '600' },
+    lline: { px: '26px' },
+    lanswer: { px: '21px', peso: '300' },
+  };
+
+  const cfg = leer('tailwind.config.ts');
+
+  test('cada token de la landing vale lo que se midió', () => {
+    for (const [token, esperado] of Object.entries(MEDIDO)) {
+      const m = cfg.match(new RegExp(`\\n\\s+${token}: \\['([^']+)'(?:, \\{([^}]*)\\})?`));
+      expect(m, `falta el token ${token}`).toBeTruthy();
+      expect(m![1], `${token}: tamaño`).toBe(esperado.px);
+      const opciones = m![2] ?? '';
+      if (esperado.peso)
+        expect(opciones, `${token}: peso`).toContain(`fontWeight: '${esperado.peso}'`);
+      if (esperado.tracking)
+        expect(opciones, `${token}: tracking`).toContain(`letterSpacing: '${esperado.tracking}'`);
+    }
+  });
+
+  test('los tokens del PRODUCTO no se usan en la landing', () => {
+    /*
+     * `micro`, `eyebrow`, `body` y `lead` están medidos contra el prototipo de Lovable y tienen sus
+     * propios tests. Usarlos acá fue el error original, y "arreglarlos" para que sirvan a la
+     * landing rompería el dashboard. Son dos superficies con dos escalas.
+     *
+     * `lead` entra en la lista por un motivo aparte: es un `clamp()` que llega a 22px en pantallas
+     * anchas. La bajada de SECCIÓN del diseño mide 17px fijos, así que en un monitor grande crecía
+     * un 29 % sobre lo diseñado sin que nada avisara.
+     */
+    for (const f of [
+      'landing-nav.tsx',
+      'landing-hero.tsx',
+      'landing-secciones.tsx',
+      'landing-acordeones.tsx',
+      'landing-asesor.tsx',
+      'landing-producto.tsx',
+      'landing-formulario.tsx',
+      'landing-footer.tsx',
+    ]) {
+      const code = leerCodigo(`components/landing/${f}`);
+      expect(code, f).not.toMatch(/text-(micro|eyebrow|body|lead|caption|delta)\b/);
+    }
+  });
+
+  test('en la landing el eyebrow NO va en monoespaciada', () => {
+    /*
+     * ═══ EXCEPCIÓN DELIBERADA A LA REGLA DEL PRODUCTO, Y ACOTADA A ESTA PÁGINA ═══
+     *
+     * La regla del proyecto dice que `font-mono` es obligatorio para eyebrows y labels en mayúscula
+     * con tracking, porque son rasgo de identidad. Vale para el producto.
+     *
+     * El Figma de la landing usa UNA SOLA familia en sus 201 nodos de texto —Geist, ni una
+     * monoespaciada— y sus eyebrows son 12px/600 con +0.14em de tracking. Poner mono acá haría que
+     * el rasgo más repetido de la página (14 eyebrows) fuera lo único que no coincide con el
+     * diseño que Keneth pidió replicar.
+     *
+     * La excepción es de la landing y nada más: si alguien copia un eyebrow de acá a una pantalla
+     * del producto, ahí sí lleva mono.
+     */
+    for (const f of [
+      'landing-nav.tsx',
+      'landing-hero.tsx',
+      'landing-secciones.tsx',
+      'landing-acordeones.tsx',
+      'landing-asesor.tsx',
+      'landing-producto.tsx',
+      'landing-formulario.tsx',
+      'landing-footer.tsx',
+    ]) {
+      expect(leerCodigo(`components/landing/${f}`), f).not.toContain('font-mono');
+    }
+  });
+
+  test('solo los TITULARES escalan con la ventana', () => {
+    /*
+     * `hero` (88px), `sectionbig` (68) y `section` (52) llevan `clamp()` porque no entran en 375px
+     * de ancho. La prosa NO: entre 12 y 26px nada desborda un teléfono, y escalar el cuerpo con la
+     * ventana lo deja ilegible en un extremo o gigante en el otro.
+     */
+    for (const t of ['hero', 'sectionbig', 'section']) {
+      const m = cfg.match(new RegExp(`\\n\\s+${t}: \\[\\n?\\s*'([^']+)'`));
+      expect(m?.[1], `el titular ${t}`).toContain('clamp(');
+    }
+    for (const t of Object.keys(MEDIDO)) {
+      const m = cfg.match(new RegExp(`\\n\\s+${t}: \\['([^']+)'`));
+      expect(m?.[1], `${t} no debería escalar`).not.toContain('clamp(');
+    }
+  });
+});
+
+describe('responsive', () => {
+  const ARCHIVOS = [
+    'landing-nav.tsx',
+    'landing-hero.tsx',
+    'landing-secciones.tsx',
+    'landing-acordeones.tsx',
+    'landing-asesor.tsx',
+    'landing-producto.tsx',
+    'landing-formulario.tsx',
+    'landing-footer.tsx',
+    'banda.tsx',
+  ];
+
+  test('la landing NO usa el breakpoint `app:` (1080px)', () => {
+    /*
+     * ═══ EL FALLO QUE ESTO EVITA, Y NO ES OBVIO ═══
+     *
+     * `app` vale 1080px y existe para el DASHBOARD: es el ancho a partir del cual entra el shell
+     * con su sidebar y su rail. La primera versión de la landing lo usó para todos sus cortes de
+     * columna, y la consecuencia es que TODO lo que mide entre 640 y 1080 —una tablet en
+     * horizontal, un MacBook Air de 1440 lógicos a media pantalla, un laptop de 1024— veía la
+     * landing entera en UNA COLUMNA.
+     *
+     * No se ve como un bug: se ve como una landing pobre. Y no lo detecta ningún test que mire
+     * "hay grid-cols-1 de respaldo", porque el respaldo estaba y era justamente el problema.
+     *
+     * Los cortes ahora son los de Tailwind y se eligen por CONTENIDO: `md` (768) cuando al lado
+     * hay texto, `lg` (1024) cuando al lado hay una tarjeta de datos que necesita ancho para no
+     * romper sus columnas.
+     */
+    for (const f of ARCHIVOS) {
+      expect(leerCodigo(`components/landing/${f}`), f).not.toMatch(/\bapp:/);
+    }
+    expect(leerCodigo('app/page.tsx')).not.toMatch(/\bapp:/);
+  });
+
+  test('toda rejilla tiene columnas base antes de su breakpoint', () => {
+    /*
+     * Un `md:grid-cols-3` sin `grid-cols-1` de base hereda el default de `grid`, que es una sola
+     * columna implícita — funciona por accidente. Y si alguien escribe `md:grid-cols-3` sobre un
+     * contenedor que ya tenía `grid-cols-2`, el móvil se queda en dos columnas sin que se note en
+     * escritorio. Exigir la base explícita es lo que hace que el móvil sea una decisión.
+     */
+    for (const f of ARCHIVOS) {
+      const code = leerCodigo(`components/landing/${f}`);
+      for (const m of code.matchAll(/className=(?:"|\{`)([^"`]*grid-cols[^"`]*)(?:"|`\})/g)) {
+        const clases = m[1]!;
+        if (!/\b(md|lg|sm|xl):grid-cols/.test(clases)) continue;
+        expect(clases, `${f}: rejilla sin columnas base -> ${clases}`).toMatch(/(^|\s)grid-cols-/);
+      }
+    }
+  });
+
+  test('la banda recorta lo que se sale, o la página gana scroll horizontal', () => {
+    /*
+     * Tres secciones llevan la mancha de marca posicionada fuera de su caja a propósito
+     * (`-left-48`, `-top-52`, `-right-40`). Sin recorte esos negativos son ancho de página: la del
+     * cierre mide 420px centrada, así que en un teléfono de 375px sobresale ~22px por lado y el
+     * documento entero gana barra horizontal.
+     *
+     * Y el síntoma no aparece donde está la causa: una barra al pie se lee como "la landing está
+     * corrida" en cualquier sección.
+     */
+    expect(leerCodigo('components/landing/banda.tsx')).toMatch(/overflow-hidden/);
+  });
+
+  test('las capturas del producto son fluidas', () => {
+    /*
+     * Los dos mockups son PNG de 1316px de ancho intrínseco. Sin `w-full h-auto` empujan el ancho
+     * de la página en cualquier pantalla más chica que eso, que son todas las de un teléfono.
+     */
+    for (const f of ['landing-hero.tsx', 'landing-producto.tsx']) {
+      const code = leerCodigo(`components/landing/${f}`);
+      expect(code, f).toContain('h-auto w-full');
+    }
+  });
+
+  test('nada de la landing fija un ancho mayor que un teléfono', () => {
+    /*
+     * Un `w-[420px]` o un `min-w-[600px]` desborda un móvil. Se permiten dos casos y solo dos:
+     * `max-w-*` (que es un TOPE, no un ancho) y las manchas de marca, que son decorativas y viven
+     * recortadas por la banda — el test de arriba es el que garantiza el recorte.
+     */
+    for (const f of ARCHIVOS) {
+      const code = leerCodigo(`components/landing/${f}`);
+      for (const m of code.matchAll(/(?<!max-)\b(min-)?w-\[(\d+)px\]/g)) {
+        const px = Number(m[2]);
+        if (px <= 360) continue;
+        // Las manchas de marca son las únicas excepciones, y se reconocen por venir con su alto.
+        const esMancha = code.includes(`h-[${px}px] w-[${px}px]`);
+        expect(esMancha, `${f}: ancho fijo de ${px}px que no es una mancha decorativa`).toBe(true);
+      }
+    }
   });
 });

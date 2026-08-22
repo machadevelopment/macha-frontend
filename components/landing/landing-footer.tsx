@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { MachaMark } from '@/components/ui/macha-mark';
-import { CORREO_DEMO, enlaceDemo } from '@/components/landing/demo-link';
+import { ANCLA_DEMO, CORREO_DEMO } from '@/components/landing/demo-link';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 
 /**
@@ -38,14 +38,14 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
     { texto: labels.nav.comoFunciona, href: '#como-funciona' },
     { texto: labels.nav.planes, href: '#planes' },
     { texto: labels.nav.faq, href: '#faq' },
-    { texto: labels.nav.contacto, href: enlaceDemo(labels.demoAsunto) },
+    { texto: labels.nav.contacto, href: ANCLA_DEMO },
   ];
 
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto max-w-[1170px] px-6 py-16 app:px-8">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-12 app:grid-cols-4">
-          <div className="col-span-2 flex flex-col gap-4 app:col-span-1">
+      <div className="mx-auto max-w-[1170px] px-6 py-16 lg:px-8">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
+          <div className="col-span-2 flex flex-col gap-4 md:col-span-1">
             <Link
               href="/"
               className="flex items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
@@ -53,9 +53,7 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
               <MachaMark />
               Macha Finance
             </Link>
-            <p className="max-w-[24ch] text-micro leading-relaxed text-muted-foreground">
-              {f.tagline}
-            </p>
+            <p className="max-w-[24ch] text-lprose text-faint">{f.tagline}</p>
           </div>
 
           <nav className="flex flex-col gap-3">
@@ -63,7 +61,7 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
               <a
                 key={n.texto}
                 href={n.href}
-                className="text-micro text-muted-foreground transition-colors hover:text-foreground"
+                className="text-lprose text-muted-foreground transition-colors hover:text-foreground"
               >
                 {n.texto}
               </a>
@@ -71,15 +69,15 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
           </nav>
 
           <div className="flex flex-col gap-3">
-            {/* El correo SÍ es un enlace: es el único camino de conversión de la página y existe. */}
+            {/* El correo sigue visible como canal paralelo al formulario. */}
             <a
-              href={enlaceDemo(labels.demoAsunto)}
-              className="text-micro text-foreground transition-opacity hover:opacity-70"
+              href={`mailto:${CORREO_DEMO}`}
+              className="text-[15px] font-normal text-foreground transition-opacity hover:opacity-70"
             >
               {CORREO_DEMO}
             </a>
             {REDES.map((r) => (
-              <span key={r} className="text-micro text-muted-foreground">
+              <span key={r} className="text-lprose text-muted-foreground">
                 {r}
               </span>
             ))}
@@ -87,16 +85,14 @@ export function LandingFooter({ labels }: { labels: Dictionary['landing'] }) {
 
           <div className="flex flex-col gap-3">
             {legales.map((t) => (
-              <span key={t} className="text-micro text-muted-foreground">
+              <span key={t} className="text-lprose text-faint">
                 {t}
               </span>
             ))}
           </div>
         </div>
 
-        <p className="mt-16 border-t border-border pt-8 font-mono text-eyebrow text-faint">
-          {f.copyright}
-        </p>
+        <p className="mt-16 border-t border-border pt-8 text-lsmall text-faint">{f.copyright}</p>
       </div>
     </footer>
   );

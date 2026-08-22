@@ -2,7 +2,7 @@ import { ShowcaseFrame } from '@/components/ui/showcase';
 import { Banda } from '@/components/landing/banda';
 import { LandingNav } from '@/components/landing/landing-nav';
 import { LandingHero } from '@/components/landing/landing-hero';
-import { LandingCta } from '@/components/landing/landing-cta';
+import { LandingFormularioDemo } from '@/components/landing/landing-formulario';
 import { SeccionProducto } from '@/components/landing/landing-producto';
 import { SeccionCapacidades, SeccionFaq } from '@/components/landing/landing-acordeones';
 import { SeccionAsesor } from '@/components/landing/landing-asesor';
@@ -14,7 +14,6 @@ import {
   SeccionSeguridad,
   SeccionPlanes,
 } from '@/components/landing/landing-secciones';
-import { enlaceDemo } from '@/components/landing/demo-link';
 import { LandingFooter } from '@/components/landing/landing-footer';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
@@ -73,7 +72,7 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
  * dejaba cada acordeón con un item lleno y el resto vacío.
  *
  * Solo tres secciones llevan estado de cliente (los dos acordeones y el asesor); el resto es
- * estático y se prerenderiza.
+ * estático y se prerenderiza. El formulario de demo es la cuarta pieza con estado de cliente.
  */
 export default function Home({ searchParams }: { searchParams?: { auth_error?: string } }) {
   const locale = getLocale();
@@ -88,7 +87,7 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
           locale={locale}
           labels={t.landing}
           common={t.common}
-          anclas={['como-funciona', 'planes', 'faq']}
+          anclas={['como-funciona', 'planes', 'faq', 'demo']}
         />
 
         {authError && (
@@ -104,7 +103,7 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
             Color como señal de estado con texto, fondo y borde juntos (design guide). Rojo
             funcional, no marca: dice "algo salió mal", no "esto es Macha".
           */
-          <div className="mx-auto w-full max-w-[1170px] px-6 pt-6 app:px-8">
+          <div className="mx-auto w-full max-w-[1170px] px-6 pt-6 lg:px-8">
             <p
               role="alert"
               className="flex flex-wrap items-center justify-center gap-x-2 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-center text-body text-danger"
@@ -119,7 +118,8 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
 
         {/*
           Las 14 secciones en el orden del diseño, con el tono de banda medido de cada una. El
-          hero lleva `id="inicio"` porque es a donde apunta el primer enlace del nav.
+          hero lleva `id="inicio"` porque es a donde apunta el primer enlace del nav. El
+          formulario de demo reemplaza al CTA con mailto (Jose 2026-08-21).
         */}
         <main>
           <Banda id="inicio">
@@ -159,15 +159,15 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
           </Banda>
 
           <Banda id="planes" tono="sutil">
-            <SeccionPlanes labels={t.landing} hrefDemo={enlaceDemo(t.landing.demoAsunto)} />
+            <SeccionPlanes labels={t.landing} />
           </Banda>
 
           <Banda id="faq">
             <SeccionFaq labels={t.landing} />
           </Banda>
 
-          <Banda tono="sutil">
-            <LandingCta labels={t.landing} />
+          <Banda id="demo" tono="sutil">
+            <LandingFormularioDemo labels={t.landing.form} locale={locale} />
           </Banda>
         </main>
 
