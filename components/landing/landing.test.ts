@@ -316,6 +316,27 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     expect(nav).toContain('backdrop-blur');
     expect(nav).toMatch(/supports-\[not\(backdrop-filter/);
   });
+
+  test('ningún ancestro del nav recorta con `hidden`, que es lo que lo despegaba', () => {
+    /*
+     * ═══ EL BUG QUE ESTE TEST EXISTE PARA QUE NO VUELVA (CU-868kv8aaa) ═══
+     *
+     * El test de arriba pasaba y la barra NO quedaba fija. Que el `sticky` esté escrito en el
+     * componente no alcanza: `position: sticky` se pega contra su ancestro de scroll más
+     * cercano, y el ancestro que lo rompía estaba en `app/page.tsx`, a catorce secciones de
+     * distancia.
+     *
+     * `overflow-x: hidden` con `overflow-y` sin declarar no deja `visible` en el otro eje: la
+     * especificación lo computa a `auto`, y con eso el div es un contenedor de scroll aunque
+     * nunca muestre una barra. `clip` recorta lo mismo y está exento de esa regla.
+     *
+     * Se afirma sobre los ancestros REALES del nav (la raíz de la página), no sobre la landing
+     * entera: `banda.tsx` usa `overflow-hidden` a propósito y está DEBAJO del nav, no arriba.
+     */
+    const raizDePagina = leerCodigo('app/page.tsx').split('<LandingNav')[0];
+    expect(raizDePagina).not.toMatch(/overflow-x-hidden|overflow-hidden|overflow-y-/);
+    expect(raizDePagina).toContain('overflow-x-clip');
+  });
 });
 
 describe('el asesor es un selector, no tres respuestas apiladas', () => {

@@ -85,10 +85,27 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
 
   return (
     /*
-      Sin ShowcaseFrame: ver la nota de arriba. `overflow-x-hidden` en la raíz es el último
-      corte contra scroll horizontal en móvil (manchas, honeypot, mockups).
+      Sin ShowcaseFrame: ver la nota de arriba. El recorte de la raíz es el último corte contra
+      scroll horizontal en móvil (manchas, honeypot, mockups).
+
+      ═══ ES `clip` Y NO `hidden`, Y ESA LETRA ES EL BUG DE LA BARRA QUE NO SE PEGA ═══
+
+      Jose reportó (CU-868kv8aaa) que la barra de la landing no queda fija al hacer scroll.
+      `LandingNav` ya es `sticky top-0` y siempre lo fue: el que la anulaba era ESTE div, a
+      catorce secciones de distancia y sin que nada fallara.
+
+      La regla de CSS: un elemento que declara `overflow-x` distinto de `visible` y deja
+      `overflow-y` sin declarar NO conserva `visible` en el otro eje — la especificación lo
+      computa a `auto`. Con eso el div pasa a ser un contenedor de scroll aunque jamás muestre
+      una barra, y `position: sticky` se pega contra su ancestro de scroll más cercano, no
+      contra el viewport: la barra quedaba "fija" dentro de una caja tan alta como la página,
+      que es lo mismo que no estar fija.
+
+      `clip` recorta igual que `hidden` (mismo motivo original: las manchas se salen de su caja
+      a propósito) pero está exento de esa regla — puede convivir con `overflow-y: visible`, así
+      que no crea ancestro de scroll y el sticky vuelve a medirse contra la ventana.
     */
-    <div className="min-h-dvh overflow-x-hidden">
+    <div className="min-h-dvh overflow-x-clip">
       {/* `comfortable` y no `compact`: la landing no es una pantalla de datos. */}
       <div data-density="comfortable" className="flex min-h-dvh flex-col">
         <LandingNav
