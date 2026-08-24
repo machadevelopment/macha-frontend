@@ -15,12 +15,23 @@ import { en } from '@/lib/i18n/dictionaries/en';
 const raiz = join(import.meta.dir, '..', '..');
 const leer = (rel: string) => readFileSync(join(raiz, rel), 'utf8');
 
-/** El fuente sin comentarios, para las aserciones NEGATIVAS. */
+/**
+ * El fuente sin comentarios, para las aserciones NEGATIVAS.
+ *
+ * ⚠️ EL `//` DE UNA URL NO ES UN COMENTARIO, y esto se descubrió a golpes (CU-868kw1r0m). La
+ * versión anterior hacía `.replace(/\/\/.*$/gm, '')` a secas, así que la línea
+ * `url: 'https://www.instagram.com/macha.finance'` quedaba cortada en `url: 'https:` — perdía
+ * la URL Y su `},` de cierre, con lo que la entrada siguiente del arreglo se fusionaba con la
+ * anterior. Dos tests fallaron por eso, ninguno de los dos por el motivo que parecía.
+ *
+ * El `[^:]` de guardia arregla el caso real (`://`) sin pretender ser un parser: acá se leen
+ * fuentes propias, no entrada arbitraria.
+ */
 const leerCodigo = (rel: string) =>
   leer(rel)
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '');
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 describe('el CTA de demo lleva al formulario', () => {
   test('el correo de contacto sigue publicado', () => {
@@ -75,6 +86,64 @@ describe('las legales se nombran pero NO se enlazan', () => {
       expect(d.landing.footer.privacidad.trim()).not.toBe('');
       expect(d.landing.footer.terminos.trim()).not.toBe('');
       expect(d.landing.footer.datos.trim()).not.toBe('');
+    }
+  });
+});
+
+describe('las REDES: solo se enlaza la cuenta que existe (CU-868kw1r0m)', () => {
+  /*
+   * ═══ ESTE TEST NO EXISTÍA, Y EL ARCHIVO CREÍA QUE SÍ ═══
+   *
+   * `landing-footer.tsx` decía "cuando exista la cuenta, se cambia por `<Link>` y se actualiza
+   * el test", pero el único test del footer era el de las LEGALES. O sea que la promesa de
+   * cobertura era falsa: cualquiera podía enlazar las cuatro redes a un `#` y nada fallaba.
+   *
+   * Se escribe ahora, con la primera cuenta confirmada.
+   */
+  const code = leerCodigo('components/landing/landing-footer.tsx');
+  /** Solo la declaración de `REDES`, para no confundirla con el resto de enlaces del footer. */
+  const redes = code.match(/const REDES[\s\S]*?\n\];/)?.[0] ?? '';
+
+  test('Instagram apunta a la cuenta real y abre en pestaña nueva', () => {
+    expect(redes).toContain("nombre: 'Instagram'");
+    expect(redes).toContain('https://www.instagram.com/macha.finance');
+    expect(code).toContain('target="_blank"');
+    /*
+     * `noopener` no es ceremonia: sin él, la pestaña que se abre puede tocar `window.opener` y
+     * redirigir la landing desde el sitio de destino. En un producto financiero, que la portada
+     * pueda ser reemplazada desde una pestaña hija es exactamente el vector de un phishing.
+     */
+    expect(code).toContain('rel="noopener noreferrer"');
+  });
+
+  test('la URL va LIMPIA, sin el parámetro de rastreo con el que llegó compartida', () => {
+    /*
+     * El enlace que compartió Jose traía `?igsh=…`, que identifica a quién se le mandó. Publicarlo
+     * en el footer haría que cada visitante que entre por ahí quede contado como si viniera de la
+     * persona que nos compartió el enlace — métricas sucias de Macha, por una copia/pega.
+     */
+    expect(redes).not.toMatch(/igsh|igshid|utm_/);
+    expect(redes).not.toMatch(/instagram\.com\/macha\.finance[^']*\?/);
+  });
+
+  test('las redes SIN cuenta confirmada siguen siendo texto, no enlaces', () => {
+    /*
+     * La decisión de fondo no cambió: un enlace a un perfil equivocado —o a uno que alguien más
+     * ocupó con el nombre de la marca— es peor que el nombre suelto. Que Instagram se haya
+     * confirmado no autoriza a inventar las otras tres.
+     */
+    for (const red of ['LinkedIn', 'Youtube', 'Facebook']) {
+      const entrada = redes.match(new RegExp(`\\{[^}]*nombre: '${red}'[^}]*\\}`))?.[0] ?? '';
+      expect(entrada, `${red} debería seguir sin url`).not.toContain('url');
+    }
+  });
+
+  test('el footer no enlaza ninguna red a un destino inventado', () => {
+    // Cualquier URL de red social en el archivo tiene que ser la de Instagram, que es la única
+    // confirmada. Un `linkedin.com/company/...` adivinado pasaría los tests de arriba.
+    const urls = code.match(/https?:\/\/[^'"\s]+/g) ?? [];
+    for (const u of urls.filter((u) => /linkedin|youtube|facebook|instagram/i.test(u))) {
+      expect(u).toBe('https://www.instagram.com/macha.finance');
     }
   });
 });
