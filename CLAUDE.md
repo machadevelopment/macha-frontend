@@ -42,15 +42,47 @@ Conventions & gotchas:
 - **Schema migrations auto-apply on deploy** (gated by manual promote to prod). Data/seed migrations run as separate manual scripts — never mix them.
 - **Las migraciones llevan registro (`schema_migrations`) y NO se reaplican todas en cada deploy** (2026-08-14). Antes sí, y la idempotencia bastaba para la corrección — pero **no cambiar nada igual cuesta LOCKS**. Un deploy que solo tocaba documentación murió con `deadlock detected` en `ALTER TABLE company_users FORCE ROW LEVEL SECURITY`: las migraciones corren mientras el contenedor **viejo** sigue atendiendo tráfico, el `ALTER` pide AccessExclusiveLock y la request viva tiene AccessShareLock. Postgres mató a la migración; **pudo haber matado la query del cliente**. Y `0012` hace DROP+CREATE de la política de cada tabla y de **cada partición por empresa**, así que el costo por deploy CRECÍA con la cantidad de clientes. El registro guarda `sha256` del contenido: editar una migración la vuelve a aplicar, no tocarla la salta. **Excepción única y explícita: `0010`, marcado `@reaplicar-siempre`**, porque su bloque GRANT/REVOKE es un no-op hasta que un operador crea `macha_app` a mano y el camino documentado para activarlo es redesplegar; por eso además sale temprano si los privilegios ya están puestos. **Toda migración nueva que active RLS usa `macha_asegurar_rls()`** (`0000_aa_rls_helpers.sql`), que no toca la tabla si ya está — el `ALTER` directo vuelve a poner la bomba en cada deploy a cambio de nada. `migrate.ts` corre con `lock_timeout` de 5 s y un reintento: mientras una migración ESPERA el lock, toda query nueva sobre esa tabla se encola detrás, así que el peor caso de esperar de más no es tardar, es congelar la tabla.
 - **Excel ingestion is async via pg-boss.** Rows land in a single staging table.
-  **Seis pasos ANTES del modelo, y el ORDEN importa** (2026-08-12/14) — cada uno existe porque
+  **Siete pasos ANTES del modelo, y el ORDEN importa** (2026-08-12/14, ampliado 2026-08-24) — cada uno existe porque
   el anterior no cubre su caso, y saltárselos es volver a pagar lo que ya se pagó:
-  1. **Encontrar el encabezado real** (`lib/sheet-header.ts`). Va PRIMERO porque todo lo demás
-     se indexa contra la fila 0: el pre-filtro la mira, el mapa de columnas se arma contra ella
-     y los índices que devuelve el modelo apuntan a ella. Un Excel hecho por una persona trae
-     dos líneas de título antes de la tabla, y leerlas como nombres de columna **no falla
-     nada visible**: los datos salen de las columnas equivocadas. El sesgo va a NO MOVERSE — un
-     candidato tiene que ganarle a la fila 0 y a las tres de abajo, porque elegir mal descarta
-     una fila real Y desplaza el mapa.
+  0. **El esquema relacional del libro** (`lib/sheet-relations.ts`, 2026-08-24). Se calcula
+     sobre las hojas que sobrevivieron a los pasos 2 y 3 —igual que la detección de
+     duplicados— y es lo único que mira el libro COMO CONJUNTO: qué columnas son
+     identificadores y **qué hoja apunta a qué otra**. De ahí salen dos decisiones que ningún
+     filtro por hoja podía tomar: una hoja cuya clave es única por fila y a la que otra
+     referencia es una **tabla de entidades** (no produce movimientos: va a inventario), y una
+     hoja que apunta a otra hoja de movimientos **no vuelve a reconocer su ingreso**. Ver el
+     punto de "una factura emitida" más abajo. Motivo: `Concesionaria_Guatemala` (CarsGT,
+     documento `bb769e8e`) puso Q 16 M de ingreso inventado en el dashboard de un cliente —
+     260 vehículos EN STOCK como costo de ventas (240 por segunda vez, su costo ya venía en
+     `Ventas`) más 81 cuentas por cobrar devengando un ingreso ya contado. **Es por
+     ESTRUCTURA y no por vocabulario a propósito**: la respuesta corta era agregar `vin` e
+     `idvehiculo` a la firma `existencias`, y eso arregla concesionarias mientras garantiza
+     que la joyería (`certificado`), la inmobiliaria (`matricula`) y la maquinaria
+     (`numeroserie`) vuelvan a fallar igual. La firma busca vocabulario de inventario
+     FUNGIBLE porque nació de una cafetería; un identificador único que otra hoja referencia
+     es la misma señal en todos los rubros. **No reemplaza a `sheet-duplication.ts`**: ese
+     detecta cabecera/detalle por SUMAS iguales, que es contar dos veces de otra forma.
+     `inventory-import.ts` gana el camino SERIALIZADO (`mapearInventarioSerializado`): sin
+     columna de cantidad, cada fila vale UNA unidad — un VIN es un vehículo.
+  1. **Encontrar el encabezado real** (`lib/sheet-header.ts`). Va PRIMERO de los que miran una
+     hoja sola porque todo lo demás se indexa contra la fila 0: el pre-filtro la mira, el mapa
+     de columnas se arma contra ella y los índices que devuelve el modelo apuntan a ella. Un
+     Excel hecho por una persona trae dos líneas de título antes de la tabla, y leerlas como
+     nombres de columna **no falla nada visible**: los datos salen de las columnas
+     equivocadas. El sesgo va a NO MOVERSE — un candidato tiene que ganarle a la fila 0 y a
+     las tres de abajo, porque elegir mal descarta una fila real Y desplaza el mapa.
+     **DOS FORMAS DE DESTACAR, no una** (2026-08-24): o el candidato se ve bastante más
+     encabezado que las filas de abajo, **o rompe el TIPO de sus propias columnas** (dice
+     "Fecha" donde su columna trae seriales). La segunda vía no es un refuerzo, es lo único
+     que funciona en una tabla con columnas descriptivas: ahí las filas de datos tienen
+     `unicos` y `cobertura` en 1,00 igual que el encabezado, el único discriminante que queda
+     pesa 0,35 y el margen exigido era 0,2 — **el encabezado necesitaba 1,014 sobre un máximo
+     de 1,00 y perdía por 0,014**. Medido en las CINCO hojas de `Concesionaria_Guatemala`: se
+     quedaba en la fila 0, o sea el título. Y como `classifySheet` recibía entonces un
+     encabezado de UNA celda y lo declaraba ilegible, **se cayeron a la vez el pre-filtro, la
+     firma de `existencias` y la forma de hoja**: las cinco hojas fueron al modelo y el
+     archivo costó USD 0,90 por mil filas, el más caro de la semana. Este paso no es uno de
+     seis: es el que decide si los otros cinco existen.
   2. **Forma de hoja** (`lib/sheet-shape.ts`): distingue una TABLA de un REPORTE. Cinco señales
      geométricas (encabezado con huecos + celdas vacías, ancho >40, columnas que son meses,
      nombres de columna repetidos). Los reportes con bloques a lo ancho —una fila = un cliente
@@ -234,6 +266,23 @@ Conventions & gotchas:
   en el worker. El worker tiene las credenciales de la base, y clasificar no es parsear — un
   script no sabe que "pago a Claro" es servicios. La idea de un sandbox sin red y efímero
   quedó como camino futuro, no como lo que se construyó.
+- **La CONFIANZA también se decide por lote, y era el tercer campo sin protección**
+  (`ConfianzaPorHoja`, 2026-08-24). El mapa de columnas lo cubre `assertMismoMapa` y la
+  categoría el canonizador; la confianza no la cubría nada. Medido en `Concesionaria_Guatemala`
+  (CarsGT): la hoja `Ventas`, 240 filas indistinguibles, en tres lotes con **0,92 · 0,75 ·
+  0,60 exactos y uniformes dentro de cada lote** — ni una fila difería de sus vecinas. Con
+  `CONFIDENCE_THRESHOLD` en 0,7, eso mandó **148 filas buenas a revisión interna**: la misma
+  venta pasaba o se marcaba según en qué lote cayó, y el staff que abría la cola veía "Mazda 3,
+  Q 200.400, venta_vehiculos" sin nada que revisar. **Una confianza uniforme en todo el lote es
+  un juicio sobre el LOTE, no sobre la fila**, y usarla para decidir el destino de filas
+  individuales es convertir ruido en señal. Se sube al techo que el modelo ya le dio a ESE
+  veredicto en ESA hoja — nunca se baja, nunca cruza veredictos ni hojas, y **si dentro del
+  lote hubo variación no se toca nada**: esa variación es el juicio por fila que el prompt
+  pide. Lo que sigue protegiendo a la fila es `staging-rules`, que valida fecha, monto y
+  categoría aparte de la confianza. Depende del ORDEN (se compara contra el máximo visto hasta
+  ese momento, porque las filas se insertan lote a lote): si el lote más confiado llega último
+  no arregla nada, o sea que el peor caso es lo que ya pasaba y no hay forma de quedar peor.
+  Es la misma concesión que el canonizador con "el primero que llegó gana".
 - **La categoría se unifica por hoja** (`CanonizadorDeCategorias`, mismo archivo). No es ahorro,
   es un bug de datos: cada lote pide su clasificación por separado y nada obligaba a que dos
   lotes de la misma hoja bautizaran igual el mismo concepto. En producción no lo hicieron —
@@ -245,8 +294,41 @@ Conventions & gotchas:
   por (entidad, tipo): las 13 categorías de `Gastos_Operativos` son todas `opex` y colapsarlas
   dejaría al cliente sin su pantalla de gastos. **El canonizador nunca inventa un nombre** —solo
   mapea sobre uno que ya apareció en esa hoja—, así que si la tabla de sinónimos se queda corta
-  el peor caso es no unificar, no unificar mal. Y **habilita el cortocircuito**: sin unificar,
+  el peor caso es no unificar, no unificar mal. **La tabla salió de AUDITAR producción**
+  (2026-08-24): 143 categorías reales, con 24 rubros de `opex` en House Products, 20 en
+  HeladosGT y 19 en CarsGT — los pares ES/EN son la mayor parte de lo que sobra. Dos hallazgos
+  de esa auditoría que no se ven leyendo código: el modelo a veces pega **el tipo como prefijo**
+  (`opex.software` junto a `software`, 69 filas de U3 TECH) y eso se quita del NOMBRE y no solo
+  del concepto, porque es lo que el cliente lee; y **el plural rompía la unificación** —
+  `comisiones`→`comisione`, `supplies`→`supplie`— así que `lemaDe` prueba las formas `-es` e
+  `-ies` antes de rendirse. **Los DESGLOSES no se unifican y es decisión, no olvido**:
+  `utilities_water` no se colapsa contra `utilities` ni `payroll_admin` contra `payroll`. Un
+  dueño puede querer ver el agua separada de la luz; traducir es objetivo, decidir que dos
+  rubros distintos son uno es del cliente. **Y se unifica también por CONTENCIÓN**
+  (2026-08-24): si las palabras significativas de un nombre están todas dentro de las de otro,
+  es el mismo concepto con un matiz de más. Verificado en producción sobre una concesionaria
+  que produjo TRES nombres para el mismo gasto, uno por lote — `import_customs` (11 filas),
+  `importacion_aduanas` (8) e `import_customs_duties` (6) — y el daño fue doble: tres rubros
+  donde hay uno, y como contaban como veredictos distintos el tercero **no pudo heredar la
+  confianza** que el modelo ya le había dado al mismo concepto, así que sus 6 filas se fueron a
+  revisión. Hacen falta **≥2 lemas** compartidos (`gasto` está fuera de las genéricas a
+  propósito, y con uno solo absorbería a `gasto_ventas`) y **contención, no intersección**:
+  `servicios_publicos` y `servicios_profesionales_externos` comparten `utility` y NO se unen,
+  porque cada uno tiene una palabra propia. Hay test, y hubo que corregirlo: el primer caso que
+  escribí pasaba por la guarda de cardinalidad y dejaba la mutación "comparten alguna palabra"
+  en verde. Y **habilita el cortocircuito**: sin unificar,
   los tres lotes de `Ventas` contaban como tres veredictos y ninguno llegaba al 98 %.
+- **Una factura emitida produce SU INGRESO además de la cuenta por cobrar — UNA vez** (2026-08-19, acotado el 2026-08-24). Jose subió `U3TECH_Demo_Datos_Ampliado` y reportó "no logra reconocer los ingresos". Medido: `Facturacion_Clientes` —1.403 filas, **USD 4.840.744**, la facturación real de esa empresa— se clasificó `invoice`, se promovió entera, y el dashboard mostró **CERO ingresos**, porque `lib/rollups.ts` suma `revenue` únicamente de `transactions`. El dato estaba bien leído, bien clasificado y bien guardado, y aun así el cliente veía su negocio en cero. **No era un error de clasificación**: una factura pendiente sí es una cuenta por cobrar; lo que estaba mal era la premisa de que fuera SOLO eso — emitirla reconoce el ingreso (devengo) Y crea el derecho de cobro, dos caras del mismo hecho. Afectaba a **toda empresa que factura en vez de cobrar al mostrador** (servicios, consultoría, software); una cafetería no lo notaba porque sus ventas ya son transacciones. Es el mismo patrón que la venta con costo: una fila del archivo produce dos del ledger. El ingreso se devenga en la fecha de **emisión**, nunca en la de vencimiento —usarla lo movería de período, que es el error de la contabilidad de caja— y el payload se **arma de nuevo** con `targetEntity: 'transaction'` en vez de copiar el de la factura: las dos formas son distintas y un spread deja la fila sin `date`, marcada entera por `invalid_date` (pasó en el primer intento). Una `bill` NO produce ingreso: sería registrar como ingreso lo que la empresa debe.
+  **La acotación (2026-08-24)**: la regla se conserva entera y solo se le agrega "una vez".
+  `CuentasPorCobrar` de CarsGT trae 81 facturas que apuntan por `ID Venta` a ventas que la
+  hoja `Ventas` YA registró como ingreso, y devengarlas otra vez sumó **Q 3.039.680** que
+  nadie facturó dos veces. Una hoja de cobros es un ESTADO de la venta, no una venta más.
+  Quién lo decide es el esquema del libro (`ventaYaRegistradaEnOtraHoja`), **no el nombre de
+  la hoja** — "CuentasPorCobrar" es una convención y el próximo cliente la llamará "Cobros".
+  **El caso que motivó la regla sigue intacto y hay test que lo fija**: `Facturacion_Clientes`
+  de U3TECH no apunta a ninguna hoja de ventas, así que la condición es falsa y su ingreso se
+  devenga como debe. La factura devenga por defecto; solo deja de hacerlo cuando el mismo
+  libro demuestra que ese ingreso ya está contado.
 - **Ninguna fila desaparece en silencio** (auditoría 2026-08-12). Tres garantías que el código
   hace cumplir, cada una por un fallo que ya se observó o que no dejaría rastro:
   1. **Cobertura**: se compara lo devuelto contra lo enviado. `skip` es un veredicto EXPLÍCITO
@@ -321,12 +403,6 @@ Conventions & gotchas:
 - **EL LOGIN FUNCIONA por `macha.finance` — la URI ya está registrada en WorkOS** (re-verificado 2026-08-24). Versiones anteriores de este archivo abrían con *"⚠️ EL LOGIN ESTÁ ROTO POR TODOS LOS DOMINIOS"* y **eso ya no es cierto**: alguien agregó `https://macha.finance/callback` a los *Redirects* de WorkOS entre el 21 y el 24 de agosto. Medido siguiendo el flujo entero: `https://macha.finance/login` responde 307 al `authorize` de WorkOS con `redirect_uri=https%3A%2F%2Fmacha.finance%2Fcallback`, y ese `authorize` **aterriza en la pantalla de AuthKit** (`scientific-procession-52.authkit.app`, 200 con "Sign in"), no en el `Invalid redirect` que devolvía antes. `/callback` sin código degrada bien: 307 a `/?auth_error=1`.
   **Lo que sí conviene conservar de aquella nota, porque no se arregló y vuelve solo:** el `redirect_uri` es un **valor fijo** (`NEXT_PUBLIC_WORKOS_REDIRECT_URI` en Vercel), no derivado del host — medido en su momento: `macha.finance/login` y `macha-finance.vercel.app/login` mandaban los dos el mismo. Así que con **CUATRO dominios** apuntando al mismo proyecto (`macha.finance`, `macha-finance.vercel.app`, `macha-finance-macha6.vercel.app`, `macha-finance-git-main-macha6.vercel.app`), **el login solo puede funcionar entrando por UNO**, y hoy ese uno es `macha.finance`. Entrar por cualquiera de los otros tres sigue fallando. Registrar los cuatro en WorkOS **no alcanza** —el valor que se manda es uno solo—, así que mientras no haya un dominio canónico con los demás redirigiendo a él, este bug vuelve por la puerta de al lado. Ese es el arreglo de verdad.
   **Y la lección de orden, que costó un día de login caído:** los redirect URIs de WorkOS **son de dashboard, no de API** — no se pueden tocar por código. Si alguna vez hay que cambiar el dominio, se registra la URI nueva en WorkOS **antes** de mover la variable en Vercel. Al revés (que fue lo que pasó el 21/08) WorkOS corta ANTES de mostrar la pantalla de login, o sea que nadie llega ni a escribir su correo — peor que fallar después de autenticar. Y `NEXT_PUBLIC_*` se cocina en el build: cambiar la variable exige redeploy **sin cache de build**.
-- **EL MATCHER DEL MIDDLEWARE TAPA TODO LO QUE NO EXCLUYE, y ya rompió CUATRO cosas** (2026-08-24). Es la regla que engloba las tres notas de abajo (`icon.svg`, `brand/`, `landing/`) más el formulario de demo, y merece ir primero porque el patrón se repite más rápido de lo que se documenta. `authkitProxy` corre sobre todo lo que el `matcher` de `middleware.ts` no nombre —es un negative-lookahead, o sea que la lista es de EXCEPCIONES— y a lo que no trae sesión le responde un redirect a WorkOS. **Ningún gate lo ve**: typecheck, lint, `next build` y los tests pasan los cuatro con la ruta rota.
-  - **El síntoma que lo delata suena a otra cosa: "a algunos les funciona y a otros no".** El SDK redirige solo `if (middlewareAuth.enabled && matchedPaths.length === 0 && !session.user)`, así que **con sesión abierta pasa**. Todo el equipo navega con sesión: el defecto le funciona a quien lo prueba y falla exactamente para quien no la tiene. En el formulario de demo (`POST /api/public/demo-requests`, el ÚNICO camino de conversión del producto) eso era el **100 % de los leads reales** — y el mensaje de error, "No pudimos enviar la solicitud", culpaba al backend por una petición que **nunca salió de Vercel**. Medido: 303 hacia `api.workos.com`; el `fetch` sigue la redirección y muere en CORS.
-  - **Ante cualquier reporte de que algo público "no carga", "sale roto" o "falla a veces": `curl` sin cookies ANTES de mirar el código.** Un 303/307 hacia `api.workos.com` es este bug y nada más.
-  - **Toda ruta que deba servirse sin sesión se excluye del matcher, NO se agrega a `unauthenticatedPaths`** — lo segundo la hace pasar por el middleware para que decida no exigir sesión; lo primero es que el middleware ni corra. Los prefijos llevan **barra final**: `api/public` sin ella también tapaba `/api/publicidad` y cualquier ruta que solo COMPARTA el nombre, dejándola sin sesión por un choque que nadie iría a buscar en el middleware.
-  - **`api/public/` se excluye como NAMESPACE**, el mismo prefijo con que el backend marca lo abierto (`/public/demo-requests`), para que un BFF público futuro nazca destapado en vez de repetir el ticket. El corolario es que **todo lo que cuelgue de `app/api/public/` queda sin sesión**: ese es el contrato del directorio, y `bff-contract.test.ts` (`RUTAS_PUBLICAS`) exige justificar por escrito cada ruta que entra ahí.
-  - **`middleware.test.ts` COMPILA el matcher y lo corre contra URLs reales**, y ese es el punto. `next.config.test.ts` ya afirmaba cosas sobre el matcher, pero sobre el TEXTO (`toMatch(/matcher:[\s\S]*monitoring/)`): eso prueba que una palabra aparece, no que una URL quede fuera, y no habría atrapado ninguno de los cuatro casos ni puede ver el choque de prefijos ni en principio. Las rutas públicas se recorren **del disco**, así que la próxima queda cubierta por existir — que es justo lo que falló: `bff-contract.test.ts` YA declaraba `/api/public/demo-requests` como pública, con su justificación escrita, y aun así el middleware le exigía sesión. **El contrato estaba declarado en un lado y contradicho en otro, sin que nada los cruzara.**
 - **El favicon vive en `app/icon.svg` y ya se rompió de DOS formas distintas** (2026-08-21). Las dos dejaban la pestaña con el ícono genérico y las dos se veían bien en el repo: (a) **el middleware lo interceptaba** — el matcher excluía `favicon.ico`, que este proyecto no tiene, y no `icon.svg`, que sí; `GET /icon.svg` devolvía 307 hacia WorkOS. (b) **el SVG era XML inválido**: su comentario de cabecera contenía dos guiones seguidos (al citar tokens CSS por su nombre real, `var(--foreground)` y `--ink`), y XML lo prohíbe dentro de un comentario. **Por eso los tokens se nombran ahí sin prefijo** (`ink`, `brand`) y hay test de la regla. La lección que generaliza: verificar `200` + `content-type` + contenido NO prueba que un asset sirva — hay que comprobar que se pueda PARSEAR, y eso solo se ve con un parser de verdad contra producción. El contenido es el isotipo monocromo (`#171717` / `#f2f2f2` por `prefers-color-scheme`), que es la decisión de CU-868ktkwqn aplicada al último lugar que le faltaba.
 - **`macha.finance` es la LANDING; `/` ya no enruta a nadie** (pedido de Keneth 2026-08-21). Hasta ese día `/` hacía dos trabajos: portada Y enrutador de post-login (a `/dashboard`, a la invitación pendiente, a registrar, o a la salida de emergencia con el backend caído). Todo eso se movió a `app/continue/page.tsx` y **`/callback` apunta ahí** — dejarlo en `/` habría hecho que un usuario autenticara bien y aterrizara en la página de marketing sin ninguna señal, que es indistinguible de que el login no funcionó. Tres cosas se ganan con la separación, y la segunda es la que importa: la landing **no lee la sesión ni llama al backend** (hay test que lo fija), así que una caída de Railway ya no se lleva la portada del producto — antes consultaba `/me/memberships`; Next la puede prerenderizar; y un cliente con sesión que escribe `macha.finance` ve la landing, que es lo que se pidió. El botón de "Iniciar sesión" está detrás de `NEXT_PUBLIC_SHOW_LOGIN_CTA` (`lib/landing-flags.ts`), **default oculto** y se exige el string `'true'` exacto: si alguien despliega un entorno nuevo y se olvida de la variable, la landing sale sin invitar a entrar a un producto que todavía no está abierto. Esconder el botón **no cierra la puerta**: `/login` sigue vivo y entrar es escribirlo. El aviso de `?auth_error=1` sí trae el enlace a `/login` aunque el flag esté apagado — quien acaba de fallar al entrar ya sabe que la puerta existe.
 - **Los 16 frames del Figma de la landing NO son copias: cada uno tiene un item distinto abierto en los acordeones** (2026-08-21, corrección de Keneth a una conclusión mía equivocada). Yo los leí como "16 importaciones del mismo HTML con ruido entre iteraciones" y construí la página con UNO, porque comparados por contenido las diferencias eran de 1 a 24 líneas sobre 244. Esas líneas eran el contenido del item expandido. Medido después: **190 textos comunes a los 16 frames y 47 que varían**, y los 47 están en `capacidades`, `faq` y `asesor`. O sea que los frames no eran redundancia sino la **especificación completa de los dos acordeones**, y usar uno solo dejaba cada uno con un item lleno y el resto vacío. La lección que generaliza: en un archivo de Figma con muchos frames casi iguales, lo que varía **es** el contenido interactivo, y descartarlo como ruido borra justo la parte que no se puede inferir. Las 14 secciones están en `components/landing/`; solo las dos con acordeón llevan `'use client'`.
