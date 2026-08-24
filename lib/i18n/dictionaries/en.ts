@@ -857,6 +857,7 @@ export const en: Dictionary = {
       vsPrevious: 'vs. previous period',
       vsPreviousPp: 'points vs. previous period',
       cogs: 'Direct cost of sales',
+      cogsHint: 'Only what the goods you sold cost. Rent and payroll are not included.',
       margin: 'Gross margin',
       marginHint: 'What you keep from each sale before fixed expenses.',
     },

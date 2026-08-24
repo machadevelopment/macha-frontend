@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { DollarSign, Receipt, PiggyBank, Percent, Wallet } from 'lucide-react';
+import { DollarSign, Package, Receipt, PiggyBank, Percent, Wallet } from 'lucide-react';
 import { KpiCard } from '@/components/charts/kpi-card';
 import { LoadError } from '@/components/ui/load-error';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
@@ -21,7 +21,7 @@ import type {
 } from '@/lib/api/dashboard';
 
 /**
- * Filtro de período + las cinco tarjetas, sobre el rango elegido.
+ * Filtro de período + las seis tarjetas, sobre el rango elegido.
  *
  * Sustituye al `KpiRow` de serie mensual fija, que se elimina en este mismo cambio:
  * aquel siempre mostraba el último mes cerrado, así que las píldoras no habrían
@@ -112,8 +112,22 @@ export function PeriodKpis({
    * 1480px (ver `screens` en tailwind.config.ts). Sigue resolviendo el reporte original —una
    * MacBook de 1512px muestra las cinco en una fila— sin cortar ningún número en el camino.
    */
-  const GRID =
-    'grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 kpi4:grid-cols-4 kpi5:grid-cols-5';
+  /*
+   * ═══ CU-868kuw01m · CON SEIS TARJETAS LA ESCALERA CAMBIA: 1 / 2 / 3 / 6 ═══
+   *
+   * Los pasos de 4 y 5 columnas se quitan, y no por gusto: seis tarjetas solo se reparten
+   * PAREJO entre 1, 2, 3 y 6. En cuatro columnas la fila queda 4+2 y en cinco queda 5+1 — una
+   * tarjeta huérfana al lado de cuatro huecos, que se lee como un error de maquetación.
+   *
+   * Lo que aquellos cortes protegían sigue protegido: no se vuelve a `2xl` ni a `lg`, y el corte
+   * a seis sale de MEDIR dónde la cifra entra, no de la escala redonda de Tailwind.
+   *
+   * Y el reporte original (los KPIs en dos filas empujaban la gráfica abajo del pliegue en una
+   * MacBook de 1512px) NO vuelve con la misma fuerza: cuando se levantó, cada tarjeta medía
+   * ~258px y hoy mide ~152px (CU-868ktknbq), así que dos filas de hoy ocupan 316px contra los
+   * 258px que ocupaba UNA fila entonces. La gráfica baja 58px, no 258.
+   */
+  const GRID = 'grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 kpi6:grid-cols-6';
 
   const filtro = (
     <PeriodFilter
@@ -139,7 +153,7 @@ export function PeriodKpis({
       <div className="flex flex-col gap-3">
         {filtro}
         <div className={GRID}>
-          {[0, 1, 2, 3, 4].map((i) => (
+          {[0, 1, 2, 3, 4, 5].map((i) => (
             <KpiCard key={i} label="" value="" loading />
           ))}
         </div>
@@ -192,6 +206,38 @@ export function PeriodKpis({
           delta={delta(data.current.revenue, data.previous.revenue)}
           deltaCaption={labels.kpi.vsPrevious}
           spark={serie((t) => t.revenue)}
+          locale={locale}
+        />
+        {/*
+          ═══ CU-868kuw01m · COSTO DIRECTO DE VENTAS, PEDIDO POR JOSE ═══
+
+          Va JUSTO DESPUÉS de Ingresos porque es lo primero que se le resta: leídas en fila, las
+          tarjetas cuentan la cuenta de resultados en orden (ingresos → costo directo → gastos →
+          utilidad bruta → margen → resultado).
+
+          NO reemplaza a "Gastos", que sigue sumando `cogs + opex` a propósito (ver `gastos()` en
+          `lib/metrics/period-totals`: una sola definición de "gastos" para el Dashboard y para
+          Analítica). Las dos tarjetas conviven y no se contradicen — pero para que eso se ENTIENDA
+          hace falta que la frase de apoyo diga qué NO incluye esta, porque si no "costo directo de
+          ventas" y "gastos" se leen como sinónimos y el dueño ve dos números distintos para lo
+          mismo.
+
+          `invertDelta` como la de Gastos: en un costo, subir es malo. Sin eso el verde diría "vas
+          bien" justo cuando la mercadería se encareció.
+
+          El dato ya viajaba en la MISMA respuesta (`current.cogs` y `previous.cogs`): cero cambios
+          de backend.
+        */}
+        <KpiCard
+          label={labels.kpi.cogs}
+          icon={<Package className="h-4 w-4" strokeWidth={1.7} />}
+          value={formatMoneyCompact(data.current.cogs, moneda, locale)}
+          exact={formatMoney(data.current.cogs, moneda, locale)}
+          hint={labels.kpi.cogsHint}
+          delta={delta(data.current.cogs, data.previous.cogs)}
+          deltaCaption={labels.kpi.vsPrevious}
+          spark={serie((t) => t.cogs)}
+          invertDelta
           locale={locale}
         />
         <KpiCard

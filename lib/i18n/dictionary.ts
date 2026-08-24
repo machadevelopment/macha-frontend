@@ -742,6 +742,12 @@ export interface Dictionary {
       revenue: string;
       revenueHint: string;
       cogs: string;
+      /**
+       * CU-868kuw01m: la tarjeta de COGS del dashboard. La frase tiene que decir qué NO
+       * incluye — sin eso, "costo directo de ventas" y "gastos" se leen como sinónimos y el
+       * dueño ve dos tarjetas que parecen contradecirse.
+       */
+      cogsHint: string;
       /** Costo directo + gasto operativo: "lo que me costó operar" en lenguaje de dueño. */
       expenses: string;
       expensesHint: string;
