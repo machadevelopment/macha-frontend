@@ -730,14 +730,71 @@ describe('responsive', () => {
   });
 
   test('el formulario de contacto es compacto, no una tarjeta de app', () => {
+    /*
+     * ═══ ESTE TEST PROHIBÍA `Textarea`, Y YA NO (CU-868kw1pgh) ═══
+     *
+     * La prohibición codificaba el pedido de Keneth de que el formulario no tuviera campo de
+     * mensaje. Jose pidió lo contrario —"un pequeño espacio para tener más contexto de la
+     * empresa"— así que el criterio de producto cambió.
+     *
+     * Lo que el test protegía NO cambió y se sigue afirmando abajo: que el formulario no se
+     * lea como una solicitud de empleo. Lo que cambia es CÓMO se garantiza: en vez de
+     * prohibir el campo, se acota (ver el test siguiente).
+     */
     const code = leerCodigo('components/landing/landing-formulario.tsx');
     // Sin caja con borde/sombra: eso era lo que se leía "de ahuevo" contra el Figma.
     expect(code).not.toMatch(/shadow-sm/);
-    expect(code).not.toMatch(/Textarea/);
     expect(code).not.toMatch(/InsightPoint/);
     // El honeypot no puede ir a left:-9999px: empuja el scroll horizontal en móvil.
     expect(code).not.toMatch(/-left-\[9999px\]/);
     expect(code).toMatch(/sr-only/);
+  });
+
+  test('el campo de contexto es UNO, opcional, corto y el último (CU-868kw1pgh)', () => {
+    /*
+     * Las cuatro condiciones que mantienen en pie el motivo original ("no cinco campos
+     * gordos"), cada una porque su ausencia lo rompe de una forma distinta:
+     *
+     *   · UNO — el segundo textarea es el que convierte el cierre en un cuestionario;
+     *   · OPCIONAL — `required` subiría justo la fricción que el diseño evitaba, en el único
+     *     formulario que convierte visitantes en conversaciones;
+     *   · CORTO — tres filas. Un textarea de diez ocupa media pantalla y es lo que hacía que
+     *     el formulario pesara;
+     *   · EL ÚLTIMO — arriba rompe la lectura de los cuatro campos cortos que sí hacen falta.
+     */
+    const code = leerCodigo('components/landing/landing-formulario.tsx');
+
+    expect(code.match(/<Textarea/g)?.length, 'debe haber exactamente un textarea').toBe(1);
+
+    const textarea = code.match(/<Textarea[\s\S]*?\/>/)?.[0] ?? '';
+    expect(textarea).toMatch(/rows=\{([123])\}/);
+    expect(textarea, 'el campo de contexto no puede ser obligatorio').not.toMatch(/required/);
+    // El tope tiene que ser el que valida el backend: cortar en el cliente evita un 422
+    // después de que la persona ya escribió.
+    expect(textarea).toMatch(/maxLength=\{2000\}/);
+
+    // Y va después del último campo obligatorio.
+    expect(code.indexOf('<Textarea')).toBeGreaterThan(code.indexOf('demo-phone'));
+
+    // La etiqueta dice de qué se trata y que es opcional, en los dos idiomas.
+    for (const d of [es, en]) {
+      expect(d.landing.form.message).toMatch(/opcional|optional/i);
+      expect(d.landing.form.message.trim().length).toBeGreaterThan(10);
+    }
+  });
+
+  test('el mensaje viaja al backend, o el campo es decorativo', () => {
+    /*
+     * El fallo silencioso de este ticket: pintar el textarea y no mandarlo. El cliente escribe
+     * su contexto, el formulario dice "recibimos tu solicitud" y el panel de admin muestra el
+     * hueco vacío. Nada falla.
+     *
+     * Va como `undefined` y no `''` porque el backend distingue "no escribió" (null) de vacío.
+     */
+    const code = leerCodigo('components/landing/landing-formulario.tsx');
+    expect(code).toMatch(/message: message \|\| undefined/);
+    // Y se limpia al enviar con éxito, como los demás campos.
+    expect(code).toMatch(/setMessage\(''\)/);
   });
 
   test('la landing no usa ShowcaseFrame', () => {
