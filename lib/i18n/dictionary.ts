@@ -468,6 +468,8 @@ export interface Dictionary {
       faq: string;
       contacto: string;
       demo: string;
+      /** Nombre accesible del disparador del menú de secciones en móvil (CU-868kv8m1v). */
+      menu: string;
     };
     hero: {
       eyebrow: string;
@@ -740,6 +742,12 @@ export interface Dictionary {
       revenue: string;
       revenueHint: string;
       cogs: string;
+      /**
+       * CU-868kuw01m: la tarjeta de COGS del dashboard. La frase tiene que decir qué NO
+       * incluye — sin eso, "costo directo de ventas" y "gastos" se leen como sinónimos y el
+       * dueño ve dos tarjetas que parecen contradecirse.
+       */
+      cogsHint: string;
       /** Costo directo + gasto operativo: "lo que me costó operar" en lenguaje de dueño. */
       expenses: string;
       expensesHint: string;
@@ -1329,6 +1337,21 @@ export interface Dictionary {
     revenuePerUnit: string;
     performance: string;
     salesByCategory: string;
+    /** CU-868kuw1e3: la tarjeta de ventas por tienda, con sus DOS vacíos. */
+    salesByStore: string;
+    /**
+     * Vacío por FALTA DE DATO: la empresa vendió, pero ninguna venta trae tienda. Es el caso
+     * normal — la mayoría de los Excel de una PYME no traen esa columna — y por eso se dice
+     * qué hacer para cambiarlo, en vez de dejar una tarjeta muda.
+     */
+    storesEmptyNoColumn: string;
+    storesEmptyNoColumnHint: string;
+    /** Vacío por FALTA DE VENTAS. Distinto del anterior: si dijeran lo mismo, quien sí tiene
+     *  sucursales creería que el producto no las soporta. */
+    storesEmptyNoSales: string;
+    /** `{amount}`: ventas sin tienda, para que el 100 % del donut no se lea como el 100 %
+     *  de las ventas del período. */
+    storesUnattributed: string;
     /** CU-868knx1a0: EXPORTAR la tabla que ya está en pantalla. No es importar — la
      *  carga de datos vive en su propia pantalla ("Cargar datos"). */
     exportCsv: string;

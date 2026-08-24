@@ -32,7 +32,7 @@ import { join } from 'node:path';
 const raiz = join(import.meta.dir, '..');
 const leer = (rel: string) => readFileSync(join(raiz, rel), 'utf-8');
 
-describe('el grid de KPIs llega a 5 columnas donde el prototipo (CU-868ktknbq)', () => {
+describe('el grid de KPIs llega a 6 columnas donde la cifra entra (CU-868kuw01m)', () => {
   const kpis = leer('components/dashboard/period-kpis.tsx');
 
   /**
@@ -62,10 +62,27 @@ describe('el grid de KPIs llega a 5 columnas donde el prototipo (CU-868ktknbq)',
    */
   const grid = () => kpis.match(/const GRID =\s*'([^']*)'/)?.[1] ?? '';
 
-  test('la fila de 5 arranca donde la cifra cabe (1480px), no en la escala redonda', () => {
-    expect(grid()).toContain('kpi5:grid-cols-5');
-    // Y hay un paso intermedio de 4: pasar de 3 a 5 de golpe salta el rango donde 4 sí caben.
-    expect(grid()).toContain('kpi4:grid-cols-4');
+  /*
+   * ═══ CU-868kuw01m · SON SEIS TARJETAS, ASÍ QUE LA ESCALERA ES 1 / 2 / 3 / 6 ═══
+   *
+   * Este bloque afirmaba `kpi5:grid-cols-5` y `kpi4:grid-cols-4`. Esa era la escalera correcta
+   * para CINCO tarjetas; con la de COGS son seis, y seis solo se reparten parejo entre 1, 2, 3
+   * y 6 — en cuatro columnas la fila queda 4+2 y en cinco 5+1, una huérfana al lado de cuatro
+   * huecos.
+   *
+   * Lo que el bloque protegía NO cambia y sigue afirmado abajo: el corte sale de dónde la cifra
+   * ENTRA (medido, no de la escala redonda de Tailwind) y no se vuelve ni a `2xl` ni a `lg`.
+   */
+  test('la fila de 6 arranca donde la cifra cabe (1600px), no en la escala redonda', () => {
+    expect(grid()).toContain('kpi6:grid-cols-6');
+    // Y la escalera de abajo divide 6 sin dejar huérfanas.
+    expect(grid()).toContain('md:grid-cols-3');
+    expect(grid()).toContain('sm:grid-cols-2');
+  });
+
+  test('ningún paso deja una tarjeta huérfana: 6 no se divide entre 4 ni entre 5', () => {
+    expect(grid()).not.toMatch(/grid-cols-4\b/);
+    expect(grid()).not.toMatch(/grid-cols-5\b/);
   });
 
   test('NO vuelve a `2xl` (deja fuera la MacBook) ni a `lg` (corta las cifras)', () => {
@@ -74,9 +91,26 @@ describe('el grid de KPIs llega a 5 columnas donde el prototipo (CU-868ktknbq)',
      *   · `2xl` (1536px) dejaba una MacBook de 1512px en 3 columnas — el reporte original.
      *   · `lg` (1024px) metía cinco tarjetas donde caben tres caracteres.
      */
-    expect(grid()).not.toContain('2xl:grid-cols-5');
-    expect(grid()).not.toContain('lg:grid-cols-5');
+    expect(grid()).not.toContain('2xl:grid-cols-6');
+    expect(grid()).not.toContain('lg:grid-cols-6');
     expect(grid()).not.toContain('xl:grid-cols-3');
+  });
+
+  test('`kpi6` vale lo que se MIDIÓ, y el config no deja cortes muertos', () => {
+    /*
+     * 1600px sale de medir en el navegador, con la SF Pro real y el tracking del token:
+     * `GTQ 389.9K` a 20px (`kpi-sm`, que es lo que `escalaDeCifra` le da a 10 caracteres) mide
+     * 107,1px, y seis columnas dan 97,3px útiles a 1512px — se cortaría.
+     *
+     * Y `kpi4`/`kpi5` se van del config: un breakpoint que nadie usa es una medición vieja
+     * esperando a que alguien la aplique sin volver a medirla.
+     */
+    // Solo la línea de `screens`: la nota de arriba NOMBRA a `kpi4`/`kpi5` para contar por qué
+    // se fueron, y afirmar sobre el archivo entero volvería a verificar la documentación en vez
+    // del código — el error que este mismo archivo ya cometió dos veces.
+    const screens = leer('tailwind.config.ts').match(/screens: \{[^}]*\}/)?.[0] ?? '';
+    expect(screens).toMatch(/kpi6: '1600px'/);
+    expect(screens).not.toMatch(/kpi4:|kpi5:/);
   });
 });
 

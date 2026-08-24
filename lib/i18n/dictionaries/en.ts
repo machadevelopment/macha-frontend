@@ -391,6 +391,11 @@ export const en: Dictionary = {
       faq: 'FAQ',
       contacto: 'Contact',
       demo: 'Request a demo',
+      /*
+        Nombre accesible del disparador del menú en móvil (CU-868kv8m1v). No se pinta:
+        el ícono de hamburguesa no le dice nada a un lector de pantalla.
+      */
+      menu: 'Sections',
     },
     hero: {
       eyebrow: 'YOUR AI-POWERED CFO',
@@ -852,6 +857,7 @@ export const en: Dictionary = {
       vsPrevious: 'vs. previous period',
       vsPreviousPp: 'points vs. previous period',
       cogs: 'Direct cost of sales',
+      cogsHint: 'Only what the goods you sold cost. Rent and payroll are not included.',
       margin: 'Gross margin',
       marginHint: 'What you keep from each sale before fixed expenses.',
     },
@@ -1290,6 +1296,12 @@ export const en: Dictionary = {
     revenuePerUnit: 'Revenue per unit',
     performance: 'Product performance',
     salesByCategory: 'Sales by category',
+    salesByStore: 'Sales by store',
+    storesEmptyNoColumn: 'Your sales do not carry a store or branch.',
+    storesEmptyNoColumnHint:
+      'Add a store column to your spreadsheet and the next upload compares them.',
+    storesEmptyNoSales: 'No sales in this period.',
+    storesUnattributed: '{amount} in sales with no store assigned, outside this split.',
     exportCsv: 'Export CSV',
     csvFileName: 'product-sales',
     colProduct: 'Product',

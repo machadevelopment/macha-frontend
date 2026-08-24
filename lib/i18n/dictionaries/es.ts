@@ -446,6 +446,11 @@ export const es: Dictionary = {
       faq: 'FAQ',
       contacto: 'Contacto',
       demo: 'Solicitar demo',
+      /*
+        Nombre accesible del disparador del menú en móvil (CU-868kv8m1v). No se pinta:
+        el ícono de hamburguesa no le dice nada a un lector de pantalla.
+      */
+      menu: 'Secciones',
     },
     hero: {
       eyebrow: 'TU CFO IMPULSADO CON IA',
@@ -939,6 +944,7 @@ export const es: Dictionary = {
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
       cogs: 'Costo directo de ventas',
+      cogsHint: 'Solo lo que costó la mercadería vendida. No incluye alquiler ni planilla.',
       margin: 'Margen bruto',
       marginHint: 'Lo que te queda de cada venta antes de los gastos fijos.',
     },
@@ -1385,6 +1391,19 @@ export const es: Dictionary = {
     revenuePerUnit: 'Ingreso por unidad',
     performance: 'Desempeño por producto',
     salesByCategory: 'Ventas por categoría',
+    salesByStore: 'Ventas por tienda',
+    /*
+      Los dos vacíos dicen cosas distintas a propósito: uno es "tu archivo no trae el dato" y
+      el otro "no hubo ventas". Con el mismo texto, el dueño que sí tiene sucursales creería
+      que el producto no las soporta.
+    */
+    storesEmptyNoColumn: 'Tus ventas no traen tienda o sucursal.',
+    storesEmptyNoColumnHint:
+      'Agrega una columna de tienda a tu Excel y la próxima carga las compara entre sí.',
+    storesEmptyNoSales: 'No hubo ventas en este período.',
+    /* `{amount}` es plata de verdad: se muestra para que el 100 % del donut no se lea como
+       el 100 % de las ventas. */
+    storesUnattributed: '{amount} en ventas sin tienda asignada, fuera de este reparto.',
     exportCsv: 'Exportar CSV',
     csvFileName: 'ventas-por-producto',
     colProduct: 'Producto',
