@@ -7,6 +7,7 @@ import { LoadError } from '@/components/ui/load-error';
 import { PeriodFilter } from '@/components/dashboard/period-filter';
 import { usePeriodScope } from '@/components/dashboard/period-scope';
 import { PeriodEmptyNote } from '@/components/dashboard/period-empty-note';
+import { CurrencyNote } from '@/components/dashboard/currency-note';
 import { request, type RequestError } from '@/lib/api/browser';
 import type { DateRange } from '@/lib/period';
 import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
@@ -188,6 +189,16 @@ export function PeriodKpis({
           ingesta va antes de los KPIs — si los números están en cero, el porqué tiene que
           leerse antes que los ceros. */}
       <PeriodEmptyNote data={data} locale={locale} labels={labels.emptyPeriod} />
+      {/*
+        CU-868kj3gnv: va ANTES de las tarjetas por el mismo motivo que el aviso de período
+        vacío — es el contexto que hace legibles las cifras de abajo. Un consolidado en
+        quetzales que incluye dólares convertidos se lee distinto si sabés a qué tasa entraron,
+        y leerlo después ya es tarde.
+
+        Se pinta solo si la empresa tuvo DOS monedas en este período; para todos los demás no
+        existe.
+      */}
+      <CurrencyNote locale={locale} labels={labels.currency} />
       <div className={GRID}>
         {/*
           Valor ABREVIADO arriba y cifra EXACTA debajo, que es para lo que existe `exact` y lo
