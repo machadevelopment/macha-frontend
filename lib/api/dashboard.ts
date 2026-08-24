@@ -211,6 +211,33 @@ export interface CategoryBreakdownResponse {
   rows: CategoryBreakdownRow[];
 }
 
+/**
+ * `GET /metrics/currencies` — composición por moneda ORIGINAL del período (CU-868kj3gnv).
+ *
+ * `originalTotal` está en `currency` y **nunca se suma** con el de otra fila: sumar GTQ con
+ * USD daría un número que no es ninguna de las dos. Lo sumable entre filas es `baseTotal`,
+ * que es lo que cada moneda aportó al consolidado.
+ */
+export interface CurrencyBreakdownRow {
+  currency: 'GTQ' | 'USD';
+  originalTotal: number;
+  baseTotal: number;
+  transactionCount: number;
+  /**
+   * `null` para la moneda base — su tasa es 1. Para las demás es un RANGO: cada fila congela
+   * su tasa al promoverse, así que un mes puede tener decenas y una sola cifra no explicaría
+   * el consolidado.
+   */
+  rate: { min: number; max: number; latest: number; latestDate: string } | null;
+}
+
+export interface CurrencyCompositionResponse {
+  baseCurrency: string;
+  rows: CurrencyBreakdownRow[];
+  /** Lo decide el BACKEND, no el cliente: es la definición única de "empresa multi-moneda". */
+  multiCurrency: boolean;
+}
+
 /** `GET /metrics/stores` — ventas por TIENDA en el rango (CU-868kuw1e3). */
 export interface StoreBreakdownRow {
   storeId: string;

@@ -924,6 +924,16 @@ export const es: Dictionary = {
       emptyUnattributed:
         'Hubo ventas, pero ninguna quedó asociada a un producto. Las cargas anteriores a la última actualización no traen ese dato.',
     },
+    currency: {
+      title: 'Monedas del período',
+      consolidatedIn: 'Tus cifras están consolidadas en {currency}.',
+      ownCurrency: 'en tu moneda base',
+      contributed: 'aportó {amount}',
+      rateApplied: 'Tasa aplicada: {rate} · {date}',
+      rateRange: 'Tasas entre {min} y {max} · la última, {latest} el {date}',
+      notSummed:
+        'Los montos de arriba están en monedas distintas y no se suman entre sí; lo que se consolida es lo que cada una aportó en {currency}.',
+    },
     kpi: {
       revenue: 'Ingresos',
       revenueHint: 'Ingresos facturados del período.',
