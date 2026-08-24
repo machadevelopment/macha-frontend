@@ -944,6 +944,7 @@ export const es: Dictionary = {
       // SOLO el costo directo de lo vendido. El alquiler y la planilla son `opex` y no
       // entran acá, y la etiqueta tiene que decirlo para que el dueño no lo lea al revés.
       cogs: 'Costo directo de ventas',
+      cogsHint: 'Solo lo que costó la mercadería vendida. No incluye alquiler ni planilla.',
       margin: 'Margen bruto',
       marginHint: 'Lo que te queda de cada venta antes de los gastos fijos.',
     },

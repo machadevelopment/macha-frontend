@@ -38,23 +38,40 @@ export default {
       /*
        * `app` (1080px) es donde el shell gana su rail derecho de 348px.
        *
-       * `kpi4`/`kpi5` salen de MEDIR, no de la escala redonda de Tailwind (CU-868ku6r48). El
-       * dashboard descuenta sidebar (264px), paddings (48px) y rail (364px), así que el ancho de
-       * una tarjeta de KPI no tiene nada que ver con el del viewport:
+       * `kpi6` sale de MEDIR, no de la escala redonda de Tailwind. El dashboard descuenta
+       * sidebar (264px), paddings (48px) y rail (364px), más el relleno de la tarjeta (32px) y
+       * los huecos de 12px, así que el ancho útil de una tarjeta no tiene nada que ver con el
+       * del viewport:
        *
-       *     viewport   5 col → útil    cabe a 24px
-       *     1080px          39px          3 chars   ← imposible
-       *     1280px          79px          6 chars   ← `GTQ 389.9K` son 10
-       *     1480px         119px          9 chars   ← cabe (a 20px, 10)
+       *     útil(v, n) = (v − 676 − 12·(n−1)) / n − 32
        *
-       * Por eso 5 columnas arrancan en 1480 y 4 en 1300: son los anchos donde la cifra
-       * ENTRA. Un breakpoint más bajo no muestra más información, muestra la misma cortada.
+       * ═══ HISTORIA, PORQUE ESTOS CORTES YA SE MOVIERON TRES VECES ═══
        *
-       * Y 1480 y no `2xl` (1536px) porque una MacBook de 14" da 1512px: con el corte en 1536
-       * caía a 3 columnas justo en la máquina donde se demuestra el producto, que es el
-       * reporte original de QA.
+       * CU-868ktknbq los bajó de `2xl` (1536px) porque una MacBook de 14" da 1512px y caía a 3
+       * columnas justo en la máquina donde se demuestra el producto. CU-868ku6r48 corrigió ese
+       * arreglo —había copiado el `lg` (1024px) del prototipo, donde una tarjeta queda en 39px
+       * útiles y `GTQ 389.9K` son diez caracteres— y fijó `kpi4: 1300` y `kpi5: 1480` midiendo
+       * dónde la cifra ENTRA.
+       *
+       * CU-868kuw01m agrega la sexta tarjeta (COGS) y con eso los pasos de 4 y 5 se van: seis
+       * tarjetas solo se reparten parejo entre 1, 2, 3 y 6 — en cuatro columnas la fila queda
+       * 4+2 y en cinco 5+1, una huérfana al lado de cuatro huecos.
+       *
+       * ═══ DE DÓNDE SALE 1600 ═══
+       *
+       * Medido en el navegador con la SF Pro real, `tabular-nums` y el tracking de cada token,
+       * el peor caso realista de `formatMoneyCompact` (`GTQ 389.9K`, 10 caracteres → `kpi-sm`
+       * por `escalaDeCifra`) mide 107,1px a 20px. Con seis columnas:
+       *
+       *     viewport   6 col → útil    ¿entra `GTQ 389.9K` (107,1px)?
+       *     1512px          97,3px      no — se cortaría
+       *     1570px         107,0px      justo en el límite
+       *     1600px         112,0px      sí, con margen
+       *
+       * Un corte más bajo no muestra más información: muestra la misma cifra cortada, y en una
+       * cifra financiera cortar no recorta, MIENTE (ver `escalaDeCifra` en `kpi-card.tsx`).
        */
-      screens: { app: '1080px', kpi4: '1300px', kpi5: '1480px' },
+      screens: { app: '1080px', kpi6: '1600px' },
       colors: {
         background: 'var(--background)',
         /*
