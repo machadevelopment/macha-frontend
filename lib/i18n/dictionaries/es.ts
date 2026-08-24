@@ -764,7 +764,7 @@ export const es: Dictionary = {
       company: 'Empresa',
       email: 'Correo',
       phone: 'Teléfono (opcional)',
-      message: 'Mensaje (opcional)',
+      message: 'Cuéntanos sobre tu empresa (opcional)',
       submit: 'Solicitar demo',
       submitting: 'Enviando…',
       success: 'Recibimos tu solicitud. Te contactamos pronto.',

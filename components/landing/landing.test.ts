@@ -15,12 +15,23 @@ import { en } from '@/lib/i18n/dictionaries/en';
 const raiz = join(import.meta.dir, '..', '..');
 const leer = (rel: string) => readFileSync(join(raiz, rel), 'utf8');
 
-/** El fuente sin comentarios, para las aserciones NEGATIVAS. */
+/**
+ * El fuente sin comentarios, para las aserciones NEGATIVAS.
+ *
+ * ⚠️ EL `//` DE UNA URL NO ES UN COMENTARIO, y esto se descubrió a golpes (CU-868kw1r0m). La
+ * versión anterior hacía `.replace(/\/\/.*$/gm, '')` a secas, así que la línea
+ * `url: 'https://www.instagram.com/macha.finance'` quedaba cortada en `url: 'https:` — perdía
+ * la URL Y su `},` de cierre, con lo que la entrada siguiente del arreglo se fusionaba con la
+ * anterior. Dos tests fallaron por eso, ninguno de los dos por el motivo que parecía.
+ *
+ * El `[^:]` de guardia arregla el caso real (`://`) sin pretender ser un parser: acá se leen
+ * fuentes propias, no entrada arbitraria.
+ */
 const leerCodigo = (rel: string) =>
   leer(rel)
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '');
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 describe('el CTA de demo lleva al formulario', () => {
   test('el correo de contacto sigue publicado', () => {
@@ -75,6 +86,64 @@ describe('las legales se nombran pero NO se enlazan', () => {
       expect(d.landing.footer.privacidad.trim()).not.toBe('');
       expect(d.landing.footer.terminos.trim()).not.toBe('');
       expect(d.landing.footer.datos.trim()).not.toBe('');
+    }
+  });
+});
+
+describe('las REDES: solo se enlaza la cuenta que existe (CU-868kw1r0m)', () => {
+  /*
+   * ═══ ESTE TEST NO EXISTÍA, Y EL ARCHIVO CREÍA QUE SÍ ═══
+   *
+   * `landing-footer.tsx` decía "cuando exista la cuenta, se cambia por `<Link>` y se actualiza
+   * el test", pero el único test del footer era el de las LEGALES. O sea que la promesa de
+   * cobertura era falsa: cualquiera podía enlazar las cuatro redes a un `#` y nada fallaba.
+   *
+   * Se escribe ahora, con la primera cuenta confirmada.
+   */
+  const code = leerCodigo('components/landing/landing-footer.tsx');
+  /** Solo la declaración de `REDES`, para no confundirla con el resto de enlaces del footer. */
+  const redes = code.match(/const REDES[\s\S]*?\n\];/)?.[0] ?? '';
+
+  test('Instagram apunta a la cuenta real y abre en pestaña nueva', () => {
+    expect(redes).toContain("nombre: 'Instagram'");
+    expect(redes).toContain('https://www.instagram.com/macha.finance');
+    expect(code).toContain('target="_blank"');
+    /*
+     * `noopener` no es ceremonia: sin él, la pestaña que se abre puede tocar `window.opener` y
+     * redirigir la landing desde el sitio de destino. En un producto financiero, que la portada
+     * pueda ser reemplazada desde una pestaña hija es exactamente el vector de un phishing.
+     */
+    expect(code).toContain('rel="noopener noreferrer"');
+  });
+
+  test('la URL va LIMPIA, sin el parámetro de rastreo con el que llegó compartida', () => {
+    /*
+     * El enlace que compartió Jose traía `?igsh=…`, que identifica a quién se le mandó. Publicarlo
+     * en el footer haría que cada visitante que entre por ahí quede contado como si viniera de la
+     * persona que nos compartió el enlace — métricas sucias de Macha, por una copia/pega.
+     */
+    expect(redes).not.toMatch(/igsh|igshid|utm_/);
+    expect(redes).not.toMatch(/instagram\.com\/macha\.finance[^']*\?/);
+  });
+
+  test('las redes SIN cuenta confirmada siguen siendo texto, no enlaces', () => {
+    /*
+     * La decisión de fondo no cambió: un enlace a un perfil equivocado —o a uno que alguien más
+     * ocupó con el nombre de la marca— es peor que el nombre suelto. Que Instagram se haya
+     * confirmado no autoriza a inventar las otras tres.
+     */
+    for (const red of ['LinkedIn', 'Youtube', 'Facebook']) {
+      const entrada = redes.match(new RegExp(`\\{[^}]*nombre: '${red}'[^}]*\\}`))?.[0] ?? '';
+      expect(entrada, `${red} debería seguir sin url`).not.toContain('url');
+    }
+  });
+
+  test('el footer no enlaza ninguna red a un destino inventado', () => {
+    // Cualquier URL de red social en el archivo tiene que ser la de Instagram, que es la única
+    // confirmada. Un `linkedin.com/company/...` adivinado pasaría los tests de arriba.
+    const urls = code.match(/https?:\/\/[^'"\s]+/g) ?? [];
+    for (const u of urls.filter((u) => /linkedin|youtube|facebook|instagram/i.test(u))) {
+      expect(u).toBe('https://www.instagram.com/macha.finance');
     }
   });
 });
@@ -661,14 +730,71 @@ describe('responsive', () => {
   });
 
   test('el formulario de contacto es compacto, no una tarjeta de app', () => {
+    /*
+     * ═══ ESTE TEST PROHIBÍA `Textarea`, Y YA NO (CU-868kw1pgh) ═══
+     *
+     * La prohibición codificaba el pedido de Keneth de que el formulario no tuviera campo de
+     * mensaje. Jose pidió lo contrario —"un pequeño espacio para tener más contexto de la
+     * empresa"— así que el criterio de producto cambió.
+     *
+     * Lo que el test protegía NO cambió y se sigue afirmando abajo: que el formulario no se
+     * lea como una solicitud de empleo. Lo que cambia es CÓMO se garantiza: en vez de
+     * prohibir el campo, se acota (ver el test siguiente).
+     */
     const code = leerCodigo('components/landing/landing-formulario.tsx');
     // Sin caja con borde/sombra: eso era lo que se leía "de ahuevo" contra el Figma.
     expect(code).not.toMatch(/shadow-sm/);
-    expect(code).not.toMatch(/Textarea/);
     expect(code).not.toMatch(/InsightPoint/);
     // El honeypot no puede ir a left:-9999px: empuja el scroll horizontal en móvil.
     expect(code).not.toMatch(/-left-\[9999px\]/);
     expect(code).toMatch(/sr-only/);
+  });
+
+  test('el campo de contexto es UNO, opcional, corto y el último (CU-868kw1pgh)', () => {
+    /*
+     * Las cuatro condiciones que mantienen en pie el motivo original ("no cinco campos
+     * gordos"), cada una porque su ausencia lo rompe de una forma distinta:
+     *
+     *   · UNO — el segundo textarea es el que convierte el cierre en un cuestionario;
+     *   · OPCIONAL — `required` subiría justo la fricción que el diseño evitaba, en el único
+     *     formulario que convierte visitantes en conversaciones;
+     *   · CORTO — tres filas. Un textarea de diez ocupa media pantalla y es lo que hacía que
+     *     el formulario pesara;
+     *   · EL ÚLTIMO — arriba rompe la lectura de los cuatro campos cortos que sí hacen falta.
+     */
+    const code = leerCodigo('components/landing/landing-formulario.tsx');
+
+    expect(code.match(/<Textarea/g)?.length, 'debe haber exactamente un textarea').toBe(1);
+
+    const textarea = code.match(/<Textarea[\s\S]*?\/>/)?.[0] ?? '';
+    expect(textarea).toMatch(/rows=\{([123])\}/);
+    expect(textarea, 'el campo de contexto no puede ser obligatorio').not.toMatch(/required/);
+    // El tope tiene que ser el que valida el backend: cortar en el cliente evita un 422
+    // después de que la persona ya escribió.
+    expect(textarea).toMatch(/maxLength=\{2000\}/);
+
+    // Y va después del último campo obligatorio.
+    expect(code.indexOf('<Textarea')).toBeGreaterThan(code.indexOf('demo-phone'));
+
+    // La etiqueta dice de qué se trata y que es opcional, en los dos idiomas.
+    for (const d of [es, en]) {
+      expect(d.landing.form.message).toMatch(/opcional|optional/i);
+      expect(d.landing.form.message.trim().length).toBeGreaterThan(10);
+    }
+  });
+
+  test('el mensaje viaja al backend, o el campo es decorativo', () => {
+    /*
+     * El fallo silencioso de este ticket: pintar el textarea y no mandarlo. El cliente escribe
+     * su contexto, el formulario dice "recibimos tu solicitud" y el panel de admin muestra el
+     * hueco vacío. Nada falla.
+     *
+     * Va como `undefined` y no `''` porque el backend distingue "no escribió" (null) de vacío.
+     */
+    const code = leerCodigo('components/landing/landing-formulario.tsx');
+    expect(code).toMatch(/message: message \|\| undefined/);
+    // Y se limpia al enviar con éxito, como los demás campos.
+    expect(code).toMatch(/setMessage\(''\)/);
   });
 
   test('la landing no usa ShowcaseFrame', () => {
