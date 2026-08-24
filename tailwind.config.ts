@@ -57,6 +57,14 @@ export default {
       screens: { app: '1080px', kpi4: '1300px', kpi5: '1480px' },
       colors: {
         background: 'var(--background)',
+        /*
+         * El lienzo CON su alfa ya adentro, para la barra de la landing. No se consigue
+         * con `bg-background/[0.72]`: el modificador de opacidad sobre un color que es
+         * `var(--x)` con un hex adentro emite `rgb(var(--background) / .72)`, inválido, y
+         * el navegador tira la declaración — la barra quedaba transparente con desenfoque.
+         * Medido contra la landing corriendo. Ver `--glass` en globals.css.
+         */
+        glass: 'var(--glass)',
         foreground: 'var(--foreground)',
         card: 'var(--card)',
         // Alineación con el prototipo "MVP Macha": el panel lateral no es exactamente la

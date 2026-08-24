@@ -290,6 +290,7 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     for (const f of [
       'banda.tsx',
       'landing-nav.tsx',
+      'landing-nav-mobile.tsx',
       'landing-hero.tsx',
       'landing-secciones.tsx',
       'landing-acordeones.tsx',
@@ -336,6 +337,103 @@ describe('las BANDAS de fondo — el reporte de "hay partes que tienen color neg
     const raizDePagina = leerCodigo('app/page.tsx').split('<LandingNav')[0];
     expect(raizDePagina).not.toMatch(/overflow-x-hidden|overflow-hidden|overflow-y-/);
     expect(raizDePagina).toContain('overflow-x-clip');
+  });
+
+  test('el fondo de la barra es un token que EXISTE — `bg-canvas` no pintaba nada', () => {
+    /*
+     * ═══ EL SEGUNDO BUG DE LA MISMA BARRA, Y NO SE VEÍA EN EL REPO ═══
+     *
+     * La barra decía `bg-canvas/[0.72]` y su `backgroundColor` computado era
+     * `rgba(0, 0, 0, 0)`: transparente. Dos causas encadenadas, ninguna de las cuales falla
+     * de forma visible en el código:
+     *
+     *   · `canvas` NUNCA estuvo en `colors` de `tailwind.config.ts` — solo existe como
+     *     variable CSS en `globals.css` —, así que la clase no se generaba;
+     *   · y aunque se generara, el modificador de opacidad sobre un color declarado
+     *     `var(--x)` con un HEX adentro emite `rgb(var(--canvas) / .72)`, que es inválido y
+     *     el navegador descarta la declaración entera.
+     *
+     * El efecto: desenfoque SIN velo. El contenido pasaba por detrás borroso en vez de
+     * atenuado, que se lee peor que no tener el efecto.
+     *
+     * Por eso el token trae su alfa adentro (`--glass`) en vez de aplicarse con `/[0.72]`.
+     */
+    const nav = leerCodigo('components/landing/landing-nav.tsx');
+    expect(nav).not.toMatch(/bg-canvas/);
+
+    // Todo `bg-<token>` de la barra tiene que estar declarado en el config de Tailwind.
+    const cfg = leer('tailwind.config.ts');
+    for (const m of nav.matchAll(/\bbg-([a-z][a-z-]*)\b/g)) {
+      const token = m[1]!;
+      expect(cfg, `bg-${token} no existe en tailwind.config.ts`).toMatch(
+        new RegExp(`\\b${token}: `),
+      );
+    }
+
+    // Y `--glass` tiene que estar en los TRES ámbitos de tema, o la barra se pone blanca
+    // sobre el lienzo oscuro.
+    const css = leer('styles/globals.css');
+    expect(css.match(/--glass:/g)?.length, '--glass en :root, .dark y .tinta').toBe(3);
+  });
+});
+
+describe('el menú de secciones en móvil (CU-868kv8m1v)', () => {
+  const movil = leerCodigo('components/landing/landing-nav-mobile.tsx');
+  const nav = leerCodigo('components/landing/landing-nav.tsx');
+
+  test('es un `<details>` nativo y no un desplegable con estado', () => {
+    /*
+     * El archivo del nav documentaba por qué NO había menú en móvil: un desplegable es "un
+     * componente con estado, foco y trampa de teclado". El criterio de producto cambió (Jose),
+     * el costo no — así que abrir, cerrar, Enter/Espacio y el foco los pone el navegador.
+     *
+     * El único JavaScript propio es cerrar al tocar un enlace, y ni siquiera es estado de
+     * React: se le quita el atributo `open` al `<details>`, que es quien de verdad lo tiene.
+     */
+    expect(movil).toContain('<details');
+    expect(movil).toContain('<summary');
+    expect(movil).not.toMatch(/useState|useEffect|useRef/);
+    // Cerrar al tocar: sin esto el panel tapa justo la sección a la que se acaba de saltar.
+    expect(movil).toMatch(/removeAttribute\('open'\)/);
+  });
+
+  test('el disparador tiene nombre accesible y sale del diccionario', () => {
+    // Un ícono de hamburguesa a secas no le dice nada a un lector de pantalla.
+    expect(movil).toMatch(/aria-label=\{etiqueta\}/);
+    expect(nav).toMatch(/etiqueta=\{labels\.nav\.menu\}/);
+    for (const d of [es, en]) expect(d.landing.nav.menu.trim()).not.toBe('');
+  });
+
+  test('NO mantiene su propia lista de enlaces', () => {
+    /*
+     * Dos listas en dos archivos se desincronizan en el primer cambio, y el síntoma sería un
+     * enlace que en móvil no lleva a ninguna parte: no falla en ningún test, solo no hace nada
+     * al apretarlo. Los recibe ya filtrados por las anclas que la página declara.
+     */
+    expect(movil).not.toMatch(/labels\.nav|ANCLA_DEMO|#como-funciona|#planes|#faq/);
+    expect(movil).toMatch(/enlaces\.map/);
+  });
+
+  test('solo aparece por debajo de `md`, y el CTA queda FUERA', () => {
+    // El CTA de demo es la acción principal del diseño: visible siempre, abierto o no el menú.
+    expect(movil).toMatch(/md:hidden/);
+    const dentroDelMenu = movil.slice(movil.indexOf('<details'));
+    expect(dentroDelMenu).not.toMatch(/bg-primary/);
+    expect(nav).toMatch(/bg-primary/);
+  });
+
+  test('en el teléfono el lockup se reduce al isotipo, o la barra desborda', () => {
+    /*
+     * Medido con la landing corriendo, a 375px: nombre escrito (134) + idioma (57) + CTA (125)
+     * + disparador (36) + huecos + relleno = 424px. La fila desbordaba, y como la raíz recorta
+     * el eje horizontal (ver el test del nav fijo), desbordaba EN SILENCIO: el CTA se salía de
+     * la pantalla sin que nada fallara.
+     *
+     * De lo que hay en la fila, el nombre escrito es lo único con un sustituto que dice lo
+     * mismo. No contradice "el nombre completo no se abrevia": no se abrevia donde entra.
+     */
+    expect(nav).toMatch(/hidden sm:inline">\s*Macha Finance/);
+    expect(nav).toMatch(/px-4 sm:gap-4 sm:px-6/);
   });
 });
 
@@ -484,6 +582,7 @@ describe('la escala tipográfica es la MEDIDA del Figma', () => {
 describe('responsive', () => {
   const ARCHIVOS = [
     'landing-nav.tsx',
+    'landing-nav-mobile.tsx',
     'landing-hero.tsx',
     'landing-secciones.tsx',
     'landing-acordeones.tsx',

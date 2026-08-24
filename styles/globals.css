@@ -78,6 +78,23 @@
    * devolver la sombra difusa, las tarjetas se quedan sin ninguna separación.
    */
   --canvas: #ffffff;
+  /*
+   * ═══ EL CRISTAL DE LA BARRA DE LA LANDING (CU-868kv8aaa/CU-868kv8m1v) ═══
+   *
+   * El lienzo al 72 %, ya con su alfa adentro. Existe como token propio y no como
+   * `bg-canvas/[0.72]` porque ESA CLASE NO PINTABA NADA — medido contra la landing corriendo:
+   * `backgroundColor` computaba `rgba(0, 0, 0, 0)`. Dos motivos encadenados, y ninguno falla
+   * de forma visible:
+   *   · `canvas` nunca estuvo en `colors` de `tailwind.config.ts`, así que la clase no
+   *     existía;
+   *   · y aunque estuviera, el modificador de opacidad sobre un color declarado `var(--x)`
+   *     con un HEX adentro emite `rgb(var(--canvas) / .72)`, que es inválido y el navegador
+   *     descarta la declaración entera.
+   * El resultado era una barra con desenfoque y SIN velo: el texto pasaba por detrás borroso
+   * en vez de atenuado, que es peor que no tener el efecto.
+   */
+  --glass: rgb(255 255 255 / 0.72);
+
   --surface: #ffffff;
   --surface-2: #ffffff;
   --sidebar: #fcfcfc;
@@ -271,6 +288,9 @@
    * #171717. El negro absoluto sobre pantallas OLED hace que los filetes de 1px
    * desaparezcan y las tarjetas floten sin borde visible. */
   --canvas: #121212;
+  /* El mismo cristal sobre el lienzo oscuro (#121212). Ver la nota en `:root`. */
+  --glass: rgb(18 18 18 / 0.72);
+
   --surface: #171717;
   --surface-2: #1f1f1f;
   --sidebar: #141414;
@@ -415,6 +435,9 @@
  */
 .tinta {
   --canvas: #121212;
+  /* El mismo cristal sobre el lienzo oscuro (#121212). Ver la nota en `:root`. */
+  --glass: rgb(18 18 18 / 0.72);
+
   --surface: #171717;
   --surface-2: #1f1f1f;
   --ink: #f2f2f2;

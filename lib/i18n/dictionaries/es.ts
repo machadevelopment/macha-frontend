@@ -446,6 +446,11 @@ export const es: Dictionary = {
       faq: 'FAQ',
       contacto: 'Contacto',
       demo: 'Solicitar demo',
+      /*
+        Nombre accesible del disparador del menú en móvil (CU-868kv8m1v). No se pinta:
+        el ícono de hamburguesa no le dice nada a un lector de pantalla.
+      */
+      menu: 'Secciones',
     },
     hero: {
       eyebrow: 'TU CFO IMPULSADO CON IA',
