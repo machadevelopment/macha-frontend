@@ -66,6 +66,41 @@ export default authkitProxy({
 //
 // Es el mismo defecto que `brand/` e `icon.svg`. Queda fuera del matcher, no en
 // `unauthenticatedPaths`, por la misma razón: un estático no tiene por qué pasar por AuthKit.
+//
+// ═══ `api/public/` (2026-08-24): EL FORMULARIO DE DEMO, Y EL PEOR DE LOS CUATRO ═══
+//
+// Cuarta vez que muerde el mismo agujero, y la primera sobre algo que no es un estático.
+// `POST /api/public/demo-requests` es el BFF del formulario de la landing — el ÚNICO camino
+// de conversión del producto. Dentro del matcher, `authkitProxy` le exigía sesión al único
+// endpoint que por diseño no puede tenerla: quien pide una demo todavía no es cliente.
+//
+// Lo que hace que este haya sobrevivido a varias pruebas del equipo es que NO falla para
+// todos. `session.js` redirige solo `if (middlewareAuth.enabled && matchedPaths.length === 0
+// && !session.user)`: con sesión el proxy deja pasar y el envío funciona. O sea que a
+// cualquiera del equipo, con su sesión abierta, el formulario le andaba — y fallaba
+// exactamente para el visitante sin sesión, que es el 100% de los leads reales. El reporte
+// que lo destapó fue "a algunos les funciona y a otros no".
+//
+// Verificado en producción antes del arreglo: `POST /api/public/demo-requests` sin cookies
+// devolvía **303 hacia api.workos.com**. El `fetch` del navegador sigue la redirección, se
+// topa con CORS contra WorkOS y el formulario pinta "No pudimos enviar la solicitud" — un
+// mensaje que culpa al backend por una petición que nunca salió de Vercel.
+//
+// Se excluye el NAMESPACE `api/public/` y no la ruta suelta, a propósito: es el mismo
+// prefijo que usa macha-backend para marcar lo que está abierto (`/public/demo-requests`),
+// así que cualquier BFF público futuro nace destapado por construcción en vez de repetir
+// este ticket. Y fuera del matcher —no en `unauthenticatedPaths`— porque el middleware no
+// tiene nada que decidir sobre una ruta que ya declaró que no lleva sesión.
+//
+// La barra final NO es cosmética: sin ella el lookahead también tapaba `/api/publicidad`
+// o cualquier ruta futura cuyo nombre EMPIECE con "public", dejándola sin sesión por un
+// choque de prefijos que nadie iría a buscar acá.
+//
+// ⚠️ El corolario: todo lo que cuelgue de `app/api/public/` queda SIN sesión. Ese es el
+// contrato del directorio, y `bff-contract.test.ts` (`RUTAS_PUBLICAS`) exige justificar por
+// escrito cada ruta que entra ahí.
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|monitoring|brand|landing).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|icon.svg|monitoring|brand|landing|api/public/).*)',
+  ],
 };
