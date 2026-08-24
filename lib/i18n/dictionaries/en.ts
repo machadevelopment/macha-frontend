@@ -844,6 +844,16 @@ export const en: Dictionary = {
       emptyUnattributed:
         'There were sales, but none could be tied to a product. Uploads from before the latest update do not carry that field.',
     },
+    currency: {
+      title: 'Currencies this period',
+      consolidatedIn: 'Your figures are consolidated in {currency}.',
+      ownCurrency: 'in your base currency',
+      contributed: 'contributed {amount}',
+      rateApplied: 'Rate applied: {rate} · {date}',
+      rateRange: 'Rates between {min} and {max} · latest, {latest} on {date}',
+      notSummed:
+        'The amounts above are in different currencies and are not added together; what gets consolidated is what each contributed in {currency}.',
+    },
     kpi: {
       revenue: 'Revenue',
       revenueHint: 'Revenue invoiced this period.',

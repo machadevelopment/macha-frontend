@@ -29,16 +29,47 @@ import { JetBrains_Mono } from 'next/font/google';
  * conoce el nombre de la fuente — todos usan `font-ui`.
  *
  * Se empaquetan CUATRO pesos y no los dieciocho que trae el Brand Book: 400/500/600/700
- * son los que el design guide usa. Cada `.otf` pesa ~330 KB y `next/font/local` los sirve
- * tal cual (no subsetea), así que cada peso extra es peso real en la primera carga. Las
- * cursivas no entran: el sistema de diseño no usa ninguna.
+ * son los que el design guide usa. Las cursivas no entran: el sistema de diseño no usa
+ * ninguna.
+ *
+ * ══════════════════════════════════════════════════════════════════════════════
+ * SON `.woff2` SUBSETEADOS, Y LOS DOS PASOS SE MIDIERON POR SEPARADO (CU-868kfvah8)
+ * ══════════════════════════════════════════════════════════════════════════════
+ *
+ * Este archivo servía los `.otf` del Brand Book tal cual, y su propio comentario ya
+ * anotaba el problema: `next/font/local` NO subsetea, así que cada peso era peso real en
+ * la primera carga. Medido sobre `macha.finance` en producción: 539 KB de tipografía de
+ * los 1,2 MB de la página — el 47 %.
+ *
+ * Dos cambios, y conviene no confundirlos porque el titular engaña:
+ *
+ *   1. `.otf` → `.woff2`. En disco es un 67 % menos (1.275 → 425 KB), pero en la RED
+ *      el ahorro es mucho menor: Vercel ya servía los `.otf` comprimidos (~135 KB cada
+ *      uno). El ahorro real de este paso son 114 KB. Aun así se hace: `.otf` es un
+ *      formato de escritorio y mandarlo al navegador obliga a descomprimir dos veces.
+ *   2. SUBSET a lo que el producto usa. Ahí está el grueso: 1.299 → 855 glifos por peso,
+ *      539 → 232 KB en la red. Se cae cirílico, griego y otros alfabetos que un producto
+ *      ES/EN no pinta nunca; se conservan latín completo con diacríticos, puntuación
+ *      tipográfica, monedas, operadores, formas geométricas y —esto importa— las FLECHAS
+ *      ↗ ↘ del delta de KPI, que son el canal redundante de la regla de los dos verdes.
+ *
+ * Total medido: 539 → 232 KB, o sea 307 KB menos (57 % de la tipografía, ~25 % de la
+ * página). Hay test que comprueba que los cuatro pesos conservan los 116 caracteres que
+ * el producto necesita; si el subset se rehace y se come uno, falla ahí y no en pantalla.
+ *
+ * Si algún día hace falta un glifo fuera del subset, la degradación es suave: cae al
+ * `fallback` de abajo. No se rompe nada, se ve distinto.
+ *
+ * REHACER EL SUBSET: los `.otf` originales NO están en el repo (pesaban 1,3 MB y ya no se
+ * sirven). Vienen del Brand Book, `Macha-Veintitres/LOGO/…/SF Pro`. El procedimiento y
+ * los rangos exactos están en `app/fonts/README.md`.
  */
 export const sfPro = localFont({
   src: [
-    { path: '../app/fonts/SF-Pro-Display-Regular.otf', weight: '400', style: 'normal' },
-    { path: '../app/fonts/SF-Pro-Display-Medium.otf', weight: '500', style: 'normal' },
-    { path: '../app/fonts/SF-Pro-Display-Semibold.otf', weight: '600', style: 'normal' },
-    { path: '../app/fonts/SF-Pro-Display-Bold.otf', weight: '700', style: 'normal' },
+    { path: '../app/fonts/SF-Pro-Display-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../app/fonts/SF-Pro-Display-Medium.woff2', weight: '500', style: 'normal' },
+    { path: '../app/fonts/SF-Pro-Display-Semibold.woff2', weight: '600', style: 'normal' },
+    { path: '../app/fonts/SF-Pro-Display-Bold.woff2', weight: '700', style: 'normal' },
   ],
   variable: '--font-ui',
   // `swap` y no `optional`: la identidad tipográfica del Brand Book importa lo bastante

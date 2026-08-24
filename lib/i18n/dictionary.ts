@@ -738,6 +738,27 @@ export interface Dictionary {
       emptyNoSales: string;
       emptyUnattributed: string;
     };
+    /**
+     * CU-868kj3gnv: la tarjeta que dice en qué monedas entró el período y a qué tasa se
+     * consolidó. Solo se pinta si la empresa tuvo DOS monedas en ese rango.
+     */
+    currency: {
+      title: string;
+      consolidatedIn: string;
+      /** Rótulo de la fila de la moneda base: no lleva tasa porque la suya es 1. */
+      ownCurrency: string;
+      /** `{amount}`: lo que esa moneda aportó al consolidado. */
+      contributed: string;
+      /** Una sola tasa en el período: `{rate}`, `{date}`. */
+      rateApplied: string;
+      /**
+       * Varias tasas: `{min}`, `{max}`, `{latest}`, `{date}`. Existe porque con una sola
+       * cifra el cliente que multiplique no va a cuadrar y creerá que el dashboard miente.
+       */
+      rateRange: string;
+      /** `{currency}`: la advertencia de que los montos de arriba NO se suman entre sí. */
+      notSummed: string;
+    };
     kpi: {
       revenue: string;
       revenueHint: string;
