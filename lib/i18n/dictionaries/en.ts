@@ -1296,6 +1296,12 @@ export const en: Dictionary = {
     revenuePerUnit: 'Revenue per unit',
     performance: 'Product performance',
     salesByCategory: 'Sales by category',
+    salesByStore: 'Sales by store',
+    storesEmptyNoColumn: 'Your sales do not carry a store or branch.',
+    storesEmptyNoColumnHint:
+      'Add a store column to your spreadsheet and the next upload compares them.',
+    storesEmptyNoSales: 'No sales in this period.',
+    storesUnattributed: '{amount} in sales with no store assigned, outside this split.',
     exportCsv: 'Export CSV',
     csvFileName: 'product-sales',
     colProduct: 'Product',

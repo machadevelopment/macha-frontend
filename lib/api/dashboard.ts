@@ -211,6 +211,27 @@ export interface CategoryBreakdownResponse {
   rows: CategoryBreakdownRow[];
 }
 
+/** `GET /metrics/stores` — ventas por TIENDA en el rango (CU-868kuw1e3). */
+export interface StoreBreakdownRow {
+  storeId: string;
+  name: string;
+  total: number;
+  transactionCount: number;
+  /** Participación sobre las ventas CON tienda, no sobre las ventas del período. */
+  sharePct: number;
+}
+
+export interface StoreBreakdownResponse {
+  baseCurrency: string;
+  rows: StoreBreakdownRow[];
+  /**
+   * Ventas del período SIN tienda asignada. Viaja siempre, también en cero, y es lo único
+   * que distingue los tres estados que se ven igual mirando solo `rows`: no hay ventas, hay
+   * ventas y ninguna trae tienda, o hay tiendas y además una parte sin atribuir.
+   */
+  unattributedTotal: number;
+}
+
 /** `GET /inventory` — existencias por SKU. */
 export interface InventoryItem {
   id: string;
