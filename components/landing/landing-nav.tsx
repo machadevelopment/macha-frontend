@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { LandingNavMobile } from '@/components/landing/landing-nav-mobile';
 import { MachaMark } from '@/components/ui/macha-mark';
 import { mostrarEntradaEnLanding } from '@/lib/landing-flags';
 import { ANCLA_DEMO } from '@/components/landing/demo-link';
@@ -45,6 +46,21 @@ import type { Locale } from '@/lib/i18n/config';
  *
  * "Inicio" no es ancla de sección sino el volver arriba, y "Contacto"/demo apuntan al formulario
  * (`#demo`).
+ *
+ * ═══ EN MÓVIL YA NO SE ESCONDEN (CU-868kv8m1v) ═══
+ *
+ * Este archivo decía antes que en móvil los enlaces se ocultan a propósito: son anclas de la
+ * misma página, así que el scroll llega a todo, y un desplegable sería "un componente con estado,
+ * foco y trampa de teclado para navegar a lo que ya está abajo".
+ *
+ * Jose reportó que en el teléfono no hay forma de saltar a una sección y el criterio de producto
+ * cambió. El costo que aquel razonamiento identificaba sigue siendo real, así que se paga la parte
+ * mínima: `LandingNavMobile` es un `<details>` nativo — el navegador pone abrir, cerrar, foco y
+ * teclado — y el único JavaScript propio es cerrarlo al tocar un enlace.
+ *
+ * La lista de enlaces se arma UNA vez, acá, y se le pasa ya filtrada. Dos listas en dos archivos
+ * se desincronizan en el primer cambio, y el síntoma sería un enlace que en móvil no lleva a
+ * ninguna parte.
  */
 export function LandingNav({
   locale,
@@ -58,56 +74,67 @@ export function LandingNav({
   common: Dictionary['common'];
   anclas?: ('como-funciona' | 'planes' | 'faq' | 'demo')[];
 }) {
-  const enlaces: { ancla: 'como-funciona' | 'planes' | 'faq'; texto: string }[] = [
+  const secciones: { ancla: 'como-funciona' | 'planes' | 'faq'; texto: string }[] = [
     { ancla: 'como-funciona', texto: labels.nav.comoFunciona },
     { ancla: 'planes', texto: labels.nav.planes },
     { ancla: 'faq', texto: labels.nav.faq },
   ];
 
+  /*
+    La lista definitiva, ya filtrada por las anclas que la página declara. La consumen el menú de
+    escritorio y el de móvil: es la ÚNICA fuente de los enlaces del nav.
+  */
+  const enlaces = [
+    { href: '#inicio', texto: labels.nav.inicio },
+    ...secciones
+      .filter((e) => anclas.includes(e.ancla))
+      .map((e) => ({ href: `#${e.ancla}`, texto: e.texto })),
+    { href: ANCLA_DEMO, texto: labels.nav.contacto },
+  ];
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-canvas/[0.72] backdrop-blur-md supports-[not(backdrop-filter:blur(0))]:bg-canvas">
-      <div className="mx-auto flex h-16 max-w-[1170px] items-center justify-between gap-4 px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-glass backdrop-blur-md supports-[not(backdrop-filter:blur(0))]:bg-background">
+      <div className="mx-auto flex h-16 max-w-[1170px] items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
+        {/*
+          ═══ POR DEBAJO DE `sm` QUEDA SOLO EL ISOTIPO, Y NO ES UNA PREFERENCIA ═══
+
+          El lockup completo mide 134px. Con el selector de idioma (57), el CTA (125), el nuevo
+          disparador del menú (36), los huecos y el relleno, la fila pedía 424px de los 375 de un
+          teléfono chico: la barra DESBORDABA, y como la raíz de la página recorta el eje
+          horizontal, desbordaba en silencio — el CTA se salía de la pantalla sin que nada fallara.
+
+          De lo que hay en la fila, el nombre escrito es lo único que tiene un sustituto que dice
+          lo mismo: el isotipo ES la marca. Esconder el CTA lo dejaría fuera de alcance justo donde
+          más se usa, y esconder el menú deshace este ticket.
+
+          Esto no contradice la nota de arriba —"el nombre completo no se abrevia"—: no se abrevia
+          en ninguna parte donde entre. Debajo de 640px no entra.
+        */}
         <Link
           href="/"
           className="flex shrink-0 items-center gap-1.5 font-ui text-[17px] font-bold tracking-[-0.03em] text-foreground"
         >
           <MachaMark />
-          Macha Finance
+          <span className="hidden sm:inline">Macha Finance</span>
         </Link>
 
         {/*
-          El menú se esconde en pantallas chicas en vez de convertirse en un menú hamburguesa.
-          Es deliberado: los enlaces son anclas de la MISMA página, así que en móvil el usuario
-          llega a todo haciendo scroll. Un desplegable acá sería un componente con estado, foco y
-          trampa de teclado para navegar a lo que ya está abajo.
+          En escritorio los enlaces van en fila; por debajo de `md` los sirve `LandingNavMobile`
+          con los mismos datos. Los dos leen `enlaces`.
         */}
         <nav className="hidden items-center gap-7 md:flex">
-          <a
-            href="#inicio"
-            className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {labels.nav.inicio}
-          </a>
-          {enlaces
-            .filter((e) => anclas.includes(e.ancla))
-            .map((e) => (
-              <a
-                key={e.ancla}
-                href={`#${e.ancla}`}
-                className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {e.texto}
-              </a>
-            ))}
-          <a
-            href={ANCLA_DEMO}
-            className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {labels.nav.contacto}
-          </a>
+          {enlaces.map((e) => (
+            <a
+              key={e.href}
+              href={e.href}
+              className="text-[15px] font-light text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {e.texto}
+            </a>
+          ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <LocaleSwitcher locale={locale} />
 
           {mostrarEntradaEnLanding() && (
@@ -119,12 +146,18 @@ export function LandingNav({
             </a>
           )}
 
+          {/*
+            El CTA va FUERA del menú y antes que él: es la acción principal del diseño y tiene que
+            estar siempre visible en móvil, abierto o cerrado el desplegable.
+          */}
           <a
             href={ANCLA_DEMO}
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             {labels.nav.demo}
           </a>
+
+          <LandingNavMobile enlaces={enlaces} etiqueta={labels.nav.menu} />
         </div>
       </div>
     </header>

@@ -468,6 +468,8 @@ export interface Dictionary {
       faq: string;
       contacto: string;
       demo: string;
+      /** Nombre accesible del disparador del menú de secciones en móvil (CU-868kv8m1v). */
+      menu: string;
     };
     hero: {
       eyebrow: string;
