@@ -1391,6 +1391,19 @@ export const es: Dictionary = {
     revenuePerUnit: 'Ingreso por unidad',
     performance: 'Desempeño por producto',
     salesByCategory: 'Ventas por categoría',
+    salesByStore: 'Ventas por tienda',
+    /*
+      Los dos vacíos dicen cosas distintas a propósito: uno es "tu archivo no trae el dato" y
+      el otro "no hubo ventas". Con el mismo texto, el dueño que sí tiene sucursales creería
+      que el producto no las soporta.
+    */
+    storesEmptyNoColumn: 'Tus ventas no traen tienda o sucursal.',
+    storesEmptyNoColumnHint:
+      'Agrega una columna de tienda a tu Excel y la próxima carga las compara entre sí.',
+    storesEmptyNoSales: 'No hubo ventas en este período.',
+    /* `{amount}` es plata de verdad: se muestra para que el 100 % del donut no se lea como
+       el 100 % de las ventas. */
+    storesUnattributed: '{amount} en ventas sin tienda asignada, fuera de este reparto.',
     exportCsv: 'Exportar CSV',
     csvFileName: 'ventas-por-producto',
     colProduct: 'Producto',

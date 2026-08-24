@@ -12,6 +12,7 @@ import {
   Package,
   Receipt,
   Snowflake,
+  Store,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +35,12 @@ import { csvFileName, serializeCsv } from '@/lib/csv/serialize';
 import { descargarCsv } from '@/lib/csv/download';
 import { filasCsvProductos } from '@/components/product-sales/csv';
 import { agruparPorCategoria, resumir } from '@/components/product-sales/summary';
-import type { ProductRevenue, ProductRevenueResponse } from '@/lib/api/dashboard';
+import { estadoDeTiendas } from '@/components/product-sales/tiendas';
+import type {
+  ProductRevenue,
+  ProductRevenueResponse,
+  StoreBreakdownResponse,
+} from '@/lib/api/dashboard';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -66,19 +72,35 @@ export function ProductSalesClient({
   const [periodo, setPeriodo] = useState<PeriodKey>('month');
   const [rango, setRango] = useState<DateRange>(() => computeRange('month', new Date()));
   const [data, setData] = useState<ProductRevenueResponse | null>(null);
+  const [tiendas, setTiendas] = useState<StoreBreakdownResponse | null>(null);
   const [error, setError] = useState<RequestError | null>(null);
 
   const cargar = useCallback(async (r: DateRange) => {
     setError(null);
+    // Las dos llamadas van en paralelo y comparten el MISMO rango: si la de tiendas pidiera
+    // el suyo por separado, el filtro diría "este mes" y el donut mostraría otra cosa.
     // `limit=200` es el techo del backend: esta pantalla lista el catálogo, no un top 5.
-    const res = await request<ProductRevenueResponse>(
-      `/api/metrics-products?from=${r.from}&to=${r.to}&limit=200`,
-    );
+    const [res, porTienda] = await Promise.all([
+      request<ProductRevenueResponse>(`/api/metrics-products?from=${r.from}&to=${r.to}&limit=200`),
+      request<StoreBreakdownResponse>(`/api/metrics-stores?from=${r.from}&to=${r.to}`),
+    ]);
     if (!res.ok) {
       setError(res.error);
       return;
     }
     setData(res.data);
+    /*
+      ═══ SI TIENDAS FALLA, LA PANTALLA SIGUE ═══
+
+      Mismo criterio que el ranking de productos del dashboard: es una tarjeta lateral y
+      tumbar la pantalla entera por ella sería peor que no pintarla.
+
+      Y acá no es una precaución teórica. Los dos repos NO despliegan atómico: el día que este
+      cambio llegue a Vercel antes que `/metrics/stores` a Railway, el endpoint todavía no
+      existe. Con esto, ese rato la tarjeta no aparece y el resto de la pantalla funciona;
+      sin esto, Ventas por producto queda caída hasta que el backend alcance.
+    */
+    setTiendas(porTienda.ok ? porTienda.data : null);
   }, []);
 
   useEffect(() => {
@@ -331,42 +353,151 @@ export function ProductSalesClient({
           )}
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{labels.salesByCategory}</CardTitle>
-          </CardHeader>
-          {porCategoria.length === 0 ? (
-            <p className="mt-3 text-body text-muted-foreground">{labels.empty}</p>
-          ) : (
-            <>
-              {/* CU-868knx0vh: por el envoltorio común, igual que la tendencia y el aging.
+        {/*
+          Las dos tarjetas de participación van APILADAS en la columna angosta, no en una
+          tercera columna: la tabla de la izquierda lista hasta 200 productos, así que la
+          columna derecha tiene alto de sobra y un `1fr` partido en dos dejaría cada donut
+          en la mitad del ancho que necesita para su leyenda.
+        */}
+        {/*
+          `min-w-0` acá y no en las Cards: `Card` ya lo trae de fábrica (CU-868ku9rpy), pero
+          este div es el hijo de grid ahora, y sin él vuelve el mismo mecanismo — su
+          min-content lo empuja por encima de su `1fr` y la columna se sale de la vista.
+        */}
+        <div className="flex min-w-0 flex-col gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{labels.salesByCategory}</CardTitle>
+            </CardHeader>
+            {porCategoria.length === 0 ? (
+              <p className="mt-3 text-body text-muted-foreground">{labels.empty}</p>
+            ) : (
+              <>
+                {/* CU-868knx0vh: por el envoltorio común, igual que la tendencia y el aging.
                   De ahí sale el formato compacto/exacto y el cromo — acá se nota sobre todo
                   en la separación entre rebanadas, que Tremor pinta con una clase de su
                   propio tema que este proyecto nunca registró. */}
-              <ShareDonut
-                className="mt-3 h-56"
-                data={porCategoria}
-                index="name"
-                category="revenue"
-                currency={moneda}
-                locale={locale}
-                colors={[chartColors.neutral]}
-              />
-              <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
-                {porCategoria.map((c) => (
-                  <li key={c.name} className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 truncate text-body">{c.name}</span>
-                    <span className="shrink-0 text-body tabular-nums text-muted-foreground">
-                      {formatPct(c.sharePct, locale)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
+                <ShareDonut
+                  className="mt-3 h-56"
+                  data={porCategoria}
+                  index="name"
+                  category="revenue"
+                  currency={moneda}
+                  locale={locale}
+                  colors={[chartColors.neutral]}
+                />
+                <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+                  {porCategoria.map((c) => (
+                    <li key={c.name} className="flex items-baseline justify-between gap-3">
+                      <span className="min-w-0 truncate text-body">{c.name}</span>
+                      <span className="shrink-0 text-body tabular-nums text-muted-foreground">
+                        {formatPct(c.sharePct, locale)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Card>
+
+          {tiendas && (
+            <TarjetaVentasPorTienda
+              data={tiendas}
+              moneda={moneda}
+              locale={locale}
+              labels={labels}
+            />
           )}
-        </Card>
+        </div>
       </div>
     </>
+  );
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ * VENTAS POR TIENDA — CU-868kuw1e3
+ * ═══════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Mismo molde que la tarjeta de categorías de arriba: donut de participación + la lista con
+ * el porcentaje. Lo que cambia es el VACÍO, y ahí está todo lo que esta tarjeta tiene de
+ * propio.
+ *
+ * ═══ DOS VACÍOS, PORQUE SON DOS PROBLEMAS DISTINTOS ═══
+ *
+ * Cuál de los dos toca lo decide `estadoDeTiendas`, que vive aparte y tiene test: es lo único
+ * de esta tarjeta que puede estar mal sin que nada se vea roto.
+ *
+ * ═══ EL MONTO SIN ATRIBUIR SE DICE EN VOZ ALTA ═══
+ *
+ * La participación se calcula sobre las ventas CON tienda, así que el donut siempre suma
+ * 100 %. Si además hay ventas sin tienda, ese 100 % no es el 100 % del período — y callarlo
+ * es lo que haría que el dueño lea "NORTE: 60 %" como el 60 % de todo lo que vendió. Se
+ * escribe el monto, no un porcentaje: la cifra es comparable con lo que ya ve en su panorama.
+ */
+function TarjetaVentasPorTienda({
+  data,
+  moneda,
+  locale,
+  labels,
+}: {
+  data: StoreBreakdownResponse;
+  moneda: 'GTQ' | 'USD';
+  locale: Locale;
+  labels: Dictionary['productSales'];
+}) {
+  const estado = estadoDeTiendas(data);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Store className="h-3.5 w-3.5 text-faint" strokeWidth={1.7} />
+          {labels.salesByStore}
+        </CardTitle>
+      </CardHeader>
+
+      {estado !== 'ranking' ? (
+        <div className="mt-3">
+          <p className="text-body text-muted-foreground">
+            {estado === 'sin-columna' ? labels.storesEmptyNoColumn : labels.storesEmptyNoSales}
+          </p>
+          {estado === 'sin-columna' && (
+            <p className="mt-1 text-micro text-faint">{labels.storesEmptyNoColumnHint}</p>
+          )}
+        </div>
+      ) : (
+        <>
+          <ShareDonut
+            className="mt-3 h-56"
+            data={data.rows}
+            index="name"
+            category="total"
+            currency={moneda}
+            locale={locale}
+            colors={[chartColors.neutral]}
+          />
+          <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+            {data.rows.map((t) => (
+              <li key={t.storeId} className="flex items-baseline justify-between gap-3">
+                <span className="min-w-0 truncate text-body">{t.name}</span>
+                <span className="shrink-0 text-body tabular-nums text-muted-foreground">
+                  {formatPct(t.sharePct / 100, locale)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {data.unattributedTotal > 0 && (
+            <p className="mt-3 border-t border-border pt-3 text-micro text-faint">
+              {labels.storesUnattributed.replace(
+                '{amount}',
+                formatMoney(data.unattributedTotal, moneda, locale),
+              )}
+            </p>
+          )}
+        </>
+      )}
+    </Card>
   );
 }
 
