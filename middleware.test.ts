@@ -96,7 +96,10 @@ describe('el middleware NO se interpone en los BFF públicos', () => {
     expect(rutas.length).toBeGreaterThan(0);
 
     for (const ruta of rutas) {
-      expect({ ruta, exigeSesion: pasaPorElMiddleware(ruta) }).toEqual({ ruta, exigeSesion: false });
+      expect({ ruta, exigeSesion: pasaPorElMiddleware(ruta) }).toEqual({
+        ruta,
+        exigeSesion: false,
+      });
     }
   });
 
