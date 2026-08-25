@@ -921,10 +921,13 @@ export const es: Dictionary = {
       last30: 'Últimos 30 días',
       last90: 'Últimos 90 días',
       /*
-       * El TAMAÑO de lo elegido, antes de aplicarlo. Es función y no plantilla con `{n}`
-       * porque el singular cambia la palabra: "1 día", no "1 días".
+       * El TAMAÑO de lo elegido, antes de aplicarlo. Van DOS plantillas porque el singular
+       * cambia la palabra ("1 día", no "1 días"); ver el porqué de que no sea una función
+       * en `dictionary.ts`. De paso el singular queda bien concordado: la versión función
+       * dejaba "1 día seleccionadOS".
        */
-      customSpan: (n: number) => `${n} ${n === 1 ? 'día' : 'días'} seleccionados`,
+      customSpanOne: '{n} día seleccionado',
+      customSpanOther: '{n} días seleccionados',
     },
     emptyPeriod: {
       outsideRange:

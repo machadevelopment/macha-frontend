@@ -725,8 +725,15 @@ export interface Dictionary {
       last7: string;
       last30: string;
       last90: string;
-      /** Función y no plantilla: el singular cambia la palabra ("1 día", no "1 días"). */
-      customSpan: (n: number) => string;
+      /*
+       * DOS plantillas y NO una función, aunque el singular cambie la palabra ("1 día", no
+       * "1 días"). Un diccionario con una función adentro tumba el Dashboard entero: la
+       * página es un Server Component y le pasa `t.dashboard` a `PeriodKpis`, que es de
+       * cliente, y React no puede serializar una función a través de esa frontera. El
+       * `.replace('{n}', ...)` es el mismo idioma que ya usa `emptyPeriod.outsideRange`.
+       */
+      customSpanOne: string;
+      customSpanOther: string;
     };
     /**
      * CU-868krn2up: por qué el período elegido está en cero. Distingue "hay datos, pero en

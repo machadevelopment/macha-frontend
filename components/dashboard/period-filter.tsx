@@ -286,7 +286,13 @@ export function PeriodFilter({
               dueño no sabe si el salto es de su negocio o del rango que acaba de elegir. */}
           {!fallo && (
             <p className="font-mono text-eyebrow uppercase text-faint">
-              {labels.customSpan(rangeDays({ from: desde, to: hasta }))}
+              {(() => {
+                const dias = rangeDays({ from: desde, to: hasta });
+                return (dias === 1 ? labels.customSpanOne : labels.customSpanOther).replace(
+                  '{n}',
+                  String(dias),
+                );
+              })()}
             </p>
           )}
           {error && (
