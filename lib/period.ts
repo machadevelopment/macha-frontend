@@ -106,6 +106,49 @@ export type CustomRangeError = 'incomplete' | 'reversed' | 'future';
  * Un rango de UN SOLO DÍA (`from === to`) es válido a propósito: es lo que pide alguien
  * que quiere ver un día puntual, y es lo mismo que devuelve `computeRange('today')`.
  */
+/**
+ * Ventana MÓVIL de N días que termina hoy: "los últimos 30 días".
+ *
+ * ═══ POR QUÉ NO ALCANZABAN LAS PÍLDORAS (2026-08-24) ═══
+ *
+ * `computeRange` da períodos de CALENDARIO —este mes, este trimestre, este año— y esos
+ * contestan "¿cómo voy en agosto?". La pregunta que un dueño hace más seguido es otra:
+ * "¿cómo vengo últimamente?", y esa no tiene borde de calendario. El día 2 del mes, "este mes"
+ * son dos días de datos y no dice nada.
+ *
+ * Sin esto, pedir "los últimos 30 días" obligaba a abrir el panel personalizado, elegir dos
+ * fechas en el calendario del sistema y confirmar: tres interacciones para el rango más común
+ * que las píldoras no cubren.
+ *
+ * ═══ N DÍAS INCLUYE HOY ═══
+ *
+ * "Últimos 7 días" son hoy y los seis anteriores, no hoy y los siete anteriores. Es lo que
+ * espera quien lo pide y lo que hace que 7 días den exactamente una semana de datos.
+ */
+export function rollingRange(dias: number, hoy: Date): DateRange {
+  const fin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const inicio = new Date(fin);
+  inicio.setDate(inicio.getDate() - (dias - 1));
+  return { from: localIsoDate(inicio), to: localIsoDate(fin) };
+}
+
+/**
+ * Cuántos días cubre un rango, contando los dos extremos.
+ *
+ * Se usa para decirle al cliente el TAMAÑO de lo que eligió antes de aplicarlo. Sin esa cifra,
+ * dos fechas en un calendario no dicen si seleccionó un mes o un trimestre hasta que las cifras
+ * del dashboard cambian — y para entonces ya no sabe si el salto es del negocio o del rango.
+ */
+export function rangeDays(range: DateRange): number {
+  const [ay, am, ad] = range.from.split('-').map(Number);
+  const [by, bm, bd] = range.to.split('-').map(Number);
+  const a = new Date(ay!, am! - 1, ad!);
+  const b = new Date(by!, bm! - 1, bd!);
+  // Redondeo: entre dos fechas locales puede haber un cambio de horario de verano y la
+  // división daría 29,958 días.
+  return Math.round((b.getTime() - a.getTime()) / 86_400_000) + 1;
+}
+
 export function validateCustomRange(from: string, to: string, hoy: Date): CustomRangeError | null {
   if (!from || !to) return 'incomplete';
   if (to < from) return 'reversed';

@@ -912,6 +912,19 @@ export const es: Dictionary = {
       customIncomplete: 'Elige las dos fechas.',
       customReversed: 'La fecha final no puede ser anterior a la inicial.',
       customFuture: 'No puedes elegir fechas futuras.',
+      /*
+       * Ventanas MÓVILES, que es lo que las píldoras no cubren: ellas dan períodos de
+       * calendario ("este mes") y estas contestan "¿cómo vengo últimamente?". Se escriben
+       * "Últimos N días" y no "N días" porque lo segundo no dice desde cuándo se cuenta.
+       */
+      last7: 'Últimos 7 días',
+      last30: 'Últimos 30 días',
+      last90: 'Últimos 90 días',
+      /*
+       * El TAMAÑO de lo elegido, antes de aplicarlo. Es función y no plantilla con `{n}`
+       * porque el singular cambia la palabra: "1 día", no "1 días".
+       */
+      customSpan: (n: number) => `${n} ${n === 1 ? 'día' : 'días'} seleccionados`,
     },
     emptyPeriod: {
       outsideRange:
