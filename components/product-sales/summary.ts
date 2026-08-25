@@ -13,18 +13,39 @@ export interface ProductSalesSummary {
   lento: ProductRevenue | null;
   /** `null` = NINGÚN producto reportó cantidades. Distinto de 0 unidades vendidas. */
   unidades: number | null;
-  /** `null` por lo mismo: sin unidades no hay ticket promedio que calcular. */
+  /**
+   * Ingreso ÷ cantidad de VENTAS. `null` solo si no hubo ninguna venta en el período.
+   *
+   * ═══ ERA POR UNIDAD Y AHORA ES POR VENTA (decisión de Keneth, 2026-08-24) ═══
+   *
+   * Sale del reporte de Jose: en el archivo de una concesionaria decía "Sin dato", porque se
+   * calculaba con las unidades y ese archivo no trae columna de cantidad — cada fila ES un
+   * vehículo, así que declarar "1" sería redundante y nadie lo escribe.
+   *
+   * El cambio no es solo para destapar ese caso: "ticket promedio" en comercio significa
+   * cuánto deja una VENTA, no cuánto cuesta una unidad. Con la definición vieja, una cafetería
+   * que vende tres cafés en una transacción mostraba el precio de UN café bajo una etiqueta
+   * que promete el valor de la compra.
+   *
+   * ⚠️ Cambia el número para las empresas que SÍ traen cantidades: el ticket sube en la misma
+   * proporción en que sus ventas agrupen más de una unidad. Es deliberado — antes la etiqueta
+   * y la cifra no coincidían.
+   *
+   * Y ya no necesita `revenueWithUnits`: la cantidad de ventas la trae toda fila, con columna
+   * de cantidad o sin ella.
+   */
   ticketPromedio: number | null;
 }
 
 /**
  * Totales de la fila de KPIs.
  *
- * El ticket promedio se calcula con `revenueWithUnits` —el ingreso de las MISMAS filas que
- * aportaron esas unidades— y no con el ingreso total. Mezclarlos infla el ticket en
- * proporción a lo incompleto que venga el archivo del cliente, que es justo cuando menos
- * hay que exagerar: un libro donde solo el 10% de las ventas trae cantidades daría un
- * ticket diez veces mayor que el real, y nada en pantalla lo delataría.
+ * `unidades` sigue siendo `null` cuando ningún producto reportó cantidades, y eso NO se
+ * cambia: sin columna de cantidad el archivo de verdad no dice cuántas unidades se vendieron,
+ * y contar filas confundiría "ventas" con "unidades" en un libro donde una venta puede
+ * llevarse tres. Un "Sin dato" honesto es mejor que un número inventado.
+ *
+ * El ticket promedio, en cambio, ya no depende de eso: ver la nota en su declaración.
  */
 export function resumir(items: ProductRevenue[]): ProductSalesSummary {
   if (items.length === 0) {
@@ -33,7 +54,11 @@ export function resumir(items: ProductRevenue[]): ProductSalesSummary {
 
   const conUnidades = items.filter((p) => p.units !== null);
   const unidades = conUnidades.length === 0 ? null : conUnidades.reduce((s, p) => s + p.units!, 0);
-  const ingresoConUnidades = conUnidades.reduce((s, p) => s + p.revenueWithUnits, 0);
+
+  // Sobre TODAS las filas, no solo las que traen cantidad: una venta es una venta aunque su
+  // fila no declare unidades, y excluirla inflaría el ticket de los archivos incompletos.
+  const ventas = items.reduce((n, p) => n + p.transactionCount, 0);
+  const ingresoTotal = items.reduce((n, p) => n + p.revenue, 0);
 
   // El backend ya devuelve la lista ordenada por ingreso descendente.
   const top = items[0] ?? null;
@@ -52,7 +77,7 @@ export function resumir(items: ProductRevenue[]): ProductSalesSummary {
     top,
     lento,
     unidades,
-    ticketPromedio: unidades !== null && unidades > 0 ? ingresoConUnidades / unidades : null,
+    ticketPromedio: ventas > 0 ? ingresoTotal / ventas : null,
   };
 }
 
