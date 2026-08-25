@@ -721,6 +721,12 @@ export interface Dictionary {
       customIncomplete: string;
       customReversed: string;
       customFuture: string;
+      /** Ventanas móviles: el rango que las píldoras de calendario no cubren. */
+      last7: string;
+      last30: string;
+      last90: string;
+      /** Función y no plantilla: el singular cambia la palabra ("1 día", no "1 días"). */
+      customSpan: (n: number) => string;
     };
     /**
      * CU-868krn2up: por qué el período elegido está en cero. Distingue "hay datos, pero en

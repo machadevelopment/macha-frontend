@@ -832,6 +832,10 @@ export const en: Dictionary = {
       customIncomplete: 'Pick both dates.',
       customReversed: 'The end date cannot be earlier than the start date.',
       customFuture: 'You cannot pick future dates.',
+      last7: 'Last 7 days',
+      last30: 'Last 30 days',
+      last90: 'Last 90 days',
+      customSpan: (n: number) => `${n} ${n === 1 ? 'day' : 'days'} selected`,
     },
     emptyPeriod: {
       outsideRange:
