@@ -928,6 +928,7 @@ export const es: Dictionary = {
        */
       customSpanOne: '{n} día seleccionado',
       customSpanOther: '{n} días seleccionados',
+      dataSpan: 'Datos: {from} – {to}',
     },
     emptyPeriod: {
       outsideRange:
@@ -953,8 +954,8 @@ export const es: Dictionary = {
     kpi: {
       revenue: 'Ingresos',
       revenueHint: 'Ingresos facturados del período.',
-      expenses: 'Gastos',
-      expensesHint: 'Costo directo más gastos de operación.',
+      expenses: 'Gastos operativos',
+      expensesHint: 'Nómina, renta y demás. No incluye el costo de lo vendido.',
       grossProfit: 'Utilidad bruta',
       grossProfitHint: 'Ventas menos costo directo.',
       cashFlow: 'Resultado del período',

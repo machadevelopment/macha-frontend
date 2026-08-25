@@ -11,7 +11,13 @@ import { CurrencyNote } from '@/components/dashboard/currency-note';
 import { request, type RequestError } from '@/lib/api/browser';
 import type { DateRange } from '@/lib/period';
 import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
-import { delta, gastos, margenBruto, resultado, utilidadBruta } from '@/lib/metrics/period-totals';
+import {
+  delta,
+  gastosOperativos,
+  margenBruto,
+  resultado,
+  utilidadBruta,
+} from '@/lib/metrics/period-totals';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import { TopProductCard } from '@/components/dashboard/top-product-card';
@@ -137,6 +143,7 @@ export function PeriodKpis({
       onChange={cambiar}
       locale={locale}
       labels={labels.period}
+      dataRange={data?.dataRange}
     />
   );
 
@@ -226,12 +233,10 @@ export function PeriodKpis({
           tarjetas cuentan la cuenta de resultados en orden (ingresos → costo directo → gastos →
           utilidad bruta → margen → resultado).
 
-          NO reemplaza a "Gastos", que sigue sumando `cogs + opex` a propósito (ver `gastos()` en
-          `lib/metrics/period-totals`: una sola definición de "gastos" para el Dashboard y para
-          Analítica). Las dos tarjetas conviven y no se contradicen — pero para que eso se ENTIENDA
-          hace falta que la frase de apoyo diga qué NO incluye esta, porque si no "costo directo de
-          ventas" y "gastos" se leen como sinónimos y el dueño ve dos números distintos para lo
-          mismo.
+          Convive con "Gastos operativos", y desde 2026-08-25 sin solaparse: esa tarjeta pinta
+          `opex` solo. Antes sumaba `cogs + opex`, o sea que el costo directo aparecía en las dos
+          y se leía como doble conteo — ver `gastosOperativos()` en `lib/metrics/period-totals`
+          para la medición que lo motivó.
 
           `invertDelta` como la de Gastos: en un costo, subir es malo. Sin eso el verde diría "vas
           bien" justo cuando la mercadería se encareció.
@@ -254,12 +259,12 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.expenses}
           icon={<Receipt className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoneyCompact(gastos(data.current), moneda, locale)}
-          exact={formatMoney(gastos(data.current), moneda, locale)}
+          value={formatMoneyCompact(gastosOperativos(data.current), moneda, locale)}
+          exact={formatMoney(gastosOperativos(data.current), moneda, locale)}
           hint={labels.kpi.expensesHint}
-          delta={delta(gastos(data.current), gastos(data.previous))}
+          delta={delta(gastosOperativos(data.current), gastosOperativos(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}
-          spark={serie(gastos)}
+          spark={serie(gastosOperativos)}
           invertDelta
           locale={locale}
         />

@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { computeRange, localIsoDate, rangeDays, rollingRange, validateCustomRange } from './period';
+import {
+  computeRange,
+  hayDatosFueraDelRango,
+  localIsoDate,
+  rangeDays,
+  rollingRange,
+  validateCustomRange,
+} from './period';
 
 /** Jueves 6 de agosto de 2026, en hora local. */
 const HOY = new Date(2026, 7, 6);
@@ -161,5 +168,41 @@ describe('rangeDays', () => {
     for (const n of [1, 7, 30, 90, 365]) {
       expect(rangeDays(rollingRange(n, new Date(2026, 7, 24)))).toBe(n);
     }
+  });
+});
+
+/**
+ * La nota de cobertura: qué abarca lo que el cliente subió (2026-08-25).
+ *
+ * El caso que la motiva es CarsGT: 19 meses cargados (feb 2025 → ago 2026) y el dashboard
+ * abriendo en agosto. Las cifras estaban bien al quetzal y aun así el reporte fue "esta data
+ * no tiene nada que ver con el Excel", porque contra los totales del archivo no se parecían a
+ * nada. Ver el bloque de `hayDatosFueraDelRango`.
+ */
+describe('avisar cuando el período visible deja datos afuera', () => {
+  const agosto = { from: '2026-08-01', to: '2026-08-31' };
+
+  test('el caso de CarsGT: 19 meses cargados, un mes a la vista', () => {
+    expect(hayDatosFueraDelRango(agosto, { from: '2025-02-18', to: '2026-08-23' })).toBe(true);
+  });
+
+  test('avisa aunque solo sobresalga por un lado', () => {
+    expect(hayDatosFueraDelRango(agosto, { from: '2025-02-18', to: '2026-08-15' })).toBe(true);
+    expect(hayDatosFueraDelRango(agosto, { from: '2026-08-05', to: '2026-09-30' })).toBe(true);
+  });
+
+  /*
+   * Se calla cuando no hay nada que advertir. Una nota que sale siempre deja de leerse, y la
+   * que importa —la de arriba— se pierde con ella.
+   */
+  test('calla cuando el período ya cubre todos los datos', () => {
+    expect(hayDatosFueraDelRango(agosto, { from: '2026-08-03', to: '2026-08-20' })).toBe(false);
+    // Coincidencia exacta en los dos extremos: cubierto, no sobresale.
+    expect(hayDatosFueraDelRango(agosto, agosto)).toBe(false);
+  });
+
+  test('calla cuando la empresa todavía no tiene datos', () => {
+    expect(hayDatosFueraDelRango(agosto, null)).toBe(false);
+    expect(hayDatosFueraDelRango(agosto, undefined)).toBe(false);
   });
 });

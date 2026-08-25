@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { totalDeCartera } from './kpi-header';
-import { resultado, utilidadBruta, gastos } from '@/lib/metrics/period-totals';
+import { resultado, utilidadBruta, gastosOperativos } from '@/lib/metrics/period-totals';
 import { es } from '@/lib/i18n/dictionaries/es';
 import { en } from '@/lib/i18n/dictionaries/en';
 import type { AgingBuckets } from '@/lib/api/dashboard';
@@ -75,8 +75,25 @@ describe('los seis indicadores son SEIS cosas distintas', () => {
     expect(neto).not.toBeCloseTo(bruto, 10);
   });
 
-  test('los gastos de la tarjeta son costo + gasto operativo', () => {
-    expect(gastos(totales)).toBe(600);
+  /**
+   * La tarjeta de gastos NO repite el costo directo (2026-08-25).
+   *
+   * Mostraba `cogs + opex`, así que el costo aparecía en esta tarjeta y en la de Costo Directo
+   * de Ventas, una al lado de la otra. Jose lo reportó como doble conteo y un analista externo
+   * tuvo que aclararlo por escrito al leer la pantalla.
+   *
+   * El test se afirma sobre las dos mitades porque lo que importa no es el valor sino que NO
+   * incluya el costo: si alguien vuelve a sumar `cogs`, esto falla.
+   */
+  test('la tarjeta de gastos muestra solo los operativos, sin el costo directo', () => {
+    expect(gastosOperativos(totales)).toBe(totales.opex);
+    expect(gastosOperativos(totales)).not.toBe(totales.cogs + totales.opex);
+  });
+
+  test('el resultado del período sigue restando TODO lo que salió', () => {
+    // El cambio de la tarjeta no mueve esta cifra: es la comprobación de que solo se tocó la
+    // presentación. Ingresos − costo directo − gastos operativos.
+    expect(resultado(totales)).toBe(totales.revenue - totales.cogs - totales.opex);
   });
 });
 

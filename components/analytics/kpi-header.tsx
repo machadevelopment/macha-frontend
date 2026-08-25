@@ -3,7 +3,13 @@
 import { ArrowUpRight, DollarSign, HandCoins, Percent, PiggyBank, Receipt } from 'lucide-react';
 import { KpiCard } from '@/components/charts/kpi-card';
 import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
-import { delta, gastos, margenBruto, resultado, utilidadBruta } from '@/lib/metrics/period-totals';
+import {
+  delta,
+  gastosOperativos,
+  margenBruto,
+  resultado,
+  utilidadBruta,
+} from '@/lib/metrics/period-totals';
 import type { PeriodMetricsResponse, AgingBuckets } from '@/lib/api/dashboard';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -98,9 +104,9 @@ export function AnalyticsKpiHeader({
         variant="compact"
         label={kpiLabels.expenses}
         icon={<Receipt className="h-4 w-4" strokeWidth={1.7} />}
-        value={formatMoneyCompact(gastos(actual), moneda, locale)}
-        exact={formatMoney(gastos(actual), moneda, locale)}
-        delta={delta(gastos(actual), gastos(previo))}
+        value={formatMoneyCompact(gastosOperativos(actual), moneda, locale)}
+        exact={formatMoney(gastosOperativos(actual), moneda, locale)}
+        delta={delta(gastosOperativos(actual), gastosOperativos(previo))}
         deltaCaption={kpiLabels.vsPrevious}
         // Un gasto que sube no es buena noticia: el chip va rojo aunque la flecha suba.
         invertDelta

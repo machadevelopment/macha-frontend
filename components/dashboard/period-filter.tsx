@@ -9,6 +9,7 @@ import {
   localIsoDate,
   rangeDays,
   rollingRange,
+  hayDatosFueraDelRango,
   validateCustomRange,
   type CustomRangeError,
   type DateRange,
@@ -58,12 +59,18 @@ export function PeriodFilter({
   onChange,
   locale,
   labels,
+  dataRange,
 }: {
   value: PeriodKey;
   range: DateRange;
   onChange: (key: PeriodKey, range: DateRange) => void;
   locale: Locale;
   labels: Dictionary['dashboard']['period'];
+  /**
+   * Primer y último día con movimientos de la empresa. Opcional: las pantallas que todavía no
+   * lo pasan se comportan igual que antes, sin la nota.
+   */
+  dataRange?: { from: string; to: string } | null;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [desde, setDesde] = useState(range.from);
@@ -313,6 +320,23 @@ export function PeriodFilter({
           {fmt.format(aFecha(range.from))} – {fmt.format(aFecha(range.to))}
         </span>{' '}
         · {labels.vsPrevious}
+        {/*
+          Qué abarca lo que el cliente subió, cuando el período visible deja algo afuera. Sin
+          esto, quien carga 19 meses y ve el mes corriente concluye que no le leímos el
+          archivo — ver `hayDatosFueraDelRango`. Se calla cuando el período ya cubre todo:
+          una advertencia que sale siempre deja de leerse.
+        */}
+        {hayDatosFueraDelRango(range, dataRange) && (
+          <>
+            {' '}
+            ·{' '}
+            <span className="text-muted-foreground">
+              {labels.dataSpan
+                .replace('{from}', fmt.format(aFecha(dataRange!.from)))
+                .replace('{to}', fmt.format(aFecha(dataRange!.to)))}
+            </span>
+          </>
+        )}
       </p>
     </div>
   );

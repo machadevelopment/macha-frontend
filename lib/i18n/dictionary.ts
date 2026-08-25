@@ -734,6 +734,11 @@ export interface Dictionary {
        */
       customSpanOne: string;
       customSpanOther: string;
+      /**
+       * Qué abarcan los datos de la empresa, cuando el período visible deja algo afuera.
+       * Ver `hayDatosFueraDelRango` en `lib/period.ts`.
+       */
+      dataSpan: string;
     };
     /**
      * CU-868krn2up: por qué el período elegido está en cero. Distingue "hay datos, pero en

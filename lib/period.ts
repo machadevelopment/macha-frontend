@@ -156,3 +156,36 @@ export function validateCustomRange(from: string, to: string, hoy: Date): Custom
   if (to > localIsoDate(hoy)) return 'future';
   return null;
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * ¿EL PERÍODO VISIBLE DEJA DATOS AFUERA? (2026-08-25)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * El dashboard abre en "este mes". Un cliente que acaba de subir su contabilidad completa está
+ * viendo, sin saberlo, una fracción de lo que cargó — y la reacción es concluir que el sistema
+ * no leyó su archivo.
+ *
+ * Pasó y costó un día: CarsGT subió 19 meses (feb 2025 → ago 2026, 240 ventas) y el dashboard
+ * mostró agosto (45 ventas). Las cifras eran correctas al quetzal, pero contra los totales del
+ * archivo no se parecían a nada, y el reporte que llegó fue "esta data no tiene absolutamente
+ * nada que ver con el Excel". Se buscó el defecto en la ingesta, en el prompt y en la base
+ * durante horas. No había ninguno: la pantalla decía `MOSTRANDO 1 AGO – 31 AGO` en gris, bajo
+ * seis cifras enormes que gritaban otra cosa.
+ *
+ * `dataRange` ya viajaba en la respuesta de `/metrics/period` desde CU-868krn2up, donde se
+ * agregó para explicar un período en CERO. Este es el caso hermano y más frecuente: el período
+ * no está vacío, solo es una parte — y ahí el silencio engaña más, porque hay cifras que
+ * mirar.
+ *
+ * Devuelve `false` cuando no hay nada que advertir: sin datos, o con un período que ya los
+ * cubre. La nota solo aparece cuando de verdad falta algo por ver.
+ */
+export function hayDatosFueraDelRango(
+  range: DateRange,
+  dataRange: { from: string; to: string } | null | undefined,
+): boolean {
+  if (!dataRange) return false;
+  // Fechas ISO (`YYYY-MM-DD`): el orden lexicográfico ES el cronológico.
+  return dataRange.from < range.from || dataRange.to > range.to;
+}
