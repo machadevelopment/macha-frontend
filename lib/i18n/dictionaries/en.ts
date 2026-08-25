@@ -743,6 +743,7 @@ export const en: Dictionary = {
       cta: 'See what we understood from your file',
       empty: "This upload predates this feature, so we didn't keep the details.",
       sheetMovements: '· {n} transactions',
+      sheetCost: 'Cost stated in the file: {monto}',
       sheetInventory: '· {creados} new items, {ajustados} adjusted',
       reason: {
         catalogo:

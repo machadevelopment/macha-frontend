@@ -622,6 +622,14 @@ export interface Dictionary {
       empty: string;
       /** Lleva `{n}`. */
       sheetMovements: string;
+      /**
+       * El COSTO que la hoja declaraba en su propia columna.
+       *
+       * Va rotulado y aparte del total de la hoja porque son dos cifras distintas de la misma
+       * fila —el precio de venta y lo que costó— y ponerlas juntas sin decir cuál es cuál hace
+       * dudar de las dos.
+       */
+      sheetCost: string;
       /** Lleva `{creados}` y `{ajustados}`. */
       sheetInventory: string;
       /** Por qué una hoja no produjo movimientos. Todos llevan `{n}`. */

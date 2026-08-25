@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ChevronRight, FileSpreadsheet } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { request } from '@/lib/api/browser';
-import { formatNumber } from '@/lib/format';
+import { formatMoney, formatNumber } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -43,6 +43,34 @@ interface HojaMovimientos {
   nombre: string;
   filas: number;
   columnas: Record<string, string | null>;
+  /**
+   * Cuánto dinero traía la hoja, por moneda. Opcional: las cargas anteriores al 2026-08-25 no
+   * lo traen, y ausente NO es cero — es "esta carga es anterior a la medición".
+   */
+  montos?: MontoPorMoneda[];
+  costos?: MontoPorMoneda[];
+}
+
+/** Nunca se suman dos monedas: el total mezclado no sería ninguna de las dos. */
+interface MontoPorMoneda {
+  moneda: string;
+  total: number;
+  filas: number;
+}
+
+/**
+ * La moneda la escribe el ARCHIVO del cliente, así que puede no ser una de las dos que el
+ * producto formatea. `formatMoney` solo conoce GTQ y USD, y castearle un `'EUR'` a la fuerza
+ * lo haría pintar un símbolo equivocado sobre una cifra real — peor que no formatear.
+ *
+ * Cuando no la conocemos se muestra el código tal cual vino y el número con separadores. El
+ * cliente ve su cifra y ve que trae una moneda que todavía no manejamos, que es exactamente lo
+ * que necesita saber.
+ */
+export function dinero(total: number, moneda: string, locale: Locale): string {
+  return moneda === 'GTQ' || moneda === 'USD'
+    ? formatMoney(total, moneda, locale)
+    : `${moneda} ${formatNumber(total, locale)}`;
 }
 interface HojaInventario {
   estado: 'inventario';
@@ -152,6 +180,37 @@ export function ReadSummary({
                         labels.reason[hoja.motivo].replace('{n}', formatNumber(hoja.filas, locale))}
                     </span>
                   </p>
+
+                  {/*
+                    CUÁNTO DINERO TRAÍA LA HOJA — la cifra que el dueño reconoce o desmiente.
+
+                    Va ARRIBA del mapeo de columnas y en grande porque es lo único del resumen
+                    que se contesta sin pensar: son sus ventas, las conoce. Un cliente subió 19
+                    meses y el dashboard le abrió en "este mes"; las cifras estaban bien al
+                    quetzal y aun así reportó que no tenían "nada que ver con el Excel", porque
+                    no había dónde comprobarlo.
+
+                    Una línea por moneda, nunca sumadas: en esta etapa las filas todavía no
+                    tienen monto convertido, así que un total mezclado no sería ninguna de las
+                    dos monedas.
+                  */}
+                  {hoja.estado === 'movimientos' && hoja.montos && hoja.montos.length > 0 && (
+                    <div className="ml-5 flex flex-col gap-0.5">
+                      {hoja.montos.map((m) => (
+                        <p
+                          key={m.moneda}
+                          className="font-mono text-body tabular-nums text-foreground"
+                        >
+                          {dinero(m.total, m.moneda, locale)}
+                        </p>
+                      ))}
+                      {hoja.costos?.map((c) => (
+                        <p key={c.moneda} className="text-micro text-faint">
+                          {labels.sheetCost.replace('{monto}', dinero(c.total, c.moneda, locale))}
+                        </p>
+                      ))}
+                    </div>
+                  )}
 
                   {/*
                     EL MAPEO DE COLUMNAS ES LA PARTE QUE IMPORTA. Todo lo demás del resumen es
