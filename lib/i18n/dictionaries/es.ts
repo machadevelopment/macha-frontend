@@ -1483,12 +1483,20 @@ export const es: Dictionary = {
     discontinueConfirm:
       '¿Dar de baja este artículo? Deja de aparecer en la lista, pero su historial de movimientos se conserva.',
     empty: 'Todavía no tienes artículos en inventario.',
-    // CU-868krkfrh: la frase clave es "no se importa del Excel". Macha subió archivo tras
-    // archivo esperando que el inventario se llenara solo, porque nada en la pantalla decía
-    // que este módulo se administra a mano. El vacío tiene que cerrar esa pregunta, no
-    // limitarse a constatar que está vacío.
+    // CU-868krkfrh escribió acá "no se importa del Excel", y en su momento era cierto: Macha
+    // subía archivo tras archivo esperando que el inventario se llenara solo. Dejó de serlo el
+    // 2026-08-16, cuando la hoja de existencias empezó a poblarlo, y más todavía el 2026-08-24
+    // con el inventario serializado (vehículos por VIN, joyas por certificado).
+    //
+    // Se corrige por el reporte de Jose ("no jala nada de información y el excel sí lo tiene"):
+    // su captura muestra la pantalla en cero DICIÉNDOLE que el Excel no cuenta. O sea que el
+    // producto le explicaba con seguridad justo lo contrario de lo que hace, y eso es peor que
+    // un vacío mudo: lo manda a cargar a mano 260 vehículos que su archivo ya traía.
+    //
+    // El vacío tiene que seguir cerrando la pregunta "¿y esto cómo se llena?" —esa parte del
+    // ticket original sigue vigente— pero con las DOS vías que existen hoy.
     emptyHint:
-      'El inventario se administra aquí, no se importa del Excel: agrega tu primer artículo para llevar el control de existencias.',
+      'Si tu archivo trae una hoja de existencias, el inventario se llena solo al cargarlo. También puedes agregar artículos a mano aquí.',
     movementsEmpty: 'Aún no hay movimientos registrados.',
     genericError: 'No se pudo completar la acción. Intenta de nuevo.',
     movement: { in: 'Entrada', out: 'Salida', adjustment: 'Ajuste' },
