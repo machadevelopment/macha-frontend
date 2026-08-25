@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { es } from '@/lib/i18n/dictionaries/es';
 import { en } from '@/lib/i18n/dictionaries/en';
+import { dinero } from './read-summary';
 
 /**
  * CU-868krmrcj — los textos de "qué entendimos de tu archivo".
@@ -74,5 +75,35 @@ describe('el resumen se ofrece cuando de verdad hay algo que contar', () => {
       'utf8',
     );
     expect(lista).toContain("!IN_FLIGHT.includes(doc.status) && doc.status !== 'cancelled'");
+  });
+});
+
+/**
+ * La cifra que el cliente reconoce, y la moneda que no siempre conocemos.
+ *
+ * `montos` sale del ARCHIVO del cliente, así que la moneda puede no ser una de las dos que el
+ * producto formatea. Castearle un `'EUR'` a `formatMoney` lo haría pintar el símbolo
+ * equivocado sobre una cifra real, que es peor que no formatear: el cliente leería su total en
+ * una moneda que no es la suya y no tendría forma de notarlo.
+ */
+describe('el total de la hoja', () => {
+  test('las monedas del producto se formatean con su código', () => {
+    expect(dinero(38843310, 'GTQ', 'es')).toContain('GTQ');
+    expect(dinero(38843310, 'GTQ', 'es')).toContain('38');
+    expect(dinero(4840744, 'USD', 'en')).toContain('USD');
+  });
+
+  test('una moneda desconocida muestra su código tal cual, sin inventar símbolo', () => {
+    const salida = dinero(1000, 'EUR', 'es');
+    expect(salida).toContain('EUR');
+    // Lo que NO puede pasar: que se pinte como quetzal o como dólar.
+    expect(salida).not.toContain('GTQ');
+    expect(salida).not.toContain('$');
+  });
+
+  test('el texto del costo conserva su marcador', () => {
+    for (const d of [es, en]) {
+      expect(d.upload.readSummary.sheetCost).toContain('{monto}');
+    }
   });
 });

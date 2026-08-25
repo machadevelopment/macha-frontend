@@ -816,6 +816,7 @@ export const es: Dictionary = {
       cta: 'Ver qué entendimos de tu archivo',
       empty: 'Esta carga es anterior a esta función, así que no guardamos el detalle.',
       sheetMovements: '· {n} movimientos',
+      sheetCost: 'Costo declarado en el archivo: {monto}',
       sheetInventory: '· {creados} artículos nuevos, {ajustados} ajustados',
       reason: {
         catalogo:
