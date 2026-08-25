@@ -1383,7 +1383,7 @@ export const en: Dictionary = {
     empty: 'No inventory items yet.',
     // CU-868krkfrh: ver la nota del mismo campo en es.ts.
     emptyHint:
-      'Inventory is managed here, not imported from Excel: add your first item to start tracking stock.',
+      'If your file has a stock sheet, inventory fills in when you upload it. You can also add items by hand here.',
     movementsEmpty: 'No movements recorded yet.',
     genericError: 'Could not complete the action. Please try again.',
     movement: { in: 'In', out: 'Out', adjustment: 'Adjustment' },
