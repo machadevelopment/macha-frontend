@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import {
   computeRange,
   localIsoDate,
+  rangeDays,
+  rollingRange,
   validateCustomRange,
   type CustomRangeError,
   type DateRange,
@@ -100,11 +102,54 @@ export function PeriodFilter({
     future: labels.customFuture,
   };
 
+  /*
+   * ═══ EL ERROR SE VE MIENTRAS SE ELIGE, NO AL CONFIRMAR (2026-08-24) ═══
+   *
+   * Antes la validación corría dentro de `aplicar`: se llenaban los dos campos, se apretaba el
+   * botón, y RECIÉN ahí aparecía "la fecha final es anterior a la inicial". Hacer que alguien
+   * complete un formulario para enterarse de que estaba mal desde el segundo campo es el error
+   * clásico de validar al enviar, y acá se nota más porque el segundo campo se elige en el
+   * calendario del sistema: cuando el aviso aparece, esa capa ya se cerró y el contexto se
+   * perdió.
+   *
+   * Se recalcula en cada cambio y el botón queda deshabilitado mientras haya fallo: el aviso
+   * explica y el botón apagado impide, que son dos trabajos distintos.
+   */
+  const fallo = validateCustomRange(desde, hasta, new Date());
+  useEffect(() => {
+    // Solo se PINTA el error cuando el rango está completo. Mientras falta una fecha, el fallo
+    // es `incomplete` y decírselo a alguien que todavía está eligiendo es regañarlo por no
+    // haber terminado.
+    setError(fallo === 'incomplete' ? null : fallo);
+  }, [fallo]);
+
   function aplicar() {
-    const fallo = validateCustomRange(desde, hasta, new Date());
-    setError(fallo);
-    if (fallo) return;
+    if (fallo) {
+      setError(fallo);
+      return;
+    }
     onChange('custom', { from: desde, to: hasta });
+    setAbierto(false);
+  }
+
+  /**
+   * Ventanas móviles: el rango que la gente pide de verdad y que las píldoras no cubren.
+   *
+   * Las píldoras dan períodos de CALENDARIO y contestan "¿cómo voy en agosto?". "Últimos 30
+   * días" contesta "¿cómo vengo últimamente?", que no tiene borde de calendario — y el día 2
+   * del mes, "este mes" son dos días de datos.
+   *
+   * Aplican DIRECTO, sin pasar por los campos ni por Aplicar: un atajo que además hay que
+   * confirmar no es un atajo. Los campos quedan para el rango que de verdad es a medida.
+   */
+  const atajos: Array<{ dias: number; label: string }> = [
+    { dias: 7, label: labels.last7 },
+    { dias: 30, label: labels.last30 },
+    { dias: 90, label: labels.last90 },
+  ];
+
+  function aplicarAtajo(dias: number) {
+    onChange('custom', rollingRange(dias, new Date()));
     setAbierto(false);
   }
 
@@ -175,7 +220,30 @@ export function PeriodFilter({
       </div>
 
       {abierto && (
-        <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-3">
+        <div
+          className="flex flex-col gap-2 rounded-md border border-border bg-card p-3"
+          // Escape cierra: el panel se abre desde una píldora y quien lo abrió sin querer
+          // espera poder salir sin elegir nada. Va en el contenedor y no en cada campo para
+          // que también funcione con el foco en el botón.
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setAbierto(false);
+          }}
+        >
+          {/* Los atajos van ARRIBA de los campos, no debajo: son el camino que resuelve la
+              mayoría de los casos con un clic, y ponerlos después obligaría a leer primero la
+              opción cara. */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {atajos.map((a) => (
+              <button
+                key={a.dias}
+                type="button"
+                onClick={() => aplicarAtajo(a.dias)}
+                className="rounded-pill border border-border px-2.5 py-1 text-caption font-medium text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
           <div className="flex flex-wrap items-end gap-2">
             <label className="flex flex-col gap-1">
               <span className="font-mono text-eyebrow uppercase text-faint">
@@ -208,10 +276,19 @@ export function PeriodFilter({
                 className="rounded-md border border-input bg-background px-2 py-1.5 text-body tabular-nums"
               />
             </label>
-            <Button size="sm" onClick={aplicar}>
+            <Button size="sm" onClick={aplicar} disabled={fallo !== null}>
               {labels.customApply}
             </Button>
           </div>
+
+          {/* CUÁNTO abarca lo que eligió, antes de aplicarlo. Dos fechas en un calendario no
+              dicen si son 30 días o 300 hasta que las cifras cambian — y para entonces el
+              dueño no sabe si el salto es de su negocio o del rango que acaba de elegir. */}
+          {!fallo && (
+            <p className="font-mono text-eyebrow uppercase text-faint">
+              {labels.customSpan(rangeDays({ from: desde, to: hasta }))}
+            </p>
+          )}
           {error && (
             // Color como señal de estado, con texto+fondo+borde juntos (design guide §1).
             <p

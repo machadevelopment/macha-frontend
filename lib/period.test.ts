@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { computeRange, localIsoDate, validateCustomRange } from './period';
+import { computeRange, localIsoDate, rangeDays, rollingRange, validateCustomRange } from './period';
 
 /** Jueves 6 de agosto de 2026, en hora local. */
 const HOY = new Date(2026, 7, 6);
@@ -107,5 +107,59 @@ describe('validateCustomRange (CU-868knx137)', () => {
     // en Guatemala durante seis horas cada noche.
     const nocheEnGuatemala = new Date(2026, 7, 6, 23, 59);
     expect(validateCustomRange('2026-08-06', '2026-08-06', nocheEnGuatemala)).toBeNull();
+  });
+});
+
+/**
+ * ═══ VENTANAS MÓVILES Y TAMAÑO DEL RANGO (pedido de Keneth, 2026-08-24) ═══
+ *
+ * Las píldoras dan períodos de CALENDARIO —este mes, este trimestre— y contestan "¿cómo voy en
+ * agosto?". La pregunta que un dueño hace más seguido es "¿cómo vengo últimamente?", que no
+ * tiene borde de calendario: el día 2 del mes, "este mes" son dos días de datos.
+ *
+ * Sin `rollingRange`, pedir "los últimos 30 días" costaba abrir el panel, elegir dos fechas en
+ * el calendario del sistema y confirmar.
+ */
+describe('rollingRange', () => {
+  const hoy = new Date(2026, 7, 24); // 24 ago 2026, local
+
+  test('los últimos 7 días INCLUYEN hoy', () => {
+    // Hoy y los seis anteriores: siete días de datos, que es lo que espera quien lo pide.
+    expect(rollingRange(7, hoy)).toEqual({ from: '2026-08-18', to: '2026-08-24' });
+  });
+
+  test('30 y 90 días cruzan el borde del mes sin tocar el calendario', () => {
+    expect(rollingRange(30, hoy)).toEqual({ from: '2026-07-26', to: '2026-08-24' });
+    expect(rollingRange(90, hoy)).toEqual({ from: '2026-05-27', to: '2026-08-24' });
+  });
+
+  test('una ventana de 1 día es hoy', () => {
+    expect(rollingRange(1, hoy)).toEqual({ from: '2026-08-24', to: '2026-08-24' });
+  });
+
+  test('cruza el cambio de año sin corrimientos', () => {
+    expect(rollingRange(7, new Date(2026, 0, 3))).toEqual({
+      from: '2025-12-28',
+      to: '2026-01-03',
+    });
+  });
+});
+
+describe('rangeDays', () => {
+  test('cuenta los dos extremos', () => {
+    // Del 1 al 31 de agosto son 31 días, no 30: el dueño cuenta el primero y el último.
+    expect(rangeDays({ from: '2026-08-01', to: '2026-08-31' })).toBe(31);
+  });
+
+  test('un solo día es 1', () => {
+    expect(rangeDays({ from: '2026-08-24', to: '2026-08-24' })).toBe(1);
+  });
+
+  test('lo que devuelve rollingRange mide lo que se pidió', () => {
+    // El par tiene que cerrar: si `rollingRange(30)` diera 31 días, la pantalla mostraría
+    // "31 días seleccionados" bajo un botón que dice "Últimos 30 días".
+    for (const n of [1, 7, 30, 90, 365]) {
+      expect(rangeDays(rollingRange(n, new Date(2026, 7, 24)))).toBe(n);
+    }
   });
 });

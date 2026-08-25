@@ -44,16 +44,27 @@ export function ShowcaseFrame({
 }
 
 /**
- * El sello: el Insight Point como figura con el isotipo dentro. Es la firma de la casa en
- * la vitrina, y se repite idéntico en las cinco pantallas para que se lea como una sola
- * marca y no como cinco variaciones.
+ * El sello: el isotipo solo, como firma de la casa en la vitrina. Se repite idéntico en todas
+ * las pantallas para que se lea como una marca y no como variaciones.
+ *
+ * ═══ SIN EL TILE SALVIA DETRÁS (reporte de Keneth, 2026-08-24) ═══
+ *
+ * Hasta acá era un `InsightPoint` —el cuadrado salvia redondeado— con el isotipo adentro. Y el
+ * isotipo trae su propio degradado salvia, así que quedaba **salvia sobre salvia**: el logo se
+ * lavaba contra su propio fondo. Keneth lo reportó desde la pantalla de registro —"le pusieron
+ * un cuadro verde alrededor y por eso se ve raro"— y tenía razón: el mismo isotipo, en el
+ * header de esa misma página, se lee perfecto porque está sobre blanco.
+ *
+ * Lo que se conserva y por qué: el sello sigue existiendo como pieza. Borrarlo dejaría el
+ * eyebrow flotando sin nada que ancle la columna centrada, y esa función —dar un punto de
+ * partida al ojo, arriba del texto— era buena. Lo que sobraba era el fondo, no la firma.
+ *
+ * El tamaño sube (40 / 28 px contra 24 / 18) porque antes el isotipo era el contenido de una
+ * pieza más grande y ahora ES la pieza: al quitarle la caja necesita el peso que tenía el
+ * conjunto, o el encabezado se queda sin ancla.
  */
 export function ShowcaseSeal({ size = 'lg' }: { size?: 'md' | 'lg' }) {
-  return (
-    <InsightPoint size={size}>
-      <MachaMark className={size === 'lg' ? 'h-6 w-6' : 'h-[18px] w-[18px]'} />
-    </InsightPoint>
-  );
+  return <MachaMark className={size === 'lg' ? 'h-10 w-10' : 'h-7 w-7'} />;
 }
 
 /**
