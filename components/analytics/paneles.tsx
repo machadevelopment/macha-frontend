@@ -16,6 +16,7 @@ import { formatDateAxis, formatMoney, formatNumber, formatPct } from '@/lib/form
 import { agruparSerieDeTendencia } from '@/lib/metrics/series-grouping';
 import type {
   CategoryBreakdownResponse,
+  CategoryBreakdownRow,
   PeriodMetricsResponse,
   ProductRevenueResponse,
 } from '@/lib/api/dashboard';
@@ -294,6 +295,40 @@ export function PanelProductos({
 }
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LA PARTICIPACIÓN SE RECALCULA SOBRE EL TOTAL DE LA TABLA, NO SE USA LA DEL BACKEND
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Reporte de Jose (2026-08-24): *"en costos por categoría el total debería sumar al 100% (en
+ * participación), está mal"*.
+ *
+ * El backend calcula `sharePct` DENTRO de cada tipo contable, y hace bien: una categoría de
+ * gasto que valga "el 12 % de todo" no significa nada cuando ese "todo" incluye las ventas.
+ * Pero esta tabla junta `cogs` Y `opex` en una sola lista, así que mostraba porcentajes de dos
+ * bases distintas uno debajo del otro. Medido sobre CarsGT:
+ *
+ *     cogs · costo_de_ventas   Q 33.359.479   98,3 %   ← de los cogs
+ *     opex · payroll           Q  3.474.457   54,5 %   ← de los opex
+ *     opex · rent              Q  1.139.900   17,9 %
+ *
+ * La columna suma 200 %, y ninguna de las dos cifras es la que el dueño está leyendo: él ve
+ * una tabla de COSTOS y espera "qué parte de mis costos es esto".
+ *
+ * ═══ POR QUÉ SE ARREGLA ACÁ Y NO EN EL BACKEND ═══
+ *
+ * `sharePct` por tipo es correcto y lo consume algo más; cambiarlo allá rompería a ese otro
+ * consumidor para arreglar a este. El porcentaje depende de QUÉ conjunto se está mostrando, y
+ * quien decide ese conjunto es esta pantalla: acá se filtra a cogs+opex, así que acá se sabe
+ * cuál es el total contra el que hay que dividir.
+ */
+export function participacionSobreElTotal(filas: CategoryBreakdownRow[]): CategoryBreakdownRow[] {
+  const total = filas.reduce((n, r) => n + r.total, 0);
+  // Sin total no hay proporción que calcular, y dividir daría NaN en cada fila.
+  if (total === 0) return filas;
+  return filas.map((r) => ({ ...r, sharePct: (r.total / total) * 100 }));
+}
+
+/**
  * Costo por categoría.
  *
  * Solo costos: el desglose contesta "en qué se va el dinero". Incluir las categorías de
@@ -310,7 +345,9 @@ export function PanelCostos({
   locale: Locale;
   labels: Dictionary['analytics'];
 }) {
-  const filas = (categorias?.rows ?? []).filter((r) => r.type === 'cogs' || r.type === 'opex');
+  const filas = participacionSobreElTotal(
+    (categorias?.rows ?? []).filter((r) => r.type === 'cogs' || r.type === 'opex'),
+  );
 
   return (
     <Card>
