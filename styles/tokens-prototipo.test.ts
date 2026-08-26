@@ -189,3 +189,68 @@ describe('los radios salen de la escala, no de la clase', () => {
     expect(sinComentarios('<div className="rounded-[7px]" />')).toContain('rounded-[7px]');
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * TODO TOKEN DE COLOR TIENE SU CONTRAPARTE OSCURA (QA de módulos 1-6, 2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Es la clase de defecto que QA reportó como "colores en modo oscuro" y que no se puede ver
+ * leyendo el repo: un token definido solo en `:root` se pinta con el valor del tema CLARO
+ * cuando el usuario tiene el sistema en oscuro. Sobre una tarjeta `#171717`, un verde apagado
+ * o una tinta casi negra desaparecen.
+ *
+ * Ya pasó dos veces: las barras del dashboard (CU-868krkcwn) y los ticks de eje de Tremor. Y
+ * volvió a pasar el mismo día que se escribió este test: los tres degradados del Insight Point
+ * animado se agregaron solo a `:root`, con un comentario que afirmaba —falsamente— que los
+ * degradados de marca no cambian entre temas. `--brand-gradient` y `--brand-glow` sí cambian.
+ *
+ * Lo que se exceptúa NO es una lista de nombres sino una regla: lo que no es un color no
+ * necesita contraparte. Una pila de fuentes es una pila de fuentes en los dos temas, y un
+ * `mask` no pinta —recorta—, así que su negro es la parte opaca del esténcil y no un color que
+ * alguien vea.
+ */
+describe('cobertura de tokens en tema oscuro', () => {
+  const css = readFileSync(join(import.meta.dir, 'globals.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  );
+
+  /** El bloque de una regla, balanceando llaves — un `indexOf('}')` corta en el primer anidado. */
+  const bloque = (desde: number): string => {
+    let abiertas = 0;
+    const inicio = css.indexOf('{', desde);
+    for (let i = inicio; i < css.length; i++) {
+      if (css[i] === '{') abiertas++;
+      else if (css[i] === '}') {
+        abiertas--;
+        if (abiertas === 0) return css.slice(desde, i + 1);
+      }
+    }
+    return '';
+  };
+
+  const tokens = (s: string) => new Set([...s.matchAll(/--([a-z0-9-]+)\s*:/g)].map((m) => m[1]!));
+  const claro = tokens(bloque(css.indexOf(':root')));
+  const oscuro = tokens(bloque(css.indexOf('.dark')));
+
+  test('el guardia encuentra los dos bloques', () => {
+    expect(claro.size).toBeGreaterThan(50);
+    expect(oscuro.size).toBeGreaterThan(50);
+  });
+
+  test('ningún token de COLOR se queda sin versión oscura', () => {
+    const noEsColor = (v: string) => v === 'font-ui-stack' || v.includes('mask');
+    const faltantes = [...claro].filter((v) => !oscuro.has(v) && !noEsColor(v));
+    expect(faltantes).toEqual([]);
+  });
+
+  /*
+   * El bug espejo, y el más difícil de ver: un color cuya ÚNICA definición está en `.dark`
+   * nunca aplica en tema claro, así que la pantalla pinta el texto de un tema sobre el fondo
+   * del otro. Acá no debería haber ninguno.
+   */
+  test('ningún token existe SOLO en oscuro', () => {
+    expect([...oscuro].filter((v) => !claro.has(v))).toEqual([]);
+  });
+});

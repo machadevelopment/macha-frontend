@@ -197,8 +197,17 @@
    * justamente para que ningún color viva suelto en las reglas. Definidos como token, el color
    * sigue teniendo un solo dueño.
    *
-   * El salvia no cambia de tono entre temas (ver `--brand-on`), así que no llevan contraparte
-   * oscura — igual que los otros dos degradados de marca.
+   * ⚠️ SÍ LLEVAN CONTRAPARTE OSCURA, y la primera versión de este bloque afirmaba lo
+   * contrario: "el salvia no cambia de tono entre temas, así que no llevan contraparte oscura
+   * — igual que los otros dos degradados de marca". Las dos mitades de esa frase son falsas.
+   * Lo encontró el QA de módulos 1-6 midiendo la cobertura de tokens: 59 de 63 tienen su
+   * versión en `.dark`, y `--brand-gradient` y `--brand-glow` son dos de los 59.
+   *
+   * Lo que no cambia es `--brand` (el salvia plano). `--brand-strong` pasa de `#8b9c84` a
+   * `#b4c1af` y `--brand-ink` de `#4a5745` a `#b4c1af`, porque sobre una superficie oscura un
+   * verde apagado desaparece. Con los valores del tema claro quemados acá, el anillo y el
+   * ecualizador del asesor se habrían visto casi negros sobre la tarjeta oscura — el mismo
+   * modo de fallo que ya reportó QA con las barras del dashboard.
    */
   --insight-pulse: radial-gradient(circle, rgb(139 156 132 / 38%) 0%, transparent 68%);
   --insight-ring: conic-gradient(
@@ -374,6 +383,23 @@
   );
   --brand-bar: linear-gradient(180deg, #4a5545 0%, #a1b09b 100%);
   --brand-bar-inverse: linear-gradient(180deg, #a1b09b 0%, #4a5545 100%);
+  /*
+   * Las capas del Insight Point animado, con los tonos que este tema usa. Sobre superficie
+   * oscura el salvia apagado desaparece, así que el anillo va con los mismos valores a los que
+   * `--brand-strong` y `--brand-ink` suben acá, y el glow sube su alfa para seguir leyéndose.
+   *
+   * El `mask` NO se redefine: no pinta, recorta. Su negro es la parte opaca del esténcil.
+   */
+  --insight-pulse: radial-gradient(circle, rgb(180 193 175 / 30%) 0%, transparent 68%);
+  --insight-ring: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    #b4c1af 18%,
+    transparent 34%,
+    transparent 66%,
+    #8b9c84 84%,
+    transparent 100%
+  );
 
   /*
    * En oscuro una sombra negra es invisible: el fondo ya es casi negro. Lo que separa una
