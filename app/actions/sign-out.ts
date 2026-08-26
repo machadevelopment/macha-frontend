@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { signOut } from '@workos-inc/authkit-nextjs';
 import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
+import { urlCanonica } from '@/lib/auth/canonical-origin';
 
 /**
  * Cierre de sesión desde el `side-bot` del shell (CU-868khvynk, criterio 4).
@@ -22,8 +23,24 @@ import { ACTIVE_COMPANY_COOKIE } from '@/lib/auth/active-company';
  * Es la segunda de dos defensas, no la única: el valor de la cookie lleva además el usuario
  * adentro, porque el caso que se observó en producción no fue un logout — fue registrar una
  * cuenta nueva encima de una sesión previa, donde esto no llega a ejecutarse.
+ *
+ * ═══ EL DESTINO ES UNA URL ABSOLUTA, Y ESO ERA EL BUG (reporte de Jose, 2026-08-26) ═══
+ *
+ * Decía `returnTo: '/'`. El SDK de WorkOS mete ese valor tal cual en el query del endpoint de
+ * logout (`url.searchParams.set("return_to", returnTo)`), y WorkOS no puede redirigir a una
+ * ruta relativa: no sabe de qué host. Cae entonces a la URI configurada en su dashboard, que
+ * es la de Vercel — *"cuando le doy logout a la plataforma, me vuelve a mandar al URL de
+ * Vercel"*, con la captura mostrando `macha-finance.vercel.app`.
+ *
+ * Lo que hace difícil de encontrar este bug es que la causa no está donde se ve el síntoma:
+ * ningún archivo de este repo menciona `vercel.app`, y el destino lo elige WorkOS porque
+ * nosotros no le dijimos ninguno usable.
+ *
+ * El origen sale de `NEXT_PUBLIC_WORKOS_REDIRECT_URI`, que es la MISMA fuente que usa el login
+ * y la única ya registrada en WorkOS. Ver `lib/auth/canonical-origin.ts` para por qué no se
+ * agrega una variable nueva, y para la mitad que el código no puede arreglar.
  */
 export async function signOutAction() {
   cookies().delete(ACTIVE_COMPANY_COOKIE);
-  await signOut({ returnTo: '/' });
+  await signOut({ returnTo: urlCanonica('/') });
 }
