@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -124,9 +124,22 @@ export function InsightPanel({
           va debajo sigue siendo texto neutro: el salvia marca el origen, no el contenido.
         */}
         <p className="flex items-center gap-2 font-mono text-eyebrow uppercase text-faint">
-          <InsightPoint size="sm" state={selloState}>
-            <Sparkles className="h-3 w-3" strokeWidth={1.9} />
-          </InsightPoint>
+          {/*
+            ═══ EL CÍRCULO VA SOLO ACÁ TAMBIÉN (reporte de Jose, 2026-08-26) ═══
+
+            Llevaba un `Sparkles` de 12px adentro. Jose pidió explícitamente que este panel use
+            *"el mismo elemento, el mismo circulito, con la misma animación"* que el asesor —
+            son el mismo componente, así que tener uno con estrellita y el otro sin ella los
+            hacía leer como dos cosas distintas.
+
+            `md` (36px) y no `sm` (24px): sin ícono adentro, el círculo ES la figura. A 24px un
+            disco liso al lado de un rótulo se lee como una viñeta, no como el sello de marca.
+
+            A este tamaño la animación que se ve es la RESPIRACIÓN del glow, no el anillo — el
+            anillo solo se monta en `lg` y `xl` porque a 36px un aro de 2px girando es un
+            borrón. Es la misma decisión medida sobre el mockup, no una omisión acá.
+          */}
+          <InsightPoint size="md" state={selloState} />
           {/* CU-868kt8bg0: "Consejo Financiero Diario", no "IA". El nombre dice lo que el
               usuario recibe, no con qué está hecho. Y sale del diccionario: estaba quemado,
               así que en inglés también decía "IA". */}

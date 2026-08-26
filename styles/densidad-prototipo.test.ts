@@ -240,3 +240,59 @@ describe('el título del panel usa el token de pantalla de producto (CU-868ktknb
     expect(clases).not.toContain('text-h1');
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL INSIGHT POINT DEL ASESOR VA SIN ÍCONO ADENTRO (reporte de Jose, 2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Las dos pantallas del asesor —la bienvenida del chat y el Consejo Financiero Diario— llevaban
+ * un `Sparkles` dentro del círculo. Jose pidió lo contrario, y con un argumento que va más allá
+ * del gusto: *"en vez de ese iconito de la estrellita, utilizar ese circulito"*, *"es como para
+ * volverlo un poco menos AI"*.
+ *
+ * Una estrellita de destello es el cliché visual de "esto lo hizo una IA". El Insight Point es
+ * la marca. Tapar la marca con el cliché era exactamente al revés de lo que el rediseño buscaba
+ * — y como los dos usos comparten componente, tener uno con estrellita y el otro sin ella los
+ * hacía leer como dos cosas distintas.
+ *
+ * El test mira el CÓDIGO FUENTE y no el render porque lo que se protege es la forma de usar el
+ * componente: un `InsightPoint` con hijos en esas dos pantallas es el bug, tenga el ícono que
+ * tenga.
+ */
+describe('el círculo del asesor no lleva ícono adentro', () => {
+  const PANTALLAS_DEL_ASESOR = [
+    join(import.meta.dir, '..', 'components', 'chat', 'chat-welcome.tsx'),
+    join(import.meta.dir, '..', 'components', 'dashboard', 'insight-panel.tsx'),
+    join(import.meta.dir, '..', 'components', 'chat', 'chat-client.tsx'),
+  ];
+
+  test.each(PANTALLAS_DEL_ASESOR)('%s monta el InsightPoint sin hijos', (ruta) => {
+    const fuente = readFileSync(ruta, 'utf8');
+    /*
+     * Se buscan APERTURAS de etiqueta que no auto-cierren: `<InsightPoint ...>` con un `>` que
+     * no venga precedido de `/`. Los comentarios se quitan primero — estos archivos CITAN la
+     * versión vieja para explicar por qué cambió, y esa cita debe permitirse.
+     */
+    const sinComentarios = fuente
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      .replace(/\/\/.*$/gm, '');
+    const conHijos = [...sinComentarios.matchAll(/<InsightPoint[^>]*[^/>]>/g)];
+    expect(conHijos.map((m) => m[0])).toEqual([]);
+  });
+
+  /*
+   * La contraparte: los otros usos del componente —el wizard de registro y el detalle de un
+   * reporte— NO son el asesor y pueden llevar lo que quieran. El test no debe alcanzarlos, y si
+   * alguien lo generaliza a todo el repo, esto lo recuerda.
+   */
+  test('la regla es del ASESOR, no del componente', () => {
+    const fuente = readFileSync(
+      join(import.meta.dir, '..', 'components', 'ui', 'insight-point.tsx'),
+      'utf8',
+    );
+    // El componente sigue aceptando hijos: la restricción es de uso, no de API.
+    expect(fuente).toContain('children');
+  });
+});
