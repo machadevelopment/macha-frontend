@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import { origenCanonico, urlCanonica } from './canonical-origin';
+import { destinoCanonico, origenCanonico, urlCanonica } from './canonical-origin';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -63,5 +63,113 @@ describe('origen canónico', () => {
     process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI = 'https://macha.finance/callback';
     expect(urlCanonica('/settings')).toBe('https://macha.finance/settings');
     expect(urlCanonica('settings')).toBe('https://macha.finance/settings');
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL REDIRECT AL DOMINIO CANÓNICO — los dos modos de fallo son OPUESTOS y los dos son graves
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Los tests de arriba cubren la mitad que se arregló primero: que el destino de salida sea
+ * absoluto. No alcanzó, porque quién obedece ese destino lo decide la lista de redirects de
+ * WorkOS, que es de dashboard y no la vemos. Esto cierra el agujero desde nuestro lado.
+ *
+ * Redirigir DE MENOS deja el bug: el usuario acaba en `macha-finance.vercel.app`, donde no
+ * tiene sesión (Jose lo reportó tres veces).
+ *
+ * Redirigir DE MÁS es peor, y por eso la mitad de estos casos son negativos:
+ *   · redirigir el dominio canónico a sí mismo es un BUCLE INFINITO en la puerta del producto;
+ *   · redirigir las previews de PR mandaría al revisor a producción creyendo que revisa el
+ *     código del PR — la revisión seguiría existiendo y dejaría de servir para algo.
+ */
+describe('destinoCanonico', () => {
+  const original = {
+    env: process.env.VERCEL_ENV,
+    uri: process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI,
+  };
+
+  function entorno(vercelEnv: string | undefined, uri = 'https://macha.finance/callback') {
+    if (vercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = vercelEnv;
+    if (uri === '') delete process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI;
+    else process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI = uri;
+  }
+
+  afterEach(() => {
+    if (original.env === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = original.env;
+    if (original.uri === undefined) delete process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI;
+    else process.env.NEXT_PUBLIC_WORKOS_REDIRECT_URI = original.uri;
+  });
+
+  test('manda el dominio de Vercel al canónico, conservando ruta y query', () => {
+    entorno('production');
+    expect(destinoCanonico('macha-finance.vercel.app', '/dashboard', '?period=30d')).toBe(
+      'https://macha.finance/dashboard?period=30d',
+    );
+  });
+
+  test('también el alias de la rama main, que es el tercero del mismo despliegue', () => {
+    entorno('production');
+    expect(destinoCanonico('macha-finance-git-main-macha6.vercel.app', '/')).toBe(
+      'https://macha.finance/',
+    );
+  });
+
+  test('NO redirige el dominio canónico: eso sería un bucle infinito', () => {
+    entorno('production');
+    expect(destinoCanonico('macha.finance', '/dashboard')).toBeNull();
+  });
+
+  test('tampoco con el host en mayúsculas — lo escribe el cliente, y es el mismo servidor', () => {
+    entorno('production');
+    expect(destinoCanonico('MACHA.Finance', '/dashboard')).toBeNull();
+  });
+
+  test('NO toca las previews de PR: el revisor tiene que ver el código del PR', () => {
+    entorno('preview');
+    expect(destinoCanonico('macha-finance-abc123-macha6.vercel.app', '/dashboard')).toBeNull();
+  });
+
+  test('ni el desarrollo local, donde VERCEL_ENV no existe', () => {
+    entorno(undefined);
+    expect(destinoCanonico('localhost:3000', '/dashboard')).toBeNull();
+  });
+
+  test('sin cabecera Host no inventa un destino', () => {
+    entorno('production');
+    expect(destinoCanonico(null, '/dashboard')).toBeNull();
+  });
+
+  /*
+   * El destino se DERIVA de la variable que ya se le manda a WorkOS. Tener el dominio escrito
+   * en dos lugares es exactamente cómo el login y el logout terminaron apuntando a hosts
+   * distintos.
+   */
+  test('el destino sale de NEXT_PUBLIC_WORKOS_REDIRECT_URI, no de una constante', () => {
+    entorno('production', 'https://app.ejemplo.com/callback');
+    expect(destinoCanonico('macha.finance', '/x')).toBe('https://app.ejemplo.com/x');
+    expect(destinoCanonico('app.ejemplo.com', '/x')).toBeNull();
+  });
+
+  test('con la variable ausente cae al dominio de producción, sin lanzar', () => {
+    entorno('production', '');
+    expect(destinoCanonico('macha-finance.vercel.app', '/')).toBe('https://macha.finance/');
+  });
+
+  /*
+   * Una ruta del usuario NUNCA puede elegir el host de destino. `//evil.com` es relativa al
+   * PROTOCOLO: resuelta contra una base se va a otro dominio. Esto lo encontró el test sobre mi
+   * primera versión, que hacía `new URL(ruta, base)` y convertía al middleware en un redirector
+   * abierto — cualquiera manda un enlace a `macha-finance.vercel.app//evil.com` y el producto
+   * despacha al usuario con su propio 307.
+   */
+  test('una ruta que parece protocol-relative no puede secuestrar el destino', () => {
+    entorno('production');
+    for (const ruta of ['//evil.com/x', '/\\evil.com', 'https://evil.com/x']) {
+      const destino = destinoCanonico('macha-finance.vercel.app', ruta);
+      expect(new URL(destino!).host).toBe('macha.finance');
+    }
   });
 });

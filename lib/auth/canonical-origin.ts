@@ -77,3 +77,73 @@ export function origenCanonico(): string {
 export function urlCanonica(path = '/'): string {
   return new URL(path, `${origenCanonico()}/`).toString();
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL REDIRECT QUE CIERRA LA CLASE ENTERA DE BUGS DE DOMINIO
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Devuelve la URL a la que hay que mandar esta petición para que quede en el dominio canónico,
+ * o `null` si ya está donde debe.
+ *
+ * ═══ QUÉ PROBLEMA RESUELVE, Y POR QUÉ NO BASTABA ARREGLAR EL LOGOUT ═══
+ *
+ * Cuatro dominios responden por este proyecto de Vercel y ninguno era canónico. El
+ * `redirect_uri` que se le manda a WorkOS es un valor FIJO, no derivado del host, así que
+ * entrar por cualquiera de los otros tres deja la sesión escrita en `macha.finance` y al
+ * usuario mirando un dominio donde no la tiene. Lo mismo por el otro lado: WorkOS decide a
+ * dónde devolver tras cerrar sesión, y si su lista no acepta lo que le mandamos, cae a SU
+ * default — que es el de Vercel.
+ *
+ * Ese último paso es el que ningún cambio en este repo puede controlar: los redirects de
+ * WorkOS son de dashboard, no de API. Por eso arreglar `signOut` para que mande una URL
+ * absoluta era necesario pero no suficiente — seguía dependiendo de una lista que no vemos.
+ *
+ * Con esto, no importa: aunque WorkOS mande a alguien al dominio de Vercel, la petición se
+ * redirige al canónico antes de que el proxy de AuthKit siquiera corra. El síntoma que Jose
+ * reportó tres veces (*"me vuelve a mandar al URL de Vercel"*) deja de ser alcanzable.
+ *
+ * ═══ SOLO EN PRODUCCIÓN, Y ESO PROTEGE LAS PREVIEWS ═══
+ *
+ * `VERCEL_ENV` vale `production` únicamente en el despliegue de producción — que es el que
+ * sirve los tres alias a la vez (`macha.finance`, `macha-finance.vercel.app` y el de la rama
+ * `main`). Una preview de PR vale `preview`, y en local no existe.
+ *
+ * Sin esa condición, cada preview se redirigiría a producción y **la revisión por PR dejaría
+ * de existir**: el revisor abriría el enlace de Vercel y aterrizaría en el producto en vivo,
+ * viendo el código viejo y creyendo que vio el nuevo. Eso es peor que el bug que esto arregla.
+ *
+ * ═══ 307 Y NO 308, A PROPÓSITO ═══
+ *
+ * Un 308 es permanente y los navegadores lo cachean sin fecha de vencimiento. El dominio de
+ * este destino sale de una variable de entorno que YA se movió una vez y dejó el login caído
+ * un día entero; si vuelve a moverse, un 308 cacheado seguiría mandando a la gente al dominio
+ * viejo sin forma de limpiarlo de sus máquinas. El 307 preserva el método igual y no se
+ * cachea.
+ */
+export function destinoCanonico(host: string | null, pathname: string, search = ''): string | null {
+  if (process.env.VERCEL_ENV !== 'production') return null;
+  if (!host) return null;
+
+  const canonico = new URL(origenCanonico());
+  // Comparación insensible a mayúsculas: el `Host` lo escribe el cliente y `MACHA.finance`
+  // es el mismo servidor. Sin esto, un host en mayúsculas se redirigiría a sí mismo en bucle.
+  if (host.toLowerCase() === canonico.host.toLowerCase()) return null;
+
+  /*
+   * ⚠️ EL DESTINO SE ARMA POR ASIGNACIÓN, NUNCA RESOLVIENDO LA RUTA CONTRA LA BASE.
+   *
+   * `new URL('//evil.com/x', 'https://macha.finance')` devuelve `https://evil.com/x`: una ruta
+   * que empieza con dos barras es relativa al PROTOCOLO, no al host, así que se lleva el
+   * dominio consigo. Y `pathname` viene de la petición, o sea del atacante — un enlace a
+   * `macha-finance.vercel.app//evil.com` habría convertido a este middleware en un redirector
+   * abierto, con el producto despachando al usuario a otro sitio con su propio 307.
+   *
+   * El setter de `pathname` solo toca el componente de ruta y no puede mover el host
+   * (comprobado: queda `https://macha.finance//evil.com/x`). Hay test de los tres casos.
+   */
+  const destino = new URL(canonico.origin);
+  destino.pathname = pathname;
+  destino.search = search;
+  return destino.toString();
+}
