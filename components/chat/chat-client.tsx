@@ -470,7 +470,12 @@ export function ChatClient({
                 el usuario está mirando después de mandar. */}
             {sending && (
               <div className="flex flex-wrap items-center gap-3">
-                <InsightPoint size="sm" state="thinking" />
+                {/* `md` (36px) y no `sm` (24px): es el tamaño `chip` del HTML de referencia,
+                    el mismo que usa el avatar de cada respuesta. A `sm` el orbe no monta
+                    anillo, y el anillo girando rápido ES la señal de "thinking" — sin él, la
+                    fila de "Pensando…" se quedaba con un punto que respira, indistinguible
+                    del sello quieto de los mensajes de arriba. */}
+                <InsightPoint size="md" state="thinking" />
                 <p className="text-body text-faint">{labels.thinking}</p>
                 {/* CU-868ktmdex. Al lado del rótulo de "está pensando" y no en el composer:
                     es la acción que corresponde a ESE estado, y ahí es donde el usuario ya

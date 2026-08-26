@@ -223,10 +223,39 @@
    * El `mask` no pinta: recorta. Su negro es la parte OPACA del esténcil, no un color que
    * alguien vea, y por eso no sale de la rampa — un token acá sugeriría que se puede cambiar.
    */
+  /*
+   * El NÚCLEO del orbe. Es un token aparte de `--brand-gradient` y la diferencia es la que
+   * hace que se lea como una ESFERA y no como un disco: cuatro paradas en vez de tres, con
+   * la última en `--brand-ink` (#4a5745). Ese salto oscuro del 78 % al borde es la sombra
+   * propia de un cuerpo redondo — sin él, el degradado se apaga y queda una moneda plana.
+   *
+   * `--brand-gradient` NO se toca: lo usan el wizard, la landing y el saludo del dashboard,
+   * donde el punto es un sello y no un orbe. Dos usos, dos tokens.
+   */
+  --insight-core: radial-gradient(
+    circle at 32% 28%,
+    #d4dccf 0%,
+    #a1b09b 45%,
+    #8b9c84 78%,
+    #4a5745 100%
+  );
+  /*
+   * Las dos sombras INTERNAS del núcleo, y el orden importa: primero la oscura abajo (el
+   * cuerpo apoyándose en su propia sombra), después la clara arriba (la luz entrando). Es lo
+   * que termina de despegar la esfera del fondo; el degradado solo no alcanza.
+   */
+  --insight-core-shadow:
+    inset 0 -4px 10px rgb(74 87 69 / 35%), inset 0 3px 7px rgb(255 255 255 / 40%);
+  /*
+   * El brillo que se PASEA por el núcleo. Es la capa que hace que el orbe se sienta vivo
+   * incluso quieto: el halo respira y el anillo gira, pero los dos son movimiento ALREDEDOR;
+   * este es el único que pasa por encima del cuerpo. Se recorta con el `overflow` del núcleo.
+   */
+  --insight-sheen: radial-gradient(circle at 50% 50%, rgb(255 255 255 / 55%) 0%, transparent 60%);
   --insight-ring-mask: radial-gradient(
     farthest-side,
-    transparent calc(100% - 2px),
-    #000 calc(100% - 2px)
+    transparent calc(100% - var(--ip-rim)),
+    #000 calc(100% - var(--ip-rim))
   );
 
   /* Degradado del isotipo, para las barras. Lineal, no radial. */
@@ -400,6 +429,24 @@
     #8b9c84 84%,
     transparent 100%
   );
+  /*
+   * El núcleo en oscuro. Misma forma —cuatro paradas, la última la más oscura— pero corrida
+   * hacia arriba en la rampa: con los valores del tema claro, un orbe cuyo borde es #4a5745
+   * sobre una tarjeta #121212 se recorta como un agujero. La luz alta también sube, porque
+   * un `#d4dccf` sobre fondo oscuro deslumbra donde en claro solo insinúa un reflejo.
+   */
+  --insight-core: radial-gradient(
+    circle at 32% 28%,
+    #c9d4c4 0%,
+    #b4c1af 45%,
+    #8b9c84 78%,
+    #5d6b57 100%
+  );
+  /* La sombra interna oscura sube de alfa y la luz baja: sobre superficie oscura el que tiene
+     que trabajar para dar volumen es el lado en sombra, no el reflejo. */
+  --insight-core-shadow:
+    inset 0 -4px 10px rgb(24 30 22 / 45%), inset 0 3px 7px rgb(255 255 255 / 22%);
+  --insight-sheen: radial-gradient(circle at 50% 50%, rgb(255 255 255 / 30%) 0%, transparent 60%);
 
   /*
    * En oscuro una sombra negra es invisible: el fondo ya es casi negro. Lo que separa una
@@ -768,22 +815,48 @@
  * (`--green`) no aparece acá ni una vez**: la regla de los dos verdes dice que el salvia es
  * identidad y nunca dato, y un anillo girando alrededor del sello del asesor es identidad pura.
  *
- * ═══ LAS MEDIDAS SON PROPORCIONALES A PROPÓSITO ═══
+ * ═══ LA GEOMETRÍA ES LA DEL HTML DE REFERENCIA, PORCENTUAL ═══
  *
- * El mockup usa un contenedor de 220px con `inset` en píxeles. Acá el mismo componente se pinta
- * a 56px (`lg`) y a 80px (`xl`), así que los `inset` van en PORCENTAJE: en píxeles, el anillo
- * calculado para 220px se comería el núcleo a 56px. Solo el grosor del trazo del anillo queda
- * en píxeles — un anillo proporcional se vería grueso en `xl` y desaparecería en `lg`.
+ * ⚠️ REESCRITO el 2026-08-26 contra `asesor_ia_nucleo_integrado.html`, el archivo que Keneth
+ * mandó como fuente de verdad. La versión anterior no era el orbe de ese archivo sino una
+ * aproximación, y le faltaba la pieza que lo define: **el contenedor NO es la esfera.**
+ *
+ * En el HTML, `.orb` es una caja transparente y la esfera es `.orb-core`, metida adentro con
+ * `inset: 9px` sobre 64px — o sea que el cuerpo ocupa el 72 % de la caja y el 28 % restante es
+ * el aire donde viven el anillo y el halo. Acá era al revés: el `<span>` mismo llevaba el
+ * `bg-insight` y el anillo quedaba FUERA (`inset: -14%`), colgado alrededor. De ahí salían las
+ * dos diferencias que se ven en la captura: un cuerpo demasiado grande para su halo, y un
+ * anillo que no abraza nada.
+ *
+ * Las medidas van en PORCENTAJE y no en píxeles porque el mismo componente se pinta a 36px
+ * (avatar de cada respuesta) y a 64px (bienvenida). Traducidas del archivo, que usa las dos
+ * mismas escalas:
+ *
+ *              HTML `hero` (64px)      HTML `chip` (34px)      acá
+ *   glow       inset -14px  (-21,9%)   inset -8px  (-23,5%)    -22%
+ *   ring       inset  1px   (  1,6%)   inset  0px  (   0 %)      1,5%
+ *   core       inset  9px   ( 14,1%)   inset  5px  ( 14,7%)     14%
+ *
+ * Lo único que queda en píxeles es el GROSOR del aro (`--ip-rim`), y por el mismo motivo por el
+ * que todo lo demás no lo está: un trazo proporcional saldría grueso a 64px e invisible a 36px.
+ * El archivo también lo fija en píxeles y también lo baja en el tamaño chico (2px / 1,5px).
  */
 @layer components {
   .ip-anim {
     position: relative;
+    /* Grosor del aro. Lo consume `--insight-ring-mask`, que por eso NO puede ser una
+       constante: el mismo token se resuelve distinto en cada tamaño. */
+    --ip-rim: 2px;
+  }
+  /* El tamaño `chip` del archivo (34px) baja el trazo a 1,5px; el nuestro es `md` (36px). */
+  .ip-chip {
+    --ip-rim: 1.5px;
   }
 
-  /* Respiración. Es la única capa que existe en los cuatro estados. */
+  /* ── Capa 1 · el halo que respira. La única que existe en los cuatro estados. ── */
   .ip-glow {
     position: absolute;
-    inset: -28%;
+    inset: -22%;
     border-radius: 9999px;
     background: var(--insight-pulse);
     animation: ip-breathe 4.5s ease-in-out infinite;
@@ -801,19 +874,23 @@
   }
 
   /*
-   * El anillo: un cónico recortado a un aro de 2px por el `mask` radial. Solo se monta en
-   * `lg` y `xl` — a 24px y 36px se ve como un borrón, no como un anillo, y eso ya se verificó
-   * sobre el mockup.
+   * ── Capa 2 · el anillo ──
+   *
+   * Un cónico recortado a un aro fino por el `mask` radial. Va DENTRO de la caja (inset
+   * positivo), rodeando al núcleo con el aire de por medio: es lo que el archivo hace y lo que
+   * la versión anterior tenía al revés.
    */
   .ip-ring {
     position: absolute;
-    inset: -14%;
+    inset: 1.5%;
     border-radius: 9999px;
     background: var(--insight-ring);
     -webkit-mask: var(--insight-ring-mask);
     mask: var(--insight-ring-mask);
     animation: ip-spin 7s linear infinite;
-    opacity: 0.4;
+    /* 0,75 y no 0,4: es el valor del archivo. Con 0,4 el anillo se insinuaba y la sensación
+       de "esto está vivo" se apoyaba solo en el halo. */
+    opacity: 0.75;
   }
   @keyframes ip-spin {
     to {
@@ -821,12 +898,52 @@
     }
   }
 
+  /*
+   * ── Capa 3 · el núcleo, que es la esfera ──
+   *
+   * `overflow: hidden` NO es defensivo: es lo que recorta el brillo de `::before` al contorno
+   * del cuerpo. Sin él, el brillo se sale del orbe y se ve un manchón blanco cruzando la caja.
+   */
+  .ip-core {
+    position: absolute;
+    inset: 14%;
+    border-radius: 9999px;
+    background: var(--insight-core);
+    box-shadow: var(--insight-core-shadow);
+    overflow: hidden;
+  }
+  /* El brillo que se pasea por encima del cuerpo. Es el movimiento que la captura pedía. */
+  .ip-core::before {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: var(--insight-sheen);
+    animation: ip-sheen 6s ease-in-out infinite;
+  }
+  @keyframes ip-sheen {
+    0%,
+    100% {
+      transform: translate(-18%, -14%) scale(1);
+    }
+    50% {
+      transform: translate(12%, 10%) scale(1.15);
+    }
+  }
+
   /* `listening`: respira más rápido y el núcleo pulsa de escala. */
   .ip-listening > .ip-glow {
     animation-duration: 1.8s;
   }
-  .ip-listening {
-    animation: ip-pulse 1.8s ease-in-out infinite;
+  /*
+   * Pulsa el NÚCLEO, no el contenedor. Escalar el contenedor —que es lo que hacía antes—
+   * arrastra también al anillo y al halo, así que el orbe entero crecía y encogía como un
+   * globo. En el archivo late solo el cuerpo, dentro de un anillo que se queda quieto, y esa
+   * es justamente la diferencia entre "respira" y "rebota".
+   */
+  .ip-listening > .ip-core {
+    animation:
+      ip-sheen 6s ease-in-out infinite,
+      ip-pulse 1.8s ease-in-out infinite;
   }
   @keyframes ip-pulse {
     0%,
@@ -834,44 +951,44 @@
       transform: scale(1);
     }
     50% {
-      transform: scale(1.045);
+      transform: scale(1.05);
     }
   }
 
-  /* `thinking`: el anillo gira más rápido y el glow respira más rápido que en listening. */
+  /* `thinking`: el anillo gira más rápido y a plena opacidad; el halo también acelera. */
   .ip-thinking > .ip-glow {
-    animation-duration: 1.6s;
+    animation-duration: 1.5s;
   }
   .ip-thinking > .ip-ring {
-    animation-duration: 2.2s;
-    opacity: 0.9;
+    animation-duration: 2s;
+    opacity: 1;
   }
 
   /* `speaking`: el ecualizador. Va DEBAJO del núcleo, fuera de su caja. */
   .ip-eq {
     position: absolute;
-    top: calc(100% + 3px);
+    top: calc(100% + 2px);
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: flex-end;
     gap: 2px;
-    height: 10px;
+    height: 11px;
   }
   .ip-eq > span {
     width: 2px;
     border-radius: 1px;
     background: var(--brand-ink);
-    animation: ip-wave 1s ease-in-out infinite;
+    animation: ip-wave 0.9s ease-in-out infinite;
   }
   .ip-eq > span:nth-child(2) {
-    animation-delay: 0.12s;
+    animation-delay: 0.1s;
   }
   .ip-eq > span:nth-child(3) {
-    animation-delay: 0.24s;
+    animation-delay: 0.2s;
   }
   .ip-eq > span:nth-child(4) {
-    animation-delay: 0.36s;
+    animation-delay: 0.3s;
   }
   @keyframes ip-wave {
     0%,
@@ -879,19 +996,25 @@
       height: 3px;
     }
     50% {
-      height: 10px;
+      height: 11px;
     }
   }
 
   /*
-   * Sin movimiento para quien lo pidió. El glow se queda con opacidad fija —el sello sigue
-   * viéndose vivo, no apagado— y el resto no anima ni transforma. Es la misma consideración
-   * que el resto del proyecto ya tiene con `prefers-reduced-motion`.
+   * Sin movimiento para quien lo pidió. El orbe se queda ARMADO —esfera, anillo y halo siguen
+   * ahí— y solo se detiene lo que se mueve: es la diferencia entre respetar la preferencia y
+   * servirle a esa persona un componente distinto del que ve el resto.
+   *
+   * El `::before` del núcleo entra explícitamente: es una capa aparte y `animation: none` sobre
+   * `.ip-core` no la alcanza. Se deja además centrada (`transform: none` la lleva a su `inset`
+   * simétrico), o sea con el reflejo en medio del cuerpo en vez de congelado a un costado.
    */
   @media (prefers-reduced-motion: reduce) {
     .ip-glow,
     .ip-ring,
-    .ip-listening,
+    .ip-core,
+    .ip-core::before,
+    .ip-listening > .ip-core,
     .ip-eq > span {
       animation: none;
       transform: none;

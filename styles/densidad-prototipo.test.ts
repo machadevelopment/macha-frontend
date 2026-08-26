@@ -296,3 +296,96 @@ describe('el círculo del asesor no lleva ícono adentro', () => {
     expect(fuente).toContain('children');
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL ORBE DEL ASESOR, CONTRA `asesor_ia_nucleo_integrado.html` (reporte de Keneth, 2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"pusiste un cuadrado no un círculo"*. Y era literal: el núcleo se pintaba con
+ * `rounded-pill`, que NO vale "la mitad del lado" sino **22px fijos**. A `sm` (24px) y `md`
+ * (36px) el radio excede el medio lado y el navegador lo recorta a círculo, así que el token
+ * pasó semanas pareciendo correcto; el sello de la bienvenida es la única instancia grande y
+ * ahí no lo recorta nada. **Un radio en píxeles no puede describir un círculo en un componente
+ * de cuatro tamaños** — describe uno solo para los tamaños donde el número le gana al lado.
+ *
+ * El segundo hallazgo es el que no se ve en la captura: el orbe tampoco era el del archivo.
+ * Ahí `.orb` es una caja TRANSPARENTE y la esfera es `.orb-core`, metida adentro al 14 %; acá
+ * el `<span>` mismo llevaba el fondo salvia y el anillo colgaba por fuera (`inset: -14%`). De
+ * ahí el cuerpo demasiado grande para su halo y un anillo que no rodeaba nada.
+ *
+ * Se prueba el TEXTO de los archivos, como el resto de este suite: lo que hay que garantizar
+ * es la clase que se emite y la medida que se escribe, no un render.
+ */
+describe('el orbe del asesor conserva la geometría del HTML de referencia', () => {
+  const componente = readFileSync(
+    join(import.meta.dir, '..', 'components', 'ui', 'insight-point.tsx'),
+    'utf8',
+  );
+  const css = readFileSync(join(import.meta.dir, 'globals.css'), 'utf8');
+
+  test('el núcleo es `rounded-full`, nunca `rounded-pill`', () => {
+    const sinComentarios = componente.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(sinComentarios).toContain('rounded-full');
+    // La cita en los comentarios está permitida —explican por qué cambió—, el uso no.
+    expect(sinComentarios).not.toContain('rounded-pill');
+  });
+
+  test('con `state`, la caja NO pinta el fondo: la esfera es `.ip-core`', () => {
+    /*
+     * Si vuelve un `bg-insight` incondicional, queda un disco salvia a tamaño completo por
+     * detrás del núcleo —el orbe apoyado sobre su propia silueta— y desaparece el aire donde
+     * tienen que verse el anillo y el halo. Es exactamente el bug que se corrigió.
+     */
+    expect(componente).toMatch(/!state &&\s*'bg-insight/);
+    expect(componente).toContain('className="ip-core"');
+  });
+
+  /*
+   * Los tres `inset` traducidos del archivo. Van juntos en un test porque son UNA decisión:
+   * el núcleo al 72 % de la caja con el resto de aire alrededor. Cambiar uno solo desarma la
+   * proporción tanto como cambiarlos todos.
+   *
+   *              HTML `hero` (64px)      HTML `chip` (34px)      acá
+   *   glow       inset -14px  (-21,9%)   inset -8px  (-23,5%)    -22%
+   *   ring       inset  1px   (  1,6%)   inset  0px  (   0 %)      1,5%
+   *   core       inset  9px   ( 14,1%)   inset  5px  ( 14,7%)     14%
+   */
+  test('las tres capas conservan sus `inset` porcentuales', () => {
+    expect(css).toMatch(/\.ip-glow\s*\{[^}]*inset:\s*-22%/);
+    expect(css).toMatch(/\.ip-ring\s*\{[^}]*inset:\s*1\.5%/);
+    expect(css).toMatch(/\.ip-core\s*\{[^}]*inset:\s*14%/);
+  });
+
+  test('el núcleo lleva el brillo que se pasea y las sombras internas', () => {
+    /*
+     * Las dos capas que lo hacen leer como ESFERA y no como moneda. El brillo es además el
+     * único movimiento que pasa POR ENCIMA del cuerpo: el halo y el anillo se mueven
+     * alrededor, así que sin él el orbe quieto se ve quieto.
+     */
+    expect(css).toMatch(/\.ip-core::before\s*\{[^}]*var\(--insight-sheen\)/);
+    expect(css).toMatch(/\.ip-core\s*\{[^}]*var\(--insight-core-shadow\)/);
+    // `overflow: hidden` no es defensivo: es lo que recorta el brillo al contorno del cuerpo.
+    expect(css).toMatch(/\.ip-core\s*\{[^}]*overflow:\s*hidden/);
+  });
+
+  test('`listening` late el NÚCLEO, no el contenedor', () => {
+    /*
+     * Escalar el contenedor arrastra al anillo y al halo, y el orbe entero crece y encoge como
+     * un globo. En el archivo late solo el cuerpo dentro de un anillo quieto — la diferencia
+     * entre "respira" y "rebota".
+     */
+    expect(css).toMatch(/\.ip-listening\s*>\s*\.ip-core/);
+    expect(css).not.toMatch(/\.ip-listening\s*\{[^}]*animation:\s*ip-pulse/);
+  });
+
+  test('el grosor del aro es una variable, porque cambia por tamaño', () => {
+    /*
+     * `--insight-ring-mask` consume `--ip-rim`, así que no puede ser una constante: un trazo
+     * fijo sale grueso a 64px e invisible a 36px. El archivo también lo baja en el tamaño
+     * chico (2px → 1,5px).
+     */
+    expect(css).toMatch(/--insight-ring-mask:[\s\S]*?var\(--ip-rim\)/);
+    expect(css).toMatch(/\.ip-chip\s*\{[^}]*--ip-rim:\s*1\.5px/);
+  });
+});

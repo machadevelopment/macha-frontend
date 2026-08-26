@@ -39,15 +39,27 @@ import { cn } from '@/lib/cn';
  * El wizard de registro y la cabecera de un reporte quieren un sello quieto, y un anillo
  * girando ahí sería ruido en una pantalla que no está esperando nada.
  *
- * Los cuatro estados salen del mockup que Jose validó:
+ * ═══ CON `state` NO ES UN DISCO: ES UN ORBE DE TRES CAPAS ═══
  *
- *   · `idle`      — el glow respira despacio. Nada más.
- *   · `listening` — respira más rápido y el núcleo pulsa de escala. El asesor tiene algo que oír.
- *   · `thinking`  — el anillo gira más rápido. Está trabajando.
- *   · `speaking`  — aparece el ecualizador. Está contestando.
+ * Y esa es la diferencia estructural, no un detalle de estilo. Sin `state`, el `<span>` ES el
+ * sello: un disco con el degradado de marca. Con `state`, el `<span>` pasa a ser la CAJA y
+ * adentro se montan tres capas independientes —halo, anillo y núcleo— siguiendo
+ * `asesor_ia_nucleo_integrado.html`, el archivo que Keneth fijó como fuente de verdad:
  *
- * El detalle de cada capa —y por qué el anillo no se monta en los tamaños chicos— está en el
- * bloque `ip-*` de `globals.css`.
+ *   · `.ip-glow` (inset -22 %) — el halo que respira. En los cuatro estados.
+ *   · `.ip-ring` (inset  1,5 %) — el aro cónico girando, recortado por `mask`. Desde `md`.
+ *   · `.ip-core` (inset   14 %) — la ESFERA: degradado de cuatro paradas, dos sombras
+ *     internas y un brillo que se pasea por encima. Es el 72 % de la caja, no el 100 %.
+ *
+ * Los cuatro estados salen de ese mismo archivo:
+ *
+ *   · `idle`      — el halo respira y el brillo se pasea por el cuerpo. Nada más.
+ *   · `listening` — el halo respira más rápido y el NÚCLEO pulsa de escala (el anillo no).
+ *   · `thinking`  — el anillo gira más rápido y a plena opacidad. Está trabajando.
+ *   · `speaking`  — aparece el ecualizador debajo. Está contestando.
+ *
+ * El detalle de cada capa, con la tabla de equivalencias contra los `inset` en píxeles del
+ * archivo, está en el bloque `ip-*` de `globals.css`.
  */
 export function InsightPoint({
   size = 'md',
@@ -76,7 +88,13 @@ export function InsightPoint({
     sm: 'h-6 w-6',
     md: 'h-9 w-9',
     lg: 'h-14 w-14',
-    xl: 'h-20 w-20',
+    /*
+     * 64px, que es el `hero` del HTML de referencia (antes 80px). No es un ajuste de gusto:
+     * con el núcleo al 14 % de inset, una caja de 80px daba una esfera de 57px contra los
+     * 46px del archivo — un cuerpo 25 % más grande dentro del mismo halo. Bajando la caja al
+     * valor del archivo, las tres capas caen donde caen ahí.
+     */
+    xl: 'h-16 w-16',
   }[size];
 
   if (variant === 'ambient') {
@@ -97,10 +115,14 @@ export function InsightPoint({
   }
 
   /*
-   * El anillo solo en `lg` y `xl`. A 24px y 36px un aro de 2px girando se lee como un borrón
-   * alrededor del sello, no como un anillo — verificado sobre el mockup.
+   * El anillo, a partir de `md`. El HTML de referencia lo monta en sus DOS tamaños —el `hero`
+   * de 64px y el `chip` de 34px—, así que la versión anterior ("solo en `lg` y `xl`, a 36px se
+   * lee como un borrón") describía una caja que no era esta: ahí el aro rodeaba al `<span>`
+   * entero desde afuera. Ahora rodea al núcleo, que ocupa el 72 % de la caja, y con el trazo
+   * bajado a 1,5px se lee como anillo igual que en el archivo. Se excluye `sm` (24px), que es
+   * más chico que cualquier tamaño del archivo y ahí sí sería un borrón.
    */
-  const conAnillo = state !== undefined && (size === 'lg' || size === 'xl');
+  const conAnillo = state !== undefined && size !== 'sm';
 
   return (
     <span
@@ -108,11 +130,38 @@ export function InsightPoint({
       aria-label={label}
       aria-hidden={label ? undefined : true}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-pill bg-insight text-[var(--brand-on)]',
+        // ⚠️ `rounded-full`, NUNCA `rounded-pill`. Es la excepción deliberada a "los radios
+        // salen de la escala del sistema", y la escribió un bug en producción (reporte de
+        // Keneth 2026-08-26: *"pusiste un cuadrado no un círculo"*). `rounded-pill` vale
+        // **22px fijos**, no "la mitad": a `sm` (24px) y `md` (36px) el radio excede el medio
+        // lado y el navegador lo recorta a círculo, así que durante semanas el token pareció
+        // correcto. A `xl` (80px) no lo recorta nada y el sello del asesor salió cuadrado con
+        // las esquinas romas — en la pantalla de bienvenida del chat, donde el círculo ES la
+        // figura. Un radio en píxeles NO puede describir un círculo: describe un círculo
+        // solo para los tamaños donde el número le gana al lado, y este componente tiene
+        // cuatro tamaños. `rounded-full` (9999px) es correcto en los cuatro por construcción,
+        // que es exactamente lo que ya hacen `.ip-glow` y `.ip-ring` unas líneas más abajo en
+        // `globals.css` — las capas ya eran redondas y solo el núcleo no.
+        'inline-flex shrink-0 items-center justify-center rounded-full',
+        /*
+         * ⚠️ EL FONDO SOLO EXISTE SIN `state`, y es el cambio que trajo el orbe del HTML.
+         *
+         * Con `state`, el `<span>` deja de ser la esfera y pasa a ser la CAJA del orbe: la
+         * esfera es `.ip-core`, metida adentro al 14 %. Si además se pintara `bg-insight` acá,
+         * quedaría un disco salvia a tamaño completo por detrás del núcleo — o sea el orbe
+         * apoyado sobre su propia silueta, tapando el aire donde tienen que verse el anillo y
+         * el halo. Es exactamente lo que hacía antes, y por eso el cuerpo se veía demasiado
+         * grande para su halo.
+         *
+         * Sin `state` no cambia nada: sello plano, como el wizard y la landing lo usan.
+         */
+        !state && 'bg-insight text-[var(--brand-on)]',
         dims,
-        // `ip-anim` da el `position: relative` que las capas necesitan. Sin `state` no se
-        // agrega ninguna clase, así que el elemento sale idéntico al de antes.
+        // `ip-anim` da el `position: relative` que las capas necesitan y fija `--ip-rim`.
+        // Sin `state` no se agrega ninguna clase, así que el elemento sale idéntico al de antes.
         state && 'ip-anim',
+        // El trazo fino del archivo para el tamaño `chip`. Nuestro `md` (36px) es su 34px.
+        state && (size === 'sm' || size === 'md') && 'ip-chip',
         state === 'listening' && 'ip-listening',
         state === 'thinking' && 'ip-thinking',
         className,
@@ -124,6 +173,12 @@ export function InsightPoint({
       */}
       {state ? <span aria-hidden className="ip-glow" /> : null}
       {conAnillo ? <span aria-hidden className="ip-ring" /> : null}
+      {/*
+        La esfera. Va DESPUÉS del anillo en el DOM y eso no es casual: sin `z-index` de por
+        medio, el orden de pintado es el orden del documento, y el núcleo tiene que quedar
+        por encima del cónico para que el aro se vea rodeándolo y no cruzándolo.
+      */}
+      {state ? <span aria-hidden className="ip-core" /> : null}
       {state === 'speaking' ? (
         <span aria-hidden className="ip-eq">
           <span />
