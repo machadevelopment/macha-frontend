@@ -28,6 +28,7 @@ export const es: Dictionary = {
     routeError: {
       title: 'No pudimos mostrar esta pantalla',
       unavailable: 'El servicio no está respondiendo. Suele ser pasajero: vuelve a intentar.',
+      expired: 'Tu sesión venció. Vuelve a iniciar sesión para continuar.',
       denied: 'No tienes acceso a esta sección.',
       retry: 'Reintentar',
       home: 'Ir al inicio',

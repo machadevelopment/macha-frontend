@@ -28,6 +28,7 @@ export const en: Dictionary = {
     routeError: {
       title: "We couldn't load this screen",
       unavailable: "The service isn't responding. This is usually temporary — please retry.",
+      expired: 'Your session expired. Sign in again to continue.',
       denied: "You don't have access to this section.",
       retry: 'Retry',
       home: 'Go to home',

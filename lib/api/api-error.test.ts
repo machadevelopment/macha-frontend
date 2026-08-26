@@ -39,8 +39,34 @@ describe('classifyApiFailure', () => {
     expect(classifyApiFailure(value)).toBe('unavailable');
   });
 
-  test('401 no es `denied`: la sesión venció y la salida es volver a entrar, no un aviso de permisos', () => {
-    expect(classifyApiFailure(new ApiError(401, 'GET /x -> 401'))).toBe('unavailable');
+  /**
+   * Este test decía `toBe('unavailable')`, y su propio nombre explicaba por qué eso estaba mal:
+   * *"la sesión venció y la salida es volver a entrar"*. Documentaba una LIMITACIÓN —no había
+   * un tercer valor que dijera eso— y no un requisito.
+   *
+   * La limitación tuvo costo medible: `unavailable` se pinta como "El servicio no está
+   * respondiendo", así que un 401 le decía al usuario que el backend estaba caído. El
+   * 2026-08-26 eso mandó a buscar una caída de WorkOS durante cerca de una hora mientras el
+   * problema real era el pool de Postgres agotado. El mensaje que el usuario ve es la primera
+   * pista de quien va a depurar.
+   */
+  test('401 es `expired`: la sesión venció, y ni reintentar ni un aviso de permisos aplican', () => {
+    expect(classifyApiFailure(new ApiError(401, 'GET /x -> 401'))).toBe('expired');
+  });
+
+  test('un 5xx sí es `unavailable`: ahí el servicio de verdad no respondió', () => {
+    for (const status of [500, 502, 503, 504]) {
+      expect(classifyApiFailure(new ApiError(status, `GET /x -> ${status}`))).toBe('unavailable');
+    }
+  });
+
+  /**
+   * La separación tiene que ser total: si dos causas con acciones distintas comparten
+   * etiqueta, la pantalla ofrece el botón equivocado. Reintentar no arregla un 401 ni un 403.
+   */
+  test('los tres casos son distintos entre sí', () => {
+    const kinds = [401, 403, 503].map((s) => classifyApiFailure(new ApiError(s, 'x')));
+    expect(new Set(kinds).size).toBe(3);
   });
 });
 

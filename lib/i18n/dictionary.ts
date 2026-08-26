@@ -58,6 +58,15 @@ export interface Dictionary {
        */
       unavailable: string;
       /**
+       * La sesión venció (401). Reintentar NO sirve; la salida es volver a entrar.
+       *
+       * Existe como caso propio por una razón medida: antes un 401 se pintaba con
+       * `unavailable` —"el servicio no está respondiendo"— y eso mandó a buscar una caída de
+       * backend donde había una sesión vencida. El 2026-08-26 costó cerca de una hora de
+       * diagnóstico. Ver `classifyApiFailure` en `lib/api/api-error.ts`.
+       */
+      expired: string;
+      /**
        * El backend contestó que no (403). Reintentar NO sirve — repetir el intento da el
        * mismo 403 —, así que el texto no lo sugiere.
        */

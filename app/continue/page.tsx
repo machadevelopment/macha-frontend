@@ -175,14 +175,20 @@ function SessionUnavailable({
 }: {
   t: Dictionary;
   locale: Locale;
-  kind: 'unavailable' | 'denied';
+  kind: 'unavailable' | 'denied' | 'expired';
 }) {
   return (
     <PublicScreen locale={locale}>
       <ShowcaseHeading
         eyebrow={t.home.eyebrow}
         title={t.common.routeError.title}
-        subtitle={kind === 'denied' ? t.common.routeError.denied : t.common.routeError.unavailable}
+        subtitle={
+          kind === 'denied'
+            ? t.common.routeError.denied
+            : kind === 'expired'
+              ? t.common.routeError.expired
+              : t.common.routeError.unavailable
+        }
       />
 
       <div className="flex flex-wrap items-center justify-center gap-3">
@@ -191,15 +197,22 @@ function SessionUnavailable({
             Component, sin JS de por medio que también pueda fallar.
 
             Reintentar es la acción principal (tinta) y cerrar sesión la secundaria: en el
-            caso normal —Railway pasajero— la primera es la que sirve. Con un 403 solo queda
-            la segunda, y ahí es la única que se pinta. */}
-        {kind !== 'denied' && (
+            caso normal —Railway pasajero— la primera es la que sirve.
+
+            `expired` (401) se comporta como `denied` y NO como `unavailable`, y esa es la
+            razón de que exista como caso aparte: reintentar no puede arreglar una sesión
+            vencida. Ofrecer un botón que no puede funcionar hace que la persona lo apriete
+            tres veces antes de encontrar la salida que sí sirve, que es volver a entrar. */}
+        {kind === 'unavailable' && (
           <a href="/continue" className={showcaseCta}>
             {t.common.routeError.retry}
           </a>
         )}
         <form action={signOutAction}>
-          <button type="submit" className={kind === 'denied' ? showcaseCta : showcaseCtaSecondary}>
+          <button
+            type="submit"
+            className={kind === 'unavailable' ? showcaseCtaSecondary : showcaseCta}
+          >
             {t.common.signOut}
           </button>
         </form>
