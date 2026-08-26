@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -53,6 +53,40 @@ interface ReportRow {
 }
 
 const PAGE_SIZE = 50;
+/** Techo que el backend aplica a `limit` (CU-868kh913c). */
+const MAX_PAGE = 200;
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * POLLING CONDICIONAL: SOLO MIENTRAS HAYA UN REPORTE GENERÁNDOSE
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Jose reportó que un reporte recién pedido se queda en "generando" hasta refrescar la pantalla
+ * o salir del módulo y volver. La parte visual ya estaba completa —esta tabla pinta los tres
+ * estados con su badge— pero nada volvía a pedir la lista.
+ *
+ * `reports-screen.tsx` documentaba por qué no había polling, y el argumento era bueno: *"un
+ * `setInterval` contra el historial gastaría requests de todos los usuarios que dejen la
+ * pestaña abierta para cubrir el caso de uno que está esperando."*
+ *
+ * Eso descarta un polling INCONDICIONAL, no este. El intervalo solo existe mientras alguna fila
+ * visible está en `generating`, y se apaga solo en cuanto no queda ninguna: un usuario con la
+ * pestaña abierta sobre reportes ya terminados no gasta ni una petición. El caso que se cubre
+ * dura lo que dura una generación.
+ *
+ * Es el MISMO mecanismo que `document-list.tsx` ya usa para las cargas en vuelo, con el mismo
+ * intervalo y las mismas dos precauciones que ahí costaron un arreglo:
+ *
+ *   · se refresca con `replace`, no con `reload`: `reload` vuelve al estado de carga y perdería
+ *     las páginas que el usuario ya trajo con "cargar más";
+ *   · la dependencia del efecto es un BOOLEANO derivado y no el array de filas — con el array,
+ *     cada respuesta del poll crea una identidad nueva y el intervalo se destruye y se recrea
+ *     en cada vuelta.
+ *
+ * Y si el poll falla no se toca nada: un refresco caído no debe vaciar la tabla ni avisarle al
+ * usuario cada cuatro segundos de algo que no tiene que atender.
+ */
+const POLL_MS = 4000;
 
 export function ReportList({
   locale,
@@ -70,7 +104,7 @@ export function ReportList({
   // CU-868kkgb3c: el `load` de antes no miraba `res.ok` ni tenía `.catch`, así que un
   // backend caído dejaba la lista en `null` — que esta pantalla renderizaba igual que
   // "todavía no tienes reportes".
-  const { state, loadMore, loadingMore, moreError, reload } = usePagedList<ReportRow>(
+  const { state, loadMore, loadingMore, moreError, reload, replace } = usePagedList<ReportRow>(
     useCallback(async (offset) => {
       const result = await request<{ reports: ReportRow[]; hasMore: boolean }>(
         `/api/reports?limit=${PAGE_SIZE}&offset=${offset}`,
@@ -80,6 +114,29 @@ export function ReportList({
         : result;
     }, []),
   );
+
+  const shown = state.status === 'ready' ? state.items.length : 0;
+
+  const refresh = useCallback(() => {
+    const limit = Math.min(Math.max(shown, PAGE_SIZE), MAX_PAGE);
+    void request<{ reports: ReportRow[]; hasMore: boolean }>(
+      `/api/reports?limit=${limit}&offset=0`,
+    ).then((result) => {
+      if (result.ok) replace(result.data.reports, result.data.hasMore);
+    });
+  }, [shown, replace]);
+
+  /*
+   * `status === 'generating'` y no "le falta `ready`": esa ausencia significaba a la vez
+   * "generándose" y "falló", y sondear a un reporte fallido sería sondear para siempre.
+   */
+  const generando = state.status === 'ready' && state.items.some((r) => r.status === 'generating');
+
+  useEffect(() => {
+    if (!generando) return;
+    const id = setInterval(refresh, POLL_MS);
+    return () => clearInterval(id);
+  }, [generando, refresh]);
 
   if (state.status === 'loading') {
     return <p className="text-body text-muted-foreground">{common.loading}</p>;

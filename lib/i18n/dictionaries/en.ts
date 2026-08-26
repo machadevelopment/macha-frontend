@@ -355,6 +355,7 @@ export const en: Dictionary = {
       chat: 'AI advisor',
       credits: 'Credits',
       members: 'Team',
+      settings: 'Settings',
     },
     adminNav: {
       companies: 'Companies',
@@ -933,6 +934,26 @@ export const en: Dictionary = {
       seeAll: 'See the full history',
     },
   },
+  settings: {
+    title: 'Settings',
+    subtitle: "Your company's configuration in Macha.",
+    fx: {
+      title: 'Exchange rate',
+      subtitle: 'The rate used to convert what you upload in {quote} into {base}.',
+      current: 'Current',
+      since: 'since {date}',
+      none: 'No rate on file: anything you upload in another currency stays pending review.',
+      notRetroactive:
+        'Changing the rate does not alter what you already uploaded: every movement stores the rate it came in with. The new rate applies from here on.',
+      rateLabel: 'How many {base} per 1 {quote}',
+      dateLabel: 'Effective from',
+      save: 'Save rate',
+      saved: 'Rate saved.',
+      invalid: 'The rate must be a number greater than 0.',
+      readOnly: 'Only the owner and administrators can change the rate.',
+      history: 'Previous rates',
+    },
+  },
   chat: {
     eyebrow: 'CFO ASSISTANT',
     title: 'Chat',
@@ -952,6 +973,7 @@ export const en: Dictionary = {
       subtitle:
         'Ask in your own words. I answer from the data you already uploaded, never from estimates.',
       quickLabel: 'To get you started',
+      listeningLabel: 'Listening…',
       q1: 'How is my cash flow this month?',
       q2: 'Which product gives me the best margin?',
       q3: 'What did I spend more on than last month?',
@@ -1130,6 +1152,7 @@ export const en: Dictionary = {
     subtitle: 'Fill this in to activate your account and subscribe to the plan.',
     name: 'Company name',
     industry: 'Industry',
+    industryPlaceholder: 'Choose your industry',
     baseCurrency: 'Base currency',
     locale: 'Language',
     planEyebrow: 'YOUR PLAN',

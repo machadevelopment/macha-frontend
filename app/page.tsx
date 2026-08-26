@@ -147,7 +147,8 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
           formulario de demo reemplaza al CTA con mailto (Jose 2026-08-21).
         */}
         <main>
-          <Banda id="inicio">
+          {/* El hero arranca más pegado al nav: ver `paddingSuperior` en `banda.tsx`. */}
+          <Banda id="inicio" paddingSuperior="pt-8 md:pt-12 lg:pt-16">
             <LandingHero labels={t.landing} />
           </Banda>
 

@@ -189,6 +189,37 @@
     rgb(161 176 155 / 12%) 45%,
     rgb(161 176 155 / 0%) 100%
   );
+  /*
+   * Capas del Insight Point ANIMADO (rediseño del Asesor IA validado por Jose).
+   *
+   * Van acá y no en el bloque de componentes por la misma razón que `--brand-gradient`: son
+   * degradados de MARCA, y el test de `chart-surface` prohíbe hex a partir de `.macha-chart`
+   * justamente para que ningún color viva suelto en las reglas. Definidos como token, el color
+   * sigue teniendo un solo dueño.
+   *
+   * El salvia no cambia de tono entre temas (ver `--brand-on`), así que no llevan contraparte
+   * oscura — igual que los otros dos degradados de marca.
+   */
+  --insight-pulse: radial-gradient(circle, rgb(139 156 132 / 38%) 0%, transparent 68%);
+  --insight-ring: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    #8b9c84 18%,
+    transparent 34%,
+    transparent 66%,
+    #4a5745 84%,
+    transparent 100%
+  );
+  /*
+   * El `mask` no pinta: recorta. Su negro es la parte OPACA del esténcil, no un color que
+   * alguien vea, y por eso no sale de la rampa — un token acá sugeriría que se puede cambiar.
+   */
+  --insight-ring-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2px),
+    #000 calc(100% - 2px)
+  );
+
   /* Degradado del isotipo, para las barras. Lineal, no radial. */
   --brand-bar: linear-gradient(180deg, #f4f4f2 0%, #a1b09b 100%);
   --brand-bar-inverse: linear-gradient(180deg, #a1b09b 0%, #f4f4f2 100%);
@@ -687,5 +718,163 @@
   .macha-chart .recharts-legend-wrapper {
     color: var(--muted-foreground);
     font-size: 11px;
+  }
+}
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * INSIGHT POINT CON PERSONALIDAD (rediseño del Asesor IA validado por Jose)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * El Insight Point era completamente estático. Este bloque le da los cuatro estados del
+ * mockup: respira, gira, pulsa y habla.
+ *
+ * ═══ POR QUÉ VIVE ACÁ Y NO EN TAILWIND ═══
+ *
+ * Tres de las cuatro capas no se pueden expresar con utilidades: `@keyframes`, `conic-gradient`
+ * y el `mask` radial que convierte ese cónico en un anillo fino. Es el mismo motivo por el que
+ * el estilo de los charts vive en `.macha-chart` y no en props — cuando el mecanismo es la
+ * cascada, el código va en el CSS.
+ *
+ * ═══ TODO SALE DE LA RAMPA DE MARCA, Y NI UN COLOR NUEVO ═══
+ *
+ * `--brand`, `--brand-strong` y `--brand-ink`, que ya existían. **El verde funcional
+ * (`--green`) no aparece acá ni una vez**: la regla de los dos verdes dice que el salvia es
+ * identidad y nunca dato, y un anillo girando alrededor del sello del asesor es identidad pura.
+ *
+ * ═══ LAS MEDIDAS SON PROPORCIONALES A PROPÓSITO ═══
+ *
+ * El mockup usa un contenedor de 220px con `inset` en píxeles. Acá el mismo componente se pinta
+ * a 56px (`lg`) y a 80px (`xl`), así que los `inset` van en PORCENTAJE: en píxeles, el anillo
+ * calculado para 220px se comería el núcleo a 56px. Solo el grosor del trazo del anillo queda
+ * en píxeles — un anillo proporcional se vería grueso en `xl` y desaparecería en `lg`.
+ */
+@layer components {
+  .ip-anim {
+    position: relative;
+  }
+
+  /* Respiración. Es la única capa que existe en los cuatro estados. */
+  .ip-glow {
+    position: absolute;
+    inset: -28%;
+    border-radius: 9999px;
+    background: var(--insight-pulse);
+    animation: ip-breathe 4.5s ease-in-out infinite;
+  }
+  @keyframes ip-breathe {
+    0%,
+    100% {
+      transform: scale(0.88);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+  }
+
+  /*
+   * El anillo: un cónico recortado a un aro de 2px por el `mask` radial. Solo se monta en
+   * `lg` y `xl` — a 24px y 36px se ve como un borrón, no como un anillo, y eso ya se verificó
+   * sobre el mockup.
+   */
+  .ip-ring {
+    position: absolute;
+    inset: -14%;
+    border-radius: 9999px;
+    background: var(--insight-ring);
+    -webkit-mask: var(--insight-ring-mask);
+    mask: var(--insight-ring-mask);
+    animation: ip-spin 7s linear infinite;
+    opacity: 0.4;
+  }
+  @keyframes ip-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* `listening`: respira más rápido y el núcleo pulsa de escala. */
+  .ip-listening > .ip-glow {
+    animation-duration: 1.8s;
+  }
+  .ip-listening {
+    animation: ip-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes ip-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.045);
+    }
+  }
+
+  /* `thinking`: el anillo gira más rápido y el glow respira más rápido que en listening. */
+  .ip-thinking > .ip-glow {
+    animation-duration: 1.6s;
+  }
+  .ip-thinking > .ip-ring {
+    animation-duration: 2.2s;
+    opacity: 0.9;
+  }
+
+  /* `speaking`: el ecualizador. Va DEBAJO del núcleo, fuera de su caja. */
+  .ip-eq {
+    position: absolute;
+    top: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 10px;
+  }
+  .ip-eq > span {
+    width: 2px;
+    border-radius: 1px;
+    background: var(--brand-ink);
+    animation: ip-wave 1s ease-in-out infinite;
+  }
+  .ip-eq > span:nth-child(2) {
+    animation-delay: 0.12s;
+  }
+  .ip-eq > span:nth-child(3) {
+    animation-delay: 0.24s;
+  }
+  .ip-eq > span:nth-child(4) {
+    animation-delay: 0.36s;
+  }
+  @keyframes ip-wave {
+    0%,
+    100% {
+      height: 3px;
+    }
+    50% {
+      height: 10px;
+    }
+  }
+
+  /*
+   * Sin movimiento para quien lo pidió. El glow se queda con opacidad fija —el sello sigue
+   * viéndose vivo, no apagado— y el resto no anima ni transforma. Es la misma consideración
+   * que el resto del proyecto ya tiene con `prefers-reduced-motion`.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .ip-glow,
+    .ip-ring,
+    .ip-listening,
+    .ip-eq > span {
+      animation: none;
+      transform: none;
+    }
+    .ip-glow {
+      opacity: 0.7;
+    }
+    .ip-eq > span {
+      height: 6px;
+    }
   }
 }
