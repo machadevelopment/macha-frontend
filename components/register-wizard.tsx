@@ -12,6 +12,7 @@ import { Field } from '@/components/ui/field';
 import { InsightPoint } from '@/components/ui/insight-point';
 import { Label } from '@/components/ui/label';
 import { formatMoney, formatNumber } from '@/lib/format';
+import { nombreDeIndustria } from '@/lib/industries';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
 import type { RegisterPlan, RegisterRequest, RegisterResponse } from '@/lib/api/billing';
@@ -50,8 +51,22 @@ export function RegisterWizard({
   });
   const [planes, setPlanes] = useState<RegisterPlan[] | null>(null);
   const [planesError, setPlanesError] = useState(false);
+  /**
+   * Las industrias que el producto reconoce (lista de Jose, 2026-08-25).
+   *
+   * Se PIDEN al backend, que es su dueño: los rótulos los traduce `nombreDeIndustria` de este
+   * repo. Si la petición falla queda `null` y el campo cae a texto libre, que es el
+   * comportamiento de siempre — un desplegable vacío dejaría a un cliente sin poder registrarse.
+   */
+  const [industrias, setIndustrias] = useState<string[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void request<{ industries: string[] }>('/api/industries').then((r) => {
+      if (r.ok && r.data.industries.length > 0) setIndustrias(r.data.industries);
+    });
+  }, []);
 
   useEffect(() => {
     void request<RegisterPlan[]>('/api/register/plans').then((r) => {
@@ -247,13 +262,49 @@ export function RegisterWizard({
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
-        <Field
-          id="industry"
-          label={labels.industry}
-          required
-          value={form.industry}
-          onChange={(e) => setForm({ ...form, industry: e.target.value })}
-        />
+        {/*
+          ═══ LA INDUSTRIA ES UN DESPLEGABLE, NO TEXTO LIBRE ═══
+
+          Era texto libre, y por eso `companies.industry` en producción tiene valores escritos a
+          mano que ninguna plantilla puede resolver: todo cliente nuevo recibía la genérica. Con
+          la lista de Jose, el sistema puede ofrecerle la plantilla de Excel de su rubro.
+
+          El fallback a texto libre NO es pereza: si la petición de la lista falla, un
+          desplegable vacío dejaría a alguien sin poder terminar de registrarse. Escribir su
+          rubro a mano es peor que elegirlo y muchísimo mejor que no poder seguir.
+        */}
+        {industrias ? (
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="industry">
+              {labels.industry}
+              <span aria-hidden className="ml-0.5 text-danger">
+                *
+              </span>
+            </Label>
+            <Select
+              id="industry"
+              required
+              value={form.industry}
+              onChange={(e) => setForm({ ...form, industry: e.target.value })}
+            >
+              {/* Sin preselección: elegir por el cliente su rubro es elegir su plantilla. */}
+              <option value="">{labels.industryPlaceholder}</option>
+              {industrias.map((slug) => (
+                <option key={slug} value={slug}>
+                  {nombreDeIndustria(slug, locale)}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : (
+          <Field
+            id="industry"
+            label={labels.industry}
+            required
+            value={form.industry}
+            onChange={(e) => setForm({ ...form, industry: e.target.value })}
+          />
+        )}
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="baseCurrency">{labels.baseCurrency}</Label>

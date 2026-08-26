@@ -100,6 +100,7 @@ export function appNav(t: Dictionary['shell']): NavSection[] {
         // CU-868kh8pwv: el equipo deja de gestionarse escribiéndole a Macha.
         { href: '/members', icon: Users, label: t.nav.members },
         { href: '/credits', icon: CreditCard, label: t.nav.credits },
+        { href: '/settings', icon: Settings, label: t.nav.settings },
       ],
     },
   ];

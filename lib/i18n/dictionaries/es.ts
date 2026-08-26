@@ -406,6 +406,7 @@ export const es: Dictionary = {
       chat: 'Asesor IA',
       credits: 'Créditos',
       members: 'Equipo',
+      settings: 'Ajustes',
     },
     adminNav: {
       companies: 'Empresas',
@@ -1031,6 +1032,26 @@ export const es: Dictionary = {
       seeAll: 'Ver el histórico completo',
     },
   },
+  settings: {
+    title: 'Ajustes',
+    subtitle: 'La configuración de tu empresa en Macha.',
+    fx: {
+      title: 'Tipo de cambio',
+      subtitle: 'La tasa con la que se convierte a {base} lo que cargas en {quote}.',
+      current: 'Vigente',
+      since: 'desde el {date}',
+      none: 'Sin tasa registrada: lo que subas en otra moneda queda pendiente de revisión.',
+      notRetroactive:
+        'Cambiar la tasa no modifica lo que ya cargaste: cada movimiento guarda la tasa con la que entró. La tasa nueva aplica de aquí en adelante.',
+      rateLabel: 'Cuántos {base} por 1 {quote}',
+      dateLabel: 'Vigente desde',
+      save: 'Guardar tasa',
+      saved: 'Tasa guardada.',
+      invalid: 'La tasa tiene que ser un número mayor que 0.',
+      readOnly: 'Solo el dueño y los administradores pueden cambiar la tasa.',
+      history: 'Tasas anteriores',
+    },
+  },
   chat: {
     eyebrow: 'ASISTENTE CFO',
     title: 'Chat',
@@ -1235,6 +1256,7 @@ export const es: Dictionary = {
     subtitle: 'Completa estos datos para activar tu cuenta y contratar el plan.',
     name: 'Nombre de tu negocio',
     industry: 'Industria',
+    industryPlaceholder: 'Elige tu industria',
     baseCurrency: 'Moneda base',
     locale: 'Idioma',
     planEyebrow: 'TU PLAN',

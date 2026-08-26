@@ -428,6 +428,7 @@ export interface Dictionary {
       chat: string;
       credits: string;
       members: string;
+      settings: string;
     };
     /** Ítems del backoffice — antes hardcodeados en español en components/admin/admin-nav.tsx. */
     adminNav: {
@@ -894,6 +895,30 @@ export interface Dictionary {
       seeAll: string;
     };
   };
+  /**
+   * Ajustes de la empresa. Nace con el tipo de cambio, que era lo que tenía este ticket
+   * bloqueado hasta que Jose cerró quién lo mantiene (2026-08-25).
+   */
+  settings: {
+    title: string;
+    subtitle: string;
+    fx: {
+      title: string;
+      subtitle: string;
+      current: string;
+      since: string;
+      none: string;
+      /** Lo PRIMERO que dice la pantalla, y va ARRIBA del campo, no debajo del botón. */
+      notRetroactive: string;
+      rateLabel: string;
+      dateLabel: string;
+      save: string;
+      saved: string;
+      invalid: string;
+      readOnly: string;
+      history: string;
+    };
+  };
   chat: {
     eyebrow: string;
     title: string;
@@ -1160,6 +1185,8 @@ export interface Dictionary {
     subtitle: string;
     name: string;
     industry: string;
+    /** Opción vacía del desplegable: elegir el rubro es elegir la plantilla de Excel. */
+    industryPlaceholder: string;
     baseCurrency: string;
     locale: string;
     /**
