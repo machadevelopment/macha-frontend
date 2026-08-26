@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +52,48 @@ export function InsightPanel({
     | { status: 'done'; insights: InsightResponse['insights']; narrative: string }
   >({ status: 'idle' });
 
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   * EL SELLO REFLEJA EL MISMO ESTADO QUE YA GOBIERNA EL BOTÓN
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ `state` (arriba) y el prop `state` del `InsightPoint` son DOS COSAS DISTINTAS con el
+   * mismo nombre: el de arriba es la máquina de este panel (`idle | loading | error | done`) y
+   * el del componente es qué está haciendo el sello (`idle | listening | thinking | speaking`).
+   * Se mapean a propósito, no se pasan de largo.
+   *
+   *   · `loading` → `thinking`  (mientras el botón está deshabilitado)
+   *   · `done`    → `speaking`, pero solo un rato: ver `acabaDeContestar`
+   *   · `error`   → sin animación. Inventarle un estado de error al sello sería decorar un
+   *     fallo; lo que el usuario necesita ahí es el mensaje, que ya está.
+   *
+   * ═══ POR QUÉ `speaking` NO SE QUEDA ═══
+   *
+   * Este panel vive en el rail del Dashboard y se queda MONTADO toda la sesión. Dejar el
+   * ecualizador animando después de generar el consejo sería una animación corriendo para
+   * siempre en una pantalla que el usuario deja abierta — el mismo cuidado que el hilo del
+   * chat, por el mismo motivo.
+   */
+  const [acabaDeContestar, setAcabaDeContestar] = useState(false);
+
+  useEffect(() => {
+    if (state.status !== 'done') return;
+    setAcabaDeContestar(true);
+    const t = setTimeout(() => setAcabaDeContestar(false), 2000);
+    return () => clearTimeout(t);
+  }, [state.status]);
+
+  const selloState =
+    state.status === 'loading'
+      ? ('thinking' as const)
+      : state.status === 'done'
+        ? acabaDeContestar
+          ? ('speaking' as const)
+          : ('idle' as const)
+        : state.status === 'idle'
+          ? ('idle' as const)
+          : undefined;
+
   async function generate() {
     setState({ status: 'loading' });
 
@@ -82,7 +124,7 @@ export function InsightPanel({
           va debajo sigue siendo texto neutro: el salvia marca el origen, no el contenido.
         */}
         <p className="flex items-center gap-2 font-mono text-eyebrow uppercase text-faint">
-          <InsightPoint size="sm">
+          <InsightPoint size="sm" state={selloState}>
             <Sparkles className="h-3 w-3" strokeWidth={1.9} />
           </InsightPoint>
           {/* CU-868kt8bg0: "Consejo Financiero Diario", no "IA". El nombre dice lo que el

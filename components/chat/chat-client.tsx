@@ -3,7 +3,8 @@
 import { comportamientoDeScroll, estaPegadoAlFondo } from '@/lib/chat/auto-scroll';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { MessagesSquare, Plus } from 'lucide-react';
+import { ArrowUp, MessagesSquare, Plus } from 'lucide-react';
+import { InsightPoint } from '@/components/ui/insight-point';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -42,7 +43,26 @@ export function ChatClient({
   const [activeId, setActiveId] = useState<string | null>(requestedThread);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
+  /**
+   * El último mensaje del asesor está "hablando" (ecualizador animando).
+   *
+   * Es UNA bandera para todo el hilo y no un `setTimeout` por mensaje: con un timeout por
+   * mensaje, un hilo de cuarenta respuestas monta cuarenta temporizadores y cuarenta
+   * ecualizadores. Acá solo el último puede hablar, y deja de hacerlo a los dos segundos.
+   */
+  const [hablando, setHablando] = useState(false);
   const [sending, setSending] = useState(false);
+
+  /*
+   * Apaga el ecualizador a los dos segundos de que llega la respuesta. El `clearTimeout` del
+   * cleanup importa: si llega otra respuesta antes de que este termine, el temporizador viejo
+   * apagaría el nuevo mensaje a mitad de camino.
+   */
+  useEffect(() => {
+    if (!hablando) return;
+    const t = setTimeout(() => setHablando(false), 2000);
+    return () => clearTimeout(t);
+  }, [hablando]);
   /**
    * CU-868ktmdex. Vive en una ref y no en estado porque cambiarlo no tiene que repintar:
    * es el asa para cortar la espera, no algo que la pantalla dibuje.
@@ -242,6 +262,8 @@ export function ChatClient({
         ...prev,
         { role: 'assistant', content: result.data.content, createdAt: new Date().toISOString() },
       ]);
+      // Acaba de contestar: el sello habla un momento. Lo apaga el efecto de abajo.
+      setHablando(true);
 
       /*
        * CU-868krkw4p: el backend nombra el hilo con la primera pregunta, y devuelve el
@@ -378,7 +400,12 @@ export function ChatClient({
           */}
           <div className="mx-auto flex w-full max-w-[46rem] flex-col gap-4">
             {messages.length === 0 && (
-              <ChatWelcome labels={labels.welcome} onAsk={(q) => void send(q)} disabled={sending} />
+              <ChatWelcome
+                labels={labels.welcome}
+                onAsk={(q) => void send(q)}
+                disabled={sending}
+                escuchando={draft.trim().length > 0}
+              />
             )}
             {messages.map((m, i) => (
               <div
@@ -406,7 +433,35 @@ export function ChatClient({
                   `role === 'tool'` (que el esquema admite aunque hoy no se persista) tampoco
                   pasa por Markdown: es salida de herramienta, no prosa.
                 */}
-                {m.role === 'assistant' ? <MarkdownMessage content={m.content} /> : m.content}
+                {m.role === 'assistant' ? (
+                  /*
+                    El sello al lado de la respuesta, para que se lea quién habla ahora que el
+                    asesor va sin burbuja.
+
+                    ═══ SOLO EL ÚLTIMO MENSAJE "HABLA", Y POR CUÁNTO TIEMPO ═══
+
+                    `state="speaking"` monta un ecualizador de cuatro barras animando. Dejarlo
+                    en cada mensaje del historial pondría cuarenta ecualizadores corriendo en
+                    paralelo para siempre en un hilo largo — cuarenta animaciones que nadie
+                    mira, quemando CPU y batería.
+
+                    Por eso solo el mensaje que ACABA de llegar habla, y baja a `idle` un par de
+                    segundos después (ver `hablando`). Los anteriores quedan con el sello
+                    quieto, que es lo correcto: ya terminaron de contestar.
+                  */
+                  <div className="flex items-start gap-2.5">
+                    <InsightPoint
+                      size="md"
+                      state={i === messages.length - 1 && hablando ? 'speaking' : 'idle'}
+                      className="mt-0.5"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <MarkdownMessage content={m.content} />
+                    </div>
+                  </div>
+                ) : (
+                  m.content
+                )}
               </div>
             ))}
 
@@ -415,6 +470,7 @@ export function ChatClient({
                 el usuario está mirando después de mandar. */}
             {sending && (
               <div className="flex flex-wrap items-center gap-3">
+                <InsightPoint size="sm" state="thinking" />
                 <p className="text-body text-faint">{labels.thinking}</p>
                 {/* CU-868ktmdex. Al lado del rótulo de "está pensando" y no en el composer:
                     es la acción que corresponde a ESE estado, y ahí es donde el usuario ya
@@ -481,8 +537,30 @@ export function ChatClient({
                  */
                 disabled={sending}
               />
-              <Button onClick={() => void send()} disabled={sending}>
-                {sending ? labels.sending : labels.send}
+              {/*
+                ═══ EL ENVÍO ES UN ÍCONO CIRCULAR (rediseño validado por Jose) ═══
+
+                `Button` no tiene una variante circular de solo ícono, y no se le agrega una: el
+                propio comentario de `button.tsx` documenta que las clases de `className` se
+                aplican al final y ganan sobre las base por `cn()`. Un `size="icon"` en el
+                componente compartido sería API nueva para un solo llamador.
+
+                `aria-label` no es opcional acá: sin el texto, un botón con una flecha dentro no
+                tiene nombre accesible. Se reusa la misma clave que antes era el rótulo visible,
+                así que ya está traducida en los dos idiomas.
+
+                Y ahora también se deshabilita con el borrador VACÍO, que antes no se validaba:
+                el botón se veía activo y al apretarlo no pasaba nada, porque `send()` sale
+                temprano si no hay contenido. Un control que no hace nada al apretarlo enseña a
+                desconfiar del resto.
+              */}
+              <Button
+                onClick={() => void send()}
+                disabled={sending || draft.trim().length === 0}
+                aria-label={sending ? labels.sending : labels.send}
+                className="h-10 w-10 shrink-0 rounded-full p-0"
+              >
+                <ArrowUp className="h-4 w-4" strokeWidth={2} />
               </Button>
             </div>
             <p className="mt-1.5 text-eyebrow text-faint">{labels.composerHint}</p>

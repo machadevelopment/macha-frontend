@@ -952,6 +952,7 @@ export const en: Dictionary = {
       subtitle:
         'Ask in your own words. I answer from the data you already uploaded, never from estimates.',
       quickLabel: 'To get you started',
+      listeningLabel: 'Listening…',
       q1: 'How is my cash flow this month?',
       q2: 'Which product gives me the best margin?',
       q3: 'What did I spend more on than last month?',

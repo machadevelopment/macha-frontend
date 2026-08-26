@@ -1050,6 +1050,7 @@ export const es: Dictionary = {
       subtitle:
         'Pregunta en tus palabras. Respondo con los datos que ya cargaste, nunca con estimaciones.',
       quickLabel: 'Para empezar',
+      listeningLabel: 'Escuchando…',
       q1: '¿Cómo está mi flujo de caja este mes?',
       q2: '¿Qué producto me deja más margen?',
       q3: '¿En qué gasté más que el mes pasado?',

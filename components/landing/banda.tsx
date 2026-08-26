@@ -56,6 +56,7 @@ import type { ReactNode } from 'react';
 export function Banda({
   tono = 'lienzo',
   id,
+  paddingSuperior,
   children,
   className = '',
 }: {
@@ -64,6 +65,14 @@ export function Banda({
   /** Ancla del nav. Va en la BANDA y no en el contenido: al saltar, el borde de la banda es el
       punto donde la sección empieza a verse. */
   id?: string;
+  /**
+   * Relleno SUPERIOR distinto, solo para el hero. Ver el bloque de abajo.
+   *
+   * Es un override completo de las tres clases de `pt` y no un modificador: pasar `pt-8` sin
+   * apagar el `py-20 md:py-24 lg:py-32` dejaría al `md:`/`lg:` ganando por especificidad de
+   * media query y el cambio solo se vería en móvil.
+   */
+  paddingSuperior?: string;
   children: ReactNode;
   className?: string;
 }) {
@@ -106,7 +115,26 @@ export function Banda({
         media de los altos de banda del Figma menos su contenido; abajo de eso las bandas se
         tocan y arriba la página se estira sin motivo.
       */}
-      <div className="mx-auto max-w-[1170px] px-6 py-20 md:py-24 lg:px-8 lg:py-32">{children}</div>
+      {/*
+        ═══ EL HERO LLEVA MENOS RELLENO ARRIBA (reporte de Jose, móvil) ═══
+
+        El `py-20 md:py-24 lg:py-32` sale de medir el Figma y funciona como espacio ENTRE dos
+        secciones seguidas — se queda igual para las otras trece.
+
+        El hero es el único lugar de la página donde no hay una sección anterior con la que
+        promediar: arriba solo está el nav fijo, que ya aporta sus 64px medidos. Ahí los dos
+        espacios se SUMAN y el titular queda flotando, que es lo que Jose reportó.
+
+        Por eso el override es solo del relleno de ARRIBA: el de abajo se conserva, porque el
+        espacio hacia "Por qué existe" sí es un espacio entre secciones y ya estaba bien.
+      */}
+      <div
+        className={`mx-auto max-w-[1170px] px-6 lg:px-8 ${
+          paddingSuperior ?? 'pt-20 md:pt-24 lg:pt-32'
+        } pb-20 md:pb-24 lg:pb-32`}
+      >
+        {children}
+      </div>
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { chartCategorico, chartColors } from './chart-theme';
 
 /**
  * CU-868knx0vh: que el estilo de los charts no se vuelva a repartir por pantalla.
@@ -150,4 +151,41 @@ describe('altos de gráfica: medidos y en un solo lugar', () => {
     }
     expect(culpables).toEqual([]);
   });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * TODO COLOR DE SERIE ESTÁ EN EL SAFELIST DE TAILWIND
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * El aviso de `chart-theme.ts` es literal: Tremor arma su clase en tiempo de ejecución
+ * (`fill-sage-500`), así que Tailwind no la ve al compilar y la purga — y la serie **sale
+ * negra**. No es hipotético: este proyecto ya se encontró con los ticks de eje en negro sobre
+ * tarjeta oscura porque las clases del tema de Tremor nunca se registraron.
+ *
+ * Este test recorre los colores que el código declara y exige que el patrón del safelist los
+ * cubra. Un color nuevo en `chart-theme.ts` sin su entrada en `tailwind.config.ts` falla acá,
+ * en vez de fallar en la pantalla de un cliente.
+ */
+describe('los colores de serie están en el safelist', () => {
+  const config = readFileSync(join(RAIZ, 'tailwind.config.ts'), 'utf8');
+
+  /** Los patrones del safelist, extraídos del config y compilados de verdad. */
+  const patrones = [...config.matchAll(/pattern:\s*\n?\s*(\/[^\n]+\/)/g)].map((m) => {
+    const cuerpo = m[1]!.slice(1, m[1]!.lastIndexOf('/'));
+    return new RegExp(cuerpo);
+  });
+
+  test('el config declara al menos un patrón compilable', () => {
+    expect(patrones.length).toBeGreaterThan(0);
+  });
+
+  test.each([...Object.values(chartColors), ...chartCategorico])(
+    '`%s` genera clases que el safelist conserva',
+    (color) => {
+      // La forma exacta que Tremor emite para el relleno de una serie.
+      const clase = `fill-${color}-500`;
+      expect(patrones.some((re) => re.test(clase))).toBe(true);
+    },
+  );
 });

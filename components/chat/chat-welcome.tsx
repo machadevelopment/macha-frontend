@@ -25,10 +25,19 @@ export function ChatWelcome({
   labels,
   onAsk,
   disabled,
+  escuchando = false,
 }: {
   labels: Dictionary['chat']['welcome'];
   onAsk: (question: string) => void;
   disabled: boolean;
+  /**
+   * El usuario ya escribió algo, aunque todavía no lo haya mandado.
+   *
+   * Viene del padre porque es quien tiene el borrador. Vale la pena que el sello reaccione
+   * ANTES del envío: es lo que hace que el asesor se sienta atento en vez de un logo que
+   * despierta cuando ya es tarde.
+   */
+  escuchando?: boolean;
 }) {
   const preguntas = [labels.q1, labels.q2, labels.q3, labels.q4];
 
@@ -40,7 +49,7 @@ export function ChatWelcome({
       {/* CU-868knx0vh: el destello pasa a vivir dentro del Insight Point. Esta pantalla
           es la presentación del asesor —identidad pura, ningún dato— así que es
           exactamente el caso para el verde de marca. */}
-      <InsightPoint size="lg">
+      <InsightPoint size="lg" state={escuchando ? 'listening' : 'idle'}>
         <Sparkles className="h-6 w-6" strokeWidth={1.6} />
       </InsightPoint>
 
@@ -49,7 +58,11 @@ export function ChatWelcome({
         <p className="max-w-[52ch] text-body text-muted-foreground">{labels.subtitle}</p>
       </div>
 
-      <p className="font-mono text-eyebrow uppercase text-faint">{labels.quickLabel}</p>
+      {/* El rótulo acompaña al estado del sello: mientras hay algo escrito, "Escuchando…"
+          explica lo que el círculo está haciendo. Sin eso, la animación es decoración. */}
+      <p className="font-mono text-eyebrow uppercase text-faint">
+        {escuchando ? labels.listeningLabel : labels.quickLabel}
+      </p>
 
       {/*
         Apiladas en móvil, dos columnas desde `sm`. No se usa el breakpoint `app` (1080px):

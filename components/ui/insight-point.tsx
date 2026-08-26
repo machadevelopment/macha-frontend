@@ -31,16 +31,41 @@ import { cn } from '@/lib/cn';
  * cabecera de reportes y como acento de marca.
  *
  * Tampoco va en `/admin/*`: el backoffice es premium sobrio, sin decoración de marca.
+ *
+ * ═══ EL PROP `state` LE DA PERSONALIDAD, Y ES OPCIONAL A PROPÓSITO ═══
+ *
+ * Sin `state`, el componente se comporta EXACTAMENTE como antes. Eso no es cortesía con el
+ * código viejo: `InsightPoint` se usa hoy en cinco lugares y solo dos de ellos son el asesor.
+ * El wizard de registro y la cabecera de un reporte quieren un sello quieto, y un anillo
+ * girando ahí sería ruido en una pantalla que no está esperando nada.
+ *
+ * Los cuatro estados salen del mockup que Jose validó:
+ *
+ *   · `idle`      — el glow respira despacio. Nada más.
+ *   · `listening` — respira más rápido y el núcleo pulsa de escala. El asesor tiene algo que oír.
+ *   · `thinking`  — el anillo gira más rápido. Está trabajando.
+ *   · `speaking`  — aparece el ecualizador. Está contestando.
+ *
+ * El detalle de cada capa —y por qué el anillo no se monta en los tamaños chicos— está en el
+ * bloque `ip-*` de `globals.css`.
  */
 export function InsightPoint({
   size = 'md',
   variant = 'figure',
+  state,
   className,
   children,
   label,
 }: {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'figure' | 'ambient';
+  /**
+   * Qué está haciendo el asesor. Omitirlo deja el punto estático, como siempre.
+   *
+   * Solo aplica a `variant="figure"`: la mancha `ambient` es atmósfera de fondo y animarla
+   * sería una distracción detrás del contenido, no una señal.
+   */
+  state?: 'idle' | 'listening' | 'thinking' | 'speaking';
   className?: string;
   /** Un ícono, normalmente. Se pinta con `--brand-on`, la tinta legible sobre el salvia. */
   children?: React.ReactNode;
@@ -71,6 +96,12 @@ export function InsightPoint({
     );
   }
 
+  /*
+   * El anillo solo en `lg` y `xl`. A 24px y 36px un aro de 2px girando se lee como un borrón
+   * alrededor del sello, no como un anillo — verificado sobre el mockup.
+   */
+  const conAnillo = state !== undefined && (size === 'lg' || size === 'xl');
+
   return (
     <span
       role={label ? 'img' : undefined}
@@ -79,9 +110,28 @@ export function InsightPoint({
       className={cn(
         'inline-flex shrink-0 items-center justify-center rounded-pill bg-insight text-[var(--brand-on)]',
         dims,
+        // `ip-anim` da el `position: relative` que las capas necesitan. Sin `state` no se
+        // agrega ninguna clase, así que el elemento sale idéntico al de antes.
+        state && 'ip-anim',
+        state === 'listening' && 'ip-listening',
+        state === 'thinking' && 'ip-thinking',
         className,
       )}
     >
+      {/*
+        Las capas van `aria-hidden`: son decoración. Lo que un lector de pantalla necesita
+        saber del estado del asesor lo dice el TEXTO de la pantalla ("Pensando…"), no el sello.
+      */}
+      {state ? <span aria-hidden className="ip-glow" /> : null}
+      {conAnillo ? <span aria-hidden className="ip-ring" /> : null}
+      {state === 'speaking' ? (
+        <span aria-hidden className="ip-eq">
+          <span />
+          <span />
+          <span />
+          <span />
+        </span>
+      ) : null}
       {children}
     </span>
   );

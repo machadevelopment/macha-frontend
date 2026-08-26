@@ -22,10 +22,21 @@ import type { Locale } from '@/lib/i18n/config';
  * página, recién traída— sin agregarle a `ReportList` una API de refresco que solo usaría
  * este llamador.
  *
- * NO SE HACE POLLING. La generación es asíncrona y podría tardar; un `setInterval` contra
- * el historial gastaría requests de todos los usuarios que dejen la pestaña abierta para
- * cubrir el caso de uno que está esperando. El botón de recarga del navegador ya existe, y
- * el mensaje dice que el reporte va a aparecer, no que ya está.
+ * ═══ EL POLLING ES CONDICIONAL, Y VIVE EN `ReportList` ═══
+ *
+ * Esta nota decía "NO SE HACE POLLING", con este argumento: *"un `setInterval` contra el
+ * historial gastaría requests de todos los usuarios que dejen la pestaña abierta para cubrir
+ * el caso de uno que está esperando."* El argumento sigue en pie y descarta un polling
+ * INCONDICIONAL — no el que hay ahora.
+ *
+ * Jose reportó el costo de no tener ninguno: un reporte recién pedido se queda en "generando"
+ * hasta refrescar la pantalla o salir del módulo y volver. `ReportList` ya pintaba los tres
+ * estados; lo que faltaba era que algo volviera a pedir la lista.
+ *
+ * El intervalo vive AHÍ y no acá porque acá no se sabe si hay algo pendiente: quien tiene las
+ * filas es la lista. Solo corre mientras alguna está en `generating` y se apaga solo en cuanto
+ * no queda ninguna, así que un usuario con la pestaña abierta sobre reportes ya terminados no
+ * gasta ni una petición.
  */
 export function ReportsScreen({
   locale,

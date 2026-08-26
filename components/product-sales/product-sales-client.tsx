@@ -29,7 +29,7 @@ import {
 import { request, type RequestError } from '@/lib/api/browser';
 import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
 import { formatMoney, formatNumber, formatPct } from '@/lib/format';
-import { chartColors } from '@/components/charts/chart-theme';
+import { chartCategorico, chartColors } from '@/components/charts/chart-theme';
 import { cn } from '@/lib/cn';
 import { csvFileName, serializeCsv } from '@/lib/csv/serialize';
 import { descargarCsv } from '@/lib/csv/download';
@@ -384,7 +384,9 @@ export function ProductSalesClient({
                   category="revenue"
                   currency={moneda}
                   locale={locale}
-                  colors={[chartColors.neutral]}
+                  // Paleta de marca: cada rebanada es una categoría, ninguna es "buena" ni
+                  // "mala". Ver `chartCategorico` para la excepción a la regla de los dos verdes.
+                  colors={chartCategorico}
                 />
                 <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
                   {porCategoria.map((c) => (
@@ -475,7 +477,8 @@ function TarjetaVentasPorTienda({
             category="total"
             currency={moneda}
             locale={locale}
-            colors={[chartColors.neutral]}
+            // Una rebanada por tienda: categorías, no estado. Ver `chartCategorico`.
+            colors={chartCategorico}
           />
           <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
             {data.rows.map((t) => (

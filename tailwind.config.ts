@@ -1,5 +1,14 @@
 import type { Config } from 'tailwindcss';
 
+/**
+ * Un tono de marca repetido en los cuatro pasos que Tremor pide.
+ *
+ * Tremor arma `fill-sage-500` para el relleno y otros pasos para el hover y el borde. Con el
+ * mismo hex en todos, la rebanada no cambia de color al pasar el puntero — que es lo correcto
+ * para un dato: si cambiara, el color estaría diciendo algo que el dato no dice.
+ */
+const tonoDeMarca = (hex: string) => ({ 300: hex, 400: hex, 500: hex, 600: hex });
+
 // Exact token set from design guide.md §11.3. darkMode: 'class'.
 export default {
   darkMode: 'class',
@@ -27,9 +36,42 @@ export default {
     {
       pattern: /(fill|stroke|bg|text|border)-(neutral|emerald|rose)-(300|400|500|600)/,
     },
+    /*
+     * ═══ LOS TONOS DE MARCA DE LAS GRÁFICAS CATEGÓRICAS ═══
+     *
+     * Mismo motivo que la línea de arriba, y el aviso de `chart-theme.ts` es literal: un color
+     * de serie que no esté en el safelist SALE NEGRO. Tremor arma su clase en tiempo de
+     * ejecución (`fill-sage-500`), así que Tailwind no la ve al compilar y la purga.
+     *
+     * Y no es teórico: este proyecto ya se encontró con los ticks de eje pintados de negro
+     * sobre tarjeta oscura porque las clases del tema de Tremor nunca se registraron.
+     */
+    {
+      pattern:
+        /(fill|stroke|bg|text|border)-(sage|sagedeep|sageink|sagepale|sagemist)-(300|400|500|600)/,
+    },
   ],
   theme: {
     extend: {
+      /*
+       * ═══════════════════════════════════════════════════════════════════════════════════
+       * LOS TONOS DEL SALVIA PARA LAS GRÁFICAS CATEGÓRICAS
+       * ═══════════════════════════════════════════════════════════════════════════════════
+       *
+       * Tremor no acepta variables CSS como color de serie: espera un NOMBRE de familia de
+       * Tailwind y arma la clase (`fill-sage-500`) en tiempo de ejecución. Por eso los tonos
+       * de marca —que en `globals.css` ya existen como `--brand-*`— tienen que repetirse acá
+       * como familias con sus hex.
+       *
+       * Es duplicación y hay que decirlo: si alguien cambia el salvia en `globals.css`, esto
+       * no se enter. La alternativa era peor —pintar las series con `style` inline, saltándose
+       * el mecanismo entero de Tremor— y el salvia es el color más estable del sistema: el
+       * Brand Book lo fija y no cambia entre temas (ver `--brand-on`).
+       *
+       * Cada familia repite el MISMO tono en sus cuatro pasos. Tremor pide `-500` para el
+       * relleno y otros pasos para hover y borde; con un solo tono, la rebanada no cambia de
+       * color al pasar el puntero, que es lo correcto para un dato.
+       */
       // CU-868khvzbd: el breakpoint del design guide §Responsive es 1080px, no los
       // 1024px de `lg`. Se agrega como screen propio en vez de redondear al de
       // Tailwind: 1080 es donde el sidebar de 212px + el contenido dejan de caber
@@ -73,6 +115,11 @@ export default {
        */
       screens: { app: '1080px', kpi6: '1600px' },
       colors: {
+        sage: tonoDeMarca('#a0af9a'), // --brand
+        sagedeep: tonoDeMarca('#8b9c84'), // --brand-strong
+        sageink: tonoDeMarca('#4a5745'), // --brand-ink
+        sagepale: tonoDeMarca('#d5ddd0'), // --brand-bd
+        sagemist: tonoDeMarca('#b9c6b3'), // la parada clara del isotipo
         background: 'var(--background)',
         /*
          * El lienzo CON su alfa ya adentro, para la barra de la landing. No se consigue

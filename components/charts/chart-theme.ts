@@ -56,3 +56,54 @@ export const chartColors = {
   positive: 'emerald',
   negative: 'rose',
 } as const;
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * PALETA CATEGÓRICA DE MARCA (reporte de Jose sobre los colores de las gráficas)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ ESTO ES UNA EXCEPCIÓN ACOTADA A LA REGLA DE LOS DOS VERDES, Y HAY QUE SABERLO.
+ *
+ * La regla dice que el salvia es identidad y nunca dato. El comentario de arriba lo repite. La
+ * excepción se sostiene porque lo que la regla PROTEGE es que el color no mienta sobre el
+ * estado del dato, y una rampa de tonos del MISMO verde no puede decir "bueno" ni "malo": no
+ * hay contraste semántico entre dos rebanadas de un donut, solo identidad visual. Lo que la
+ * regla prohíbe —y esto sigue prohibiendo— es el salvia PLANO junto al verde y el rojo
+ * funcionales, donde sí compiten.
+ *
+ * ═══ DÓNDE VA Y DÓNDE NO ═══
+ *
+ * Va en las gráficas CATEGÓRICAS: gastos por categoría, ventas por categoría o por tienda, top
+ * de productos. Ahí cada rebanada es un rubro y ninguna es mejor que otra.
+ *
+ * NO va en las de ESTADO: los tramos de antigüedad de CxC/CxP, el margen, el delta de un KPI.
+ * `positive` y `negative` se quedan exactamente como están, y eso no es una omisión — es la
+ * mitad de la regla que sigue viva. Tampoco va en las de TENDENCIA (`TrendArea`), que son una
+ * serie sola y no tienen categorías que distinguir.
+ *
+ * ═══ SOBRE LA PREMISA DEL REPORTE ═══
+ *
+ * El ticket pedía "usar los colores de las gráficas de la Landing como estándar". Vale
+ * aclararlo porque es circular: las gráficas de la landing son CAPTURAS PNG de esta misma app
+ * (está documentado en `landing-producto.tsx`), así que ya muestran el mismo gris que se
+ * reportó como genérico. No había una paleta distinta ahí que copiar; el pedido real —y
+ * válido— era que el gris de Tremor se sintiera de marca. La landing va a reflejar esto sola
+ * la próxima vez que se tomen capturas.
+ *
+ * El ORDEN va de más claro a más oscuro: la primera categoría es la de mayor valor (las
+ * pantallas ordenan por monto), así que el contraste crece con la importancia.
+ */
+/*
+ * Tipado como `string[]` mutable y no `as const`: el prop `colors` de Tremor es `string[]`, y
+ * un `readonly` no se le puede asignar. Los literales no le sirven a nadie acá.
+ */
+export const chartCategorico: string[] = [
+  'sagedeep',
+  'sage',
+  'sagemist',
+  'sageink',
+  'sagepale',
+  // De apoyo, cuando hay más categorías que tonos en la rampa. Neutro y no un sexto verde:
+  // inventar un tono nuevo sería salirse de la rampa que el Brand Book fija.
+  'neutral',
+];

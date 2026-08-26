@@ -937,6 +937,8 @@ export interface Dictionary {
       title: string;
       subtitle: string;
       quickLabel: string;
+      /** Reemplaza a `quickLabel` mientras el usuario ya escribió algo: explica el sello vivo. */
+      listeningLabel: string;
       /** Las cuatro preguntas rápidas, una por eje: caja, margen, gasto y cobros. */
       q1: string;
       q2: string;
