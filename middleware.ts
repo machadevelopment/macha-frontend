@@ -1,4 +1,6 @@
+import { NextResponse, type NextRequest, type NextFetchEvent } from 'next/server';
 import { authkitProxy } from '@workos-inc/authkit-nextjs';
+import { destinoCanonico } from '@/lib/auth/canonical-origin';
 
 // CU-868kfva59: sesión requerida en todo excepto la hosted UI de login (`/`) y el
 // callback de intercambio código→sesión. authkitProxy solo exige sesión — el rol
@@ -17,12 +19,47 @@ import { authkitProxy } from '@workos-inc/authkit-nextjs';
 // invitación a una empresa que ya existe ANTES de mandar a nadie a autenticarse, y ella
 // misma manda a `/login?returnTo=…` conservando el token. El middleware no protege nada
 // al exigir sesión aquí: la aceptación la sigue exigiendo el BFF y el backend.
-export default authkitProxy({
+const proxy = authkitProxy({
   middlewareAuth: {
     enabled: true,
     unauthenticatedPaths: ['/', '/login', '/callback', '/invitations/accept'],
   },
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL DOMINIO CANÓNICO SE FUERZA ANTES QUE NADA (2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Va ANTES de `proxy` y no después, y ese orden es el punto entero: si AuthKit corre primero,
+ * a quien llega sin sesión al dominio de Vercel ya le respondió un 307 hacia WorkOS con el
+ * `redirect_uri` de `macha.finance`, y para cuando el usuario vuelve, la sesión quedó escrita
+ * en un dominio distinto del que está mirando. Redirigir después de eso no arregla nada.
+ *
+ * El motivo completo —y por qué arreglar `signOut` no bastaba— está en `destinoCanonico`.
+ *
+ * ⚠️ Esto NO alcanza a lo que el `matcher` excluye (`brand/`, `icon.svg`, `landing/`,
+ * `api/public/`, `monitoring`): ahí el middleware ni corre. Es lo correcto y no un descuido —
+ * son estáticos y endpoints públicos que se sirven igual de bien por cualquier host, y el
+ * único que viaja en una URL absoluta hacia afuera es `brand/`, que los correos ya escriben
+ * contra el dominio canónico.
+ */
+export default function middleware(request: NextRequest, event: NextFetchEvent) {
+  /*
+   * El host sale de la CABECERA y no de `request.url`: en el runtime de middleware esa
+   * propiedad no siempre refleja el `Host` con el que entró la petición, y equivocarse acá
+   * significa redirigir a `macha.finance` a alguien que ya está en `macha.finance` — un bucle
+   * infinito en la puerta del producto.
+   */
+  const destino = destinoCanonico(
+    request.headers.get('host'),
+    request.nextUrl.pathname,
+    request.nextUrl.search,
+  );
+  if (destino) return NextResponse.redirect(destino, 307);
+
+  return proxy(request, event);
+}
 
 // CU-868kjc99f: `/monitoring` queda FUERA del matcher. Es el `tunnelRoute` de Sentry
 // (next.config.mjs) — un proxy de ingesta hacia sentry.io, no una pantalla de la app.
