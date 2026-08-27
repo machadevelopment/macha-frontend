@@ -640,16 +640,23 @@ export const en: Dictionary = {
       cta: 'Request a demo',
       items: [
         {
-          nombre: 'Starter',
+          nombre: 'Base',
           para: 'For businesses starting to put their finances in order.',
+          /* El precio NO se traduce ni se convierte: es la cifra que Jose aprobó, en dólares,
+             y una landing que diga un número distinto según el idioma es un problema legal
+             antes que de copy. "IVA" se deja tal cual por lo mismo — nombra un impuesto
+             guatemalteco concreto, no una categoría genérica. */
+          precio: '$59 + IVA',
           incluye: ['Financial dashboard', 'Automatic insights', 'Excel connection'],
         },
         {
-          nombre: 'Business',
+          nombre: 'Pro',
           para: 'For operations with several data sources and teams.',
+          precio: '$139 + IVA',
           incluye: [
-            'Everything in Starter',
-            'ERP and bank connections',
+            'Everything in Base',
+            // Sin "bank": el producto no conecta con ningún banco (Jose, 2026-08-26).
+            'ERP connection',
             'Automatic reports and alerts',
             'Per-user access',
           ],
@@ -907,9 +914,12 @@ export const en: Dictionary = {
       aging: 'Aging',
     },
     insightCategory: {
+      cashflow: 'Cash flow',
+      revenue: 'Revenue',
+      expenses: 'Expenses',
       collections: 'Collections',
-      sales: 'Sales',
       financial: 'Financial',
+      sales: 'Sales',
     },
     /*
      * Severidad del consejo (CU-868ku6r48). Los CÓDIGOS los manda el backend; acá solo se
@@ -1255,6 +1265,8 @@ export const en: Dictionary = {
       signedOutTitle: "You've been invited to a company on Macha Finance",
       signedOutSubtitle:
         "Sign in to join. You won't be creating a company: you're joining one that already exists, with the role you were given.",
+      signedInAs: 'You\u2019re signed in as {email}.',
+      useAnotherAccount: 'Use another account',
       signedOutCreateAccount: 'Create my account and join',
       signedOutSignIn: 'I already have an account',
       emailHint: 'Use the same email the invitation was sent to — that’s how we verify it.',
@@ -1285,6 +1297,8 @@ export const en: Dictionary = {
     revenueByProduct: 'Revenue by product',
     inflow: 'Inflow',
     outflow: 'Outflow',
+    outflowCogs: 'Cost of goods sold',
+    outflowOpex: 'Operating expenses',
     net: 'Net',
     periodTotal: 'PERIOD TOTAL',
     shareOfRevenue: 'Share of revenue',
@@ -1327,6 +1341,17 @@ export const en: Dictionary = {
       colOverdue: 'Overdue',
       colInvoices: 'Documents',
       colOldest: 'Oldest',
+      colAmount: 'Amount',
+      openTitle: 'Open accounts',
+      openHint: 'Mark an account as settled and it stops adding to the open balance.',
+      openEmpty: 'No open accounts.',
+      colDue: 'Due',
+      colStatus: 'Status',
+      markPaid: 'Mark as paid',
+      markOpen: 'Reopen',
+      statusPaid: 'Paid',
+      statusOpen: 'Open',
+      noDueDate: 'No date',
       totalOpen: 'TOTAL OPEN',
       overdueTotal: 'Overdue',
       emptyAr: 'You have no open receivables.',

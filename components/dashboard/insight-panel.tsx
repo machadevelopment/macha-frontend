@@ -97,10 +97,47 @@ export function InsightPanel({
   async function generate() {
     setState({ status: 'loading' });
 
+    /*
+     * ═══ TECHO DE ESPERA: EL BOTÓN NO SE PUEDE QUEDAR EN "GENERANDO…" ═══
+     *
+     * CU-868kx4a02. Jose reportó que el Consejo Financiero Diario "no sirve", y su captura
+     * muestra exactamente qué: el panel clavado en **"Generating…"**, con el botón
+     * deshabilitado y ningún resultado.
+     *
+     * Lo que NO era: la generación funciona y es específica. Medido en producción —10 consejos
+     * pedidos ese mismo día, los 10 con resultado guardado, con cifras reales de la empresa
+     * ("los ingresos crecieron de Q4.965.310 en junio a Q7.014.710 en agosto")—. O sea que el
+     * backend contestó y la pantalla no se enteró.
+     *
+     * Lo que sí: **no había techo de espera.** El comentario de abajo ya contaba una versión
+     * anterior de este mismo síntoma (un 502 con cuerpo HTML que hacía lanzar a `res.json()`) y
+     * lo arregló para el caso en que la petición TERMINA mal. Queda el caso en que no termina:
+     * si la conexión se queda abierta sin responder —el contenedor muere con la petición en
+     * vuelo, que es justo lo que pasaba ese día con el bucle de crash del backend— `fetch` no
+     * rechaza nunca y este `await` no vuelve. El estado queda en `loading` para siempre y la
+     * única salida es recargar la página.
+     *
+     * 90 s y no menos: un consejo llama al modelo con el snapshot de métricas de la empresa y
+     * tarda decenas de segundos de forma legítima. El techo está para el caso en que no hay
+     * nadie del otro lado, no para apurar al modelo.
+     *
+     * Al vencer se cae a `failed`, que es el estado que YA ofrece reintentar. No hace falta un
+     * mensaje nuevo: para el usuario "no contestó" y "falló" se resuelven igual, apretando otra
+     * vez, y un motivo más en la pantalla sería precisión que no cambia lo que hay que hacer.
+     */
+    const corte = new AbortController();
+    const reloj = setTimeout(() => corte.abort(), 90_000);
+
     // `requestJson` no lanza. Antes un 502 con cuerpo HTML hacía que `res.json()`
     // lanzara dentro de `generate()`, sin `catch`: el botón se quedaba en "generando…"
     // para siempre y no había forma de reintentar sin recargar.
-    const result = await requestJson<InsightResponse>('/api/insights', 'POST');
+    const result = await requestJson<InsightResponse>(
+      '/api/insights',
+      'POST',
+      undefined,
+      corte.signal,
+    );
+    clearTimeout(reloj);
 
     if (!result.ok) {
       setState({ status: 'error', failure: classify(result.error.status, result.error.body) });
@@ -249,31 +286,37 @@ function InsightCards({
                 {categoria(insight.category, labels)}
               </span>
               {/*
-                ═══ LA SEVERIDAD SÍ VA EN CHIP DE COLOR (CU-868ku6r48) ═══
+                ═══ LA SEVERIDAD VA EN CHIP DE COLOR, PERO SOLO CUANDO DICE ALGO ═══
 
-                Y no contradice lo de arriba: eso dice que la CATEGORÍA no lleva color porque el
-                color en este producto significa estado, no tema. La severidad ES estado — "esto
-                urge" es exactamente la clase de cosa que el color existe para decir.
+                Que lleve chip y no texto de color viene de CU-868ku6r48 y sigue vigente: la
+                regla de los dos verdes exige que el estado nunca dependa solo del color, y acá
+                no hay flecha que sirva de canal redundante (a diferencia del delta de un KPI),
+                así que el fondo y el borde son obligatorios. Ver la nota de `DeltaBadge`. Y no
+                contradice lo de la categoría: el color en este producto significa estado, y
+                "esto urge" es estado; el tema no.
 
-                Chip y no texto de color: la regla de los dos verdes exige que el estado nunca
-                dependa solo del color, y acá no hay flecha que sirva de canal redundante (a
-                diferencia del delta de un KPI), así que el fondo y el borde son obligatorios.
-                Ver la nota de `DeltaBadge`.
+                ⚠️ `info` YA NO PINTA CHIP (CU-868kx7a73, reporte de Jose 2026-08-27).
 
-                `info` va en `neutral` a propósito: es contexto, no un estado que reclame nada, y
-                pintarlo de color gastaría la señal que `critical` necesita.
+                Su rótulo es "Contexto", y salía como un chip idéntico en peso a "Urgente" al
+                lado del tema. Jose lo leyó como si fuera el tema —*"sale la palabra CONTEXTO;
+                que ese tag sea según la data, por ejemplo cashflow o revenue"*— y tenía razón
+                en la lectura: dos etiquetas contiguas del mismo tamaño se leen como una sola
+                cosa, y la que no significaba nada era la que más llamaba la atención.
+
+                La versión anterior ya ponía `info` en `neutral` "para no gastar la señal que
+                `critical` necesita". Esto lleva ese razonamiento hasta el final: la
+                forma más barata de no gastar la señal es NO EMITIRLA. La ausencia de chip ES
+                "no urge", y quien tiene un consejo urgente lo ve solo en la tarjeta.
+
+                Lo que NO cambia: `critical` y `warning` siguen en chip con fondo y borde, y el
+                orden por urgencia sigue igual (`ordenadosPorUrgencia`), así que la severidad no
+                se pierde — se deja de repetir donde no dice nada.
               */}
-              <Badge
-                variant={
-                  insight.severity === 'critical'
-                    ? 'danger'
-                    : insight.severity === 'warning'
-                      ? 'warning'
-                      : 'neutral'
-                }
-              >
-                {labels.insightSeverity[insight.severity ?? 'info']}
-              </Badge>
+              {insight.severity && insight.severity !== 'info' && (
+                <Badge variant={insight.severity === 'critical' ? 'danger' : 'warning'}>
+                  {labels.insightSeverity[insight.severity]}
+                </Badge>
+              )}
             </div>
             <p className="mt-1 text-body">{insight.text}</p>
             {/*

@@ -76,6 +76,8 @@ function montar(props: Partial<Parameters<typeof AcceptInvitationPanel>[0]> = {}
       token=""
       invitations={[]}
       backendUnavailable={false}
+      sessionEmail="invitado@ejemplo.com"
+      onUseAnotherAccount={() => {}}
       labels={t.members.accept}
       roles={t.members.role}
       {...props}
@@ -259,5 +261,45 @@ describe('el camino del invitado nunca pasa por crear una empresa', () => {
     expect(landing).not.toContain('memberships');
     expect(landing).not.toContain('/invitations/pending');
     expect(landing).not.toMatch(/redirect\(['"]\/dashboard/);
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL CALLEJÓN SIN SALIDA DE "no pudimos usar esta invitación" (Jose, 2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Su captura mostraba el error en rojo y UN botón, que reintentaba exactamente lo mismo.
+ * Medido en producción: de 10 invitaciones creadas, **ninguna se aceptó jamás** — y varios
+ * invitados (`dbarnoya@gmail.com`, cinco veces) nunca llegaron a tener cuenta.
+ *
+ * Llegar a ese estado —token en la URL y cero invitaciones para el correo de la sesión— casi
+ * siempre significa lo mismo: entraste con otra cuenta. El texto lo insinuaba ("revisa con qué
+ * correo iniciaste sesión") sin decir cuál era ni ofrecer cómo cambiarlo.
+ */
+describe('con token pero sin invitaciones para esta sesión', () => {
+  test('dice con qué cuenta estás, antes de que aprietes nada', () => {
+    montar({ token: 'tok_abc', sessionEmail: 'otro@ejemplo.com' });
+    // El correo va en pantalla desde el arranque: leerlo ANTES es lo que evita el intento
+    // fallido; después del error ya perdió la mitad de su valor.
+    expect(screen.getByText(/otro@ejemplo\.com/)).toBeTruthy();
+  });
+
+  test('ofrece salir a otra cuenta, conservando el token de la invitación', () => {
+    const { container } = montar({ token: 'tok_abc', sessionEmail: 'otro@ejemplo.com' });
+    const oculto = container.querySelector('input[name="token"]') as HTMLInputElement | null;
+    // Sin el token en el formulario, cerrar sesión devuelve a una pantalla vacía y el invitado
+    // tiene que volver a buscar el correo del enlace.
+    expect(oculto?.value).toBe('tok_abc');
+    expect(screen.getByText(t.members.accept.useAnotherAccount)).toBeTruthy();
+  });
+
+  /*
+   * La contraparte: con invitaciones que SÍ son de esta sesión no hay nada que diagnosticar, y
+   * un "entrar con otra cuenta" ahí solo invita a perder la que ya sirve.
+   */
+  test('no aparece cuando la sesión sí tiene invitaciones', () => {
+    montar({ token: '', invitations: [INVITACION], sessionEmail: 'invitado@ejemplo.com' });
+    expect(screen.queryByText(t.members.accept.useAnotherAccount)).toBeNull();
   });
 });

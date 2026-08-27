@@ -147,8 +147,16 @@ export default function Home({ searchParams }: { searchParams?: { auth_error?: s
           formulario de demo reemplaza al CTA con mailto (Jose 2026-08-21).
         */}
         <main>
-          {/* El hero arranca más pegado al nav: ver `paddingSuperior` en `banda.tsx`. */}
-          <Banda id="inicio" paddingSuperior="pt-8 md:pt-12 lg:pt-16">
+          {/*
+            El hero arranca más pegado al nav (`paddingSuperior`) y cierra con menos aire abajo
+            (`paddingInferior`) porque ocupa el alto de la ventana: ver `banda.tsx` y el bloque
+            de CU-868kx4374 en `landing-hero.tsx`.
+          */}
+          <Banda
+            id="inicio"
+            paddingSuperior="pt-8 md:pt-12 lg:pt-16"
+            paddingInferior="pb-10 md:pb-12 lg:pb-14"
+          >
             <LandingHero labels={t.landing} />
           </Banda>
 

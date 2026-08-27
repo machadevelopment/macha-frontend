@@ -33,10 +33,34 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  * `next/image` y no `<img>`: sirve el PNG optimizado y en el formato que soporte el navegador, que
  * en una imagen de 2632px de ancho es la diferencia entre 400 KB y unas decenas. `priority`
  * porque está en la primera pantalla — sin eso Next la carga en diferido y el hueco se ve.
+ *
+ * ═══ EL HERO OCUPA EL ALTO DE LA VENTANA (CU-868kx4374, reporte de Jose 2026-08-26) ═══
+ *
+ * *"El primer slide se ve mal puesto, tal vez volverlo tipo pantalla completa."* La captura dice
+ * qué es "mal puesto", y no era el titular: el mockup del producto **entraba cortado por el
+ * pliegue** — se veía su borde superior y nada más, así que la primera pantalla terminaba en una
+ * imagen a medias en vez de en una portada.
+ *
+ * ⚠️ `min-h` SOLO NO ARREGLA NADA, Y ES LA TRAMPA DE ESTE TICKET. Estirar la sección al alto de
+ * la ventana sin tocar el resto AGREGA espacio: el contenido queda igual y el mockup se va más
+ * abajo todavía. Lo que hace que quepa es que el hueco entre el texto y el mockup deje de ser
+ * fijo. Era `mt-20` (80px) quemado; ahora es `mt-auto` con piso `mt-12`:
+ *
+ *   · en una pantalla alta el `auto` crece y el mockup se apoya abajo, como una portada;
+ *   · en una baja se encoge hasta 48px y el mockup sigue entrando;
+ *   · y por debajo de eso la sección simplemente crece y hay scroll, que es lo correcto —
+ *     recortar el titular para que quepa una imagen decorativa sería el intercambio al revés.
+ *
+ * `100dvh` y no `100vh`: en un móvil `vh` cuenta la barra del navegador aunque esté visible, así
+ * que el hero mediría más que la pantalla y el mockup volvería a quedar cortado justo en el
+ * dispositivo donde menos espacio hay. Los `4rem` que se restan son el nav fijo (64px medidos).
+ *
+ * El relleno de la banda se acompaña desde `app/page.tsx` (`paddingInferior`): con el `pb-32` de
+ * una banda normal sumado al `min-h`, el conjunto vuelve a medir más que la ventana.
  */
 export function LandingHero({ labels }: { labels: Dictionary['landing'] }) {
   return (
-    <section className="relative">
+    <section className="relative flex min-h-[calc(100dvh-4rem)] flex-col">
       {/*
         La mancha de marca. `aria-hidden` y sin capturar el puntero lo pone el componente.
         Se recorta con el `overflow-hidden` de este contenedor: si se desbordara, empujaría el
@@ -77,16 +101,29 @@ export function LandingHero({ labels }: { labels: Dictionary['landing'] }) {
         de 2632px dicte el ancho del hijo y rompa el layout en móvil. `sizes` evita que Next
         sirva el 2x completo a un teléfono.
       */}
-      <div className="mt-20 min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <Image
-          src="/landing/mockup-resumen.png"
-          alt={labels.hero.mockupAlt}
-          width={1316}
-          height={655}
-          priority
-          sizes="(max-width: 1170px) calc(100vw - 3rem), 1170px"
-          className="h-auto w-full max-w-full"
-        />
+      {/*
+        El hueco entre el texto y el mockup, que es la pieza que hace entrar la portada en el
+        pliegue (ver la cabecera — no el `min-h`).
+
+        Va en un CONTENEDOR y no como margen de la tarjeta, y la diferencia no es cosmética:
+        `mt-auto` reparte el espacio libre, así que cuando no sobra nada colapsa a cero y el
+        mockup quedaría pegado a los botones. El `pt-12` de este envoltorio es el piso —48px
+        pase lo que pase— y el `mt-auto` es lo que además lo empuja abajo cuando hay pantalla de
+        sobra. Puestos los dos en la tarjeta, el `pt` caería DENTRO de su borde y pintaría una
+        franja de fondo sobre la imagen.
+      */}
+      <div className="mt-auto min-w-0 pt-12">
+        <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <Image
+            src="/landing/mockup-resumen.png"
+            alt={labels.hero.mockupAlt}
+            width={1316}
+            height={655}
+            priority
+            sizes="(max-width: 1170px) calc(100vw - 3rem), 1170px"
+            className="h-auto w-full max-w-full"
+          />
+        </div>
       </div>
     </section>
   );

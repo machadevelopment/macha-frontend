@@ -116,34 +116,48 @@ describe('las REDES: solo se enlaza la cuenta que existe (CU-868kw1r0m)', () => 
     expect(code).toContain('rel="noopener noreferrer"');
   });
 
-  test('la URL va LIMPIA, sin el parámetro de rastreo con el que llegó compartida', () => {
+  test('las URLs van LIMPIAS, sin el parámetro con el que llegaron compartidas', () => {
     /*
-     * El enlace que compartió Jose traía `?igsh=…`, que identifica a quién se le mandó. Publicarlo
-     * en el footer haría que cada visitante que entre por ahí quede contado como si viniera de la
-     * persona que nos compartió el enlace — métricas sucias de Macha, por una copia/pega.
+     * Los dos enlaces llegaron con un parámetro de más y cada uno filtra algo distinto:
+     *
+     *  · Instagram traía `?igsh=…`, que identifica a QUIÉN se le mandó. Publicarlo haría que
+     *    cada visitante que entre por ahí quede contado como si viniera de la persona que nos
+     *    compartió el enlace — métricas sucias de Macha, por una copia/pega.
+     *  · LinkedIn traía `?viewAsMember=true` (CU-868kxar7b), que es la vista de "cómo se ve mi
+     *    página para alguien sin sesión". Es una herramienta de quien ADMINISTRA la página:
+     *    publicarla enlaza una previsualización en vez de la página, y delata que el enlace se
+     *    copió del panel de administración.
      */
-    expect(redes).not.toMatch(/igsh|igshid|utm_/);
-    expect(redes).not.toMatch(/instagram\.com\/macha\.finance[^']*\?/);
+    expect(redes).not.toMatch(/igsh|igshid|utm_|viewAsMember/);
+    // Ninguna URL de red lleva query, sea cual sea el parámetro.
+    expect(redes).not.toMatch(/(instagram|linkedin)\.com\/[^']*\?/);
   });
 
   test('las redes SIN cuenta confirmada siguen siendo texto, no enlaces', () => {
     /*
      * La decisión de fondo no cambió: un enlace a un perfil equivocado —o a uno que alguien más
-     * ocupó con el nombre de la marca— es peor que el nombre suelto. Que Instagram se haya
-     * confirmado no autoriza a inventar las otras tres.
+     * ocupó con el nombre de la marca— es peor que el nombre suelto. Que Instagram y LinkedIn se
+     * hayan confirmado no autoriza a inventar las otras dos.
      */
-    for (const red of ['LinkedIn', 'Youtube', 'Facebook']) {
+    for (const red of ['Youtube', 'Facebook']) {
       const entrada = redes.match(new RegExp(`\\{[^}]*nombre: '${red}'[^}]*\\}`))?.[0] ?? '';
       expect(entrada, `${red} debería seguir sin url`).not.toContain('url');
     }
   });
 
   test('el footer no enlaza ninguna red a un destino inventado', () => {
-    // Cualquier URL de red social en el archivo tiene que ser la de Instagram, que es la única
-    // confirmada. Un `linkedin.com/company/...` adivinado pasaría los tests de arriba.
+    /*
+     * La lista blanca es el punto: un `youtube.com/@macha` adivinado pasaría todos los tests de
+     * arriba —tiene `target`, no tiene query, y su entrada sí llevaría `url`— y solo este lo
+     * atrapa. Se agrega una URL acá únicamente cuando Jose confirma la cuenta.
+     */
+    const CONFIRMADAS = [
+      'https://www.instagram.com/macha.finance',
+      'https://www.linkedin.com/company/machafinance/about/',
+    ];
     const urls = code.match(/https?:\/\/[^'"\s]+/g) ?? [];
     for (const u of urls.filter((u) => /linkedin|youtube|facebook|instagram/i.test(u))) {
-      expect(u).toBe('https://www.instagram.com/macha.finance');
+      expect(CONFIRMADAS).toContain(u);
     }
   });
 });

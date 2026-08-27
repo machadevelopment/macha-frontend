@@ -40,12 +40,27 @@ export function AcceptInvitationPanel({
   token,
   invitations,
   backendUnavailable,
+  sessionEmail,
+  onUseAnotherAccount,
   labels,
   roles,
 }: {
   token: string;
   invitations: PendingInvitation[];
   backendUnavailable: boolean;
+  /**
+   * El correo de la sesión abierta. Es el dato que convertía esta pantalla en un callejón sin
+   * salida por no estar: ver `signedInAs` en el diccionario.
+   */
+  sessionEmail: string;
+  /**
+   * Cierra la sesión y vuelve a esta misma invitación con el token puesto.
+   *
+   * Llega como PROP y no importado: es un server action, y un client component que lo importe
+   * arrastra `server-only` a su gráfico de módulos. Pasarlo desde la página es el camino que
+   * Next documenta, y de paso deja este componente comprobable sin montar medio framework.
+   */
+  onUseAnotherAccount: (formData: FormData) => void;
   labels: Dictionary['members']['accept'];
   roles: Dictionary['members']['role'];
 }) {
@@ -165,6 +180,34 @@ export function AcceptInvitationPanel({
           >
             {state === 'done' ? labels.accepted : labels.action}
           </Button>
+
+          {/*
+            ═══ CON QUÉ CUENTA ESTÁS, Y CÓMO SALIR DE ACÁ (reporte de Jose, 2026-08-26) ═══
+
+            Llegar a este estado —token en la URL y CERO invitaciones para el correo de la
+            sesión— casi siempre significa una sola cosa: entraste con una cuenta distinta de la
+            invitada. La pantalla ya lo insinuaba ("revisa con qué correo iniciaste sesión")
+            pero sin decir cuál era el correo ni ofrecer forma de cambiarlo, así que el único
+            botón reintentaba lo mismo para siempre.
+
+            Se muestra SIEMPRE en esta rama y no solo tras el error: leerlo antes de apretar es
+            lo que evita el intento fallido, y después del error ya perdió la mitad de su valor.
+
+            El botón manda el TOKEN, no una ruta de vuelta. Ver `signOutParaOtraCuenta`: un
+            destino que viniera del cliente sería un redirector abierto.
+          */}
+          <p className="text-caption text-muted-foreground">
+            {labels.signedInAs.replace('{email}', sessionEmail)}
+          </p>
+          <form action={onUseAnotherAccount}>
+            <input type="hidden" name="token" value={token} />
+            <button
+              type="submit"
+              className="text-caption text-muted-foreground underline hover:text-foreground"
+            >
+              {labels.useAnotherAccount}
+            </button>
+          </form>
         </div>
       )}
     </Card>

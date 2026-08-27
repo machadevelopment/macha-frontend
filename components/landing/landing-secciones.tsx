@@ -308,12 +308,21 @@ export function SeccionSeguridad({ labels }: { labels: L }) {
 /**
  * "Un plan según tu operación." — los tres planes.
  *
- * ═══ NO HAY PRECIOS, Y NO ES UN OLVIDO ═══
+ * ═══ LOS PRECIOS APROBADOS SE MUESTRAN; LOS QUE NO EXISTEN, NO (CU-868kxar6m) ═══
  *
- * El diseño no los trae: dice "Definimos el alcance en la demo". Inventar cifras en la página de
- * precios de un producto financiero sería lo peor que se podría hacer acá — un número que nadie
- * aprobó, en la pantalla donde el cliente decide si puede pagarlo. Por eso los tres planes llevan
- * el MISMO CTA en vez de un botón de compra: la conversión de esta sección es la conversación.
+ * Esta nota decía "NO HAY PRECIOS, Y NO ES UN OLVIDO": *"inventar cifras en la página de precios
+ * de un producto financiero sería lo peor que se podría hacer acá — un número que nadie aprobó,
+ * en la pantalla donde el cliente decide si puede pagarlo."* Ese razonamiento **no se revierte,
+ * se cumple**: Jose, que es quien aprueba el precio, dio dos cifras concretas el 2026-08-26
+ * (Base $59 + IVA, Pro $139 + IVA). Lo que la nota prohibía era el placeholder, no el precio.
+ *
+ * Por eso `precio` es OPCIONAL en el diccionario y no obligatorio: "Personalizado" se cotiza, y
+ * un campo requerido obligaría a inventarle una cifra — exactamente lo que la nota impide. Su
+ * tarjeta se queda sin línea de precio, no con un "a convenir" que ocupe el mismo lugar y no
+ * diga nada.
+ *
+ * Los tres siguen llevando el MISMO CTA y no un botón de compra: no hay checkout, así que la
+ * conversión de esta sección sigue siendo la conversación.
  *
  * ═══ COLUMNAS CON DIVISOR, NO TARJETAS ═══
  *
@@ -347,6 +356,21 @@ export function SeccionPlanes({ labels, hrefDemo }: { labels: L; hrefDemo?: stri
               <h3 className="text-[24px] font-normal leading-tight tracking-[-0.02em] text-foreground">
                 {p.nombre}
               </h3>
+              {/*
+                El precio va DEBAJO del nombre y ARRIBA de la descripción: es lo segundo que
+                alguien busca en una página de planes, después de saber cuál es cuál. Ponerlo al
+                final, junto al botón, obligaría a leer la lista entera para saber si el plan
+                está en su presupuesto.
+
+                `tabular-nums` porque son tres columnas alineadas y las cifras tienen que caer
+                una debajo de la otra. Y en la tipografía de interfaz, no en mono: es una cifra
+                de portada, y la regla del producto es que las cifras grandes no van monoespaciadas.
+              */}
+              {p.precio && (
+                <p className="text-[20px] font-medium leading-tight tabular-nums text-foreground">
+                  {p.precio}
+                </p>
+              )}
               <p className="text-lprose text-muted-foreground">{p.para}</p>
             </div>
 
