@@ -253,7 +253,13 @@ async function invocar(ruta: RutaBff, metodo: MetodoHttp): Promise<void> {
     }
   }
 
-  const req = new NextRequest(`http://macha.test${ruta.url}?limit=10&offset=0`, {
+  /*
+   * Los parámetros son genéricos a propósito: sirven a las rutas paginadas y son inofensivos
+   * para las demás. `on` se agregó con `/api/fx-rate-display`, que exige una fecha y devuelve
+   * 400 sin ella — sin el parámetro, ese handler se cortaba antes de llamar al backend y el
+   * barrido lo daba por "no reenvía el token" cuando en realidad no lo estaba ejercitando.
+   */
+  const req = new NextRequest(`http://macha.test${ruta.url}?limit=10&offset=0&on=2026-08-31`, {
     method: metodo,
     headers,
     ...(body === undefined ? {} : { body }),

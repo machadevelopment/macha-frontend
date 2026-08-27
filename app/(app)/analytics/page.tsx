@@ -24,6 +24,7 @@ export default function AnalyticsPage() {
         // acaban divergiendo. Mismo criterio que `periodLabels`, que ya venía de ahí.
         kpiLabels={t.dashboard.kpi}
         periodLabels={t.dashboard.period}
+        viewCurrencyLabels={t.dashboard.viewCurrency}
         common={t.common}
       />
     </main>

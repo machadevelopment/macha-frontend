@@ -795,6 +795,23 @@ export interface Dictionary {
       /** `{currency}`: la advertencia de que los montos de arriba NO se suman entre sí. */
       notSummed: string;
     };
+    /**
+     * El control para VER las cifras en la otra moneda (pedido de Keneth, 2026-08-26).
+     *
+     * Distinto de `currency`, que describe lo que PASÓ (qué monedas entraron y a qué tasa se
+     * consolidaron). Esto describe una lente sobre el resultado, y por eso sus textos insisten
+     * en que no es la contabilidad.
+     */
+    viewCurrency: {
+      label: string;
+      /** `{currency}`, `{rate}`, `{date}`: con qué se convirtió lo que se está viendo. */
+      convertedAt: string;
+      /** `{currency}`: la moneda en la que la contabilidad sigue registrada. */
+      notAccounting: string;
+      /** `{currency}`: no hay tasa, así que se invita a configurarla en vez de convertir. */
+      missingRate: string;
+      configure: string;
+    };
     kpi: {
       revenue: string;
       revenueHint: string;

@@ -11,6 +11,9 @@ import { CurrencyNote } from '@/components/dashboard/currency-note';
 import { request, type RequestError } from '@/lib/api/browser';
 import type { DateRange } from '@/lib/period';
 import { formatMoney, formatMoneyCompact, formatPct } from '@/lib/format';
+import { useVistaDeMoneda } from '@/components/money/display-currency';
+import { CurrencyToggle } from '@/components/money/currency-toggle';
+import { montoEnVista } from '@/lib/fx-display';
 import {
   delta,
   gastosOperativos,
@@ -55,6 +58,21 @@ export function PeriodKpis({
   common: Dictionary['common'];
 }) {
   const { periodo, rango, cambiar } = usePeriodScope();
+  /*
+    ═══ LA MONEDA EN LA QUE SE MIRA, QUE NO SIEMPRE ES LA DE LA CONTABILIDAD ═══
+
+    `data.baseCurrency` sigue siendo la moneda en la que las cifras están GUARDADAS. Lo que
+    cambia acá es en cuál se PINTAN: el cliente puede pedir verlas en la otra, y entonces se
+    les aplica una sola tasa —la vigente al cierre de este período— en tiempo de lectura.
+
+    `v.vista` cae a la base sola cuando no hay tasa utilizable, así que `dinero()` no puede
+    devolver quetzales rotulados como dólares aunque el usuario haya pedido dólares.
+
+    Va ACÁ ARRIBA, junto al resto de los hooks, y no abajo donde se usa: este componente
+    retorna temprano en los estados de carga y de error, y un hook después de un `return`
+    cambia el orden de llamada entre renders. Lo marca `react-hooks/rules-of-hooks`.
+  */
+  const v = useVistaDeMoneda(rango.to);
   const [data, setData] = useState<PeriodMetricsResponse | null>(null);
   const [productos, setProductos] = useState<ProductRevenueResponse | null>(null);
   const [error, setError] = useState<RequestError | null>(null);
@@ -169,7 +187,28 @@ export function PeriodKpis({
     );
   }
 
-  const moneda = data.baseCurrency as 'GTQ' | 'USD';
+  /*
+    TODA cifra de dinero de esta pantalla pasa por acá, incluso cuando no hay conversión: en
+    la vista base `montoEnVista` es la identidad. Es a propósito — si el `if` viviera en cada
+    tarjeta, bastaría con que una se lo olvidara para mostrar la cifra sin convertir bajo el
+    rótulo de la otra moneda, y eso no se ve mirando la pantalla.
+  */
+  /*
+    El guion es la última red y no debería alcanzarse: `useVistaDeMoneda` ya descarta una tasa
+    inutilizable y cae a la base, y desde hoy el backend rechaza tasas ≤ 0 en las dos rutas que
+    escriben. Se conserva porque la alternativa —dejar pasar el `null`— sería `formatMoney(NaN)`,
+    que produce una cadena que se LEE como una cifra. Un guion se lee como "no hay dato". No va
+    al diccionario: es tipografía, no prosa.
+  */
+  const SIN_CIFRA = '—';
+  const dinero = (n: number) => {
+    const m = montoEnVista(n, v.vista);
+    return m === null ? SIN_CIFRA : formatMoneyCompact(m, v.vista.moneda, locale);
+  };
+  const dineroExacto = (n: number) => {
+    const m = montoEnVista(n, v.vista);
+    return m === null ? SIN_CIFRA : formatMoney(m, v.vista.moneda, locale);
+  };
 
   // Las cuentas viven en `lib/metrics/period-totals` desde CU-868knx15v: Analítica monta su
   // propia fila de KPIs sobre los mismos totales, y dos copias de "gastos = cogs + opex" son
@@ -206,6 +245,17 @@ export function PeriodKpis({
         existe.
       */}
       <CurrencyNote locale={locale} labels={labels.currency} />
+      {/*
+        Va DESPUÉS de `CurrencyNote` y antes de las tarjetas, en el mismo lugar donde ya vive
+        el contexto que hace legibles las cifras. Y el orden entre los dos importa:
+        `CurrencyNote` cuenta qué monedas ENTRARON y a qué tasa se consolidaron —hechos de la
+        contabilidad— y esto ofrece una lente sobre el resultado. Primero lo que pasó, después
+        cómo elegís verlo.
+
+        ⚠️ `CurrencyNote` NUNCA se convierte: sus montos son por moneda original y aplicarles
+        una tasa destruiría justamente lo que muestra.
+      */}
+      <CurrencyToggle locale={locale} labels={labels.viewCurrency} v={v} />
       <div className={GRID}>
         {/*
           Valor ABREVIADO arriba y cifra EXACTA debajo, que es para lo que existe `exact` y lo
@@ -218,8 +268,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.revenue}
           icon={<DollarSign className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoneyCompact(data.current.revenue, moneda, locale)}
-          exact={formatMoney(data.current.revenue, moneda, locale)}
+          value={dinero(data.current.revenue)}
+          exact={dineroExacto(data.current.revenue)}
           hint={labels.kpi.revenueHint}
           delta={delta(data.current.revenue, data.previous.revenue)}
           deltaCaption={labels.kpi.vsPrevious}
@@ -247,8 +297,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.cogs}
           icon={<Package className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoneyCompact(data.current.cogs, moneda, locale)}
-          exact={formatMoney(data.current.cogs, moneda, locale)}
+          value={dinero(data.current.cogs)}
+          exact={dineroExacto(data.current.cogs)}
           hint={labels.kpi.cogsHint}
           delta={delta(data.current.cogs, data.previous.cogs)}
           deltaCaption={labels.kpi.vsPrevious}
@@ -259,8 +309,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.expenses}
           icon={<Receipt className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoneyCompact(gastosOperativos(data.current), moneda, locale)}
-          exact={formatMoney(gastosOperativos(data.current), moneda, locale)}
+          value={dinero(gastosOperativos(data.current))}
+          exact={dineroExacto(gastosOperativos(data.current))}
           hint={labels.kpi.expensesHint}
           delta={delta(gastosOperativos(data.current), gastosOperativos(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}
@@ -271,8 +321,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.grossProfit}
           icon={<PiggyBank className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoneyCompact(utilidadBruta(data.current), moneda, locale)}
-          exact={formatMoney(utilidadBruta(data.current), moneda, locale)}
+          value={dinero(utilidadBruta(data.current))}
+          exact={dineroExacto(utilidadBruta(data.current))}
           hint={labels.kpi.grossProfitHint}
           delta={delta(utilidadBruta(data.current), utilidadBruta(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}
@@ -310,8 +360,8 @@ export function PeriodKpis({
         <KpiCard
           label={labels.kpi.cashFlow}
           icon={<Wallet className="h-4 w-4" strokeWidth={1.7} />}
-          value={formatMoneyCompact(resultado(data.current), moneda, locale)}
-          exact={formatMoney(resultado(data.current), moneda, locale)}
+          value={dinero(resultado(data.current))}
+          exact={dineroExacto(resultado(data.current))}
           hint={labels.kpi.cashFlowHint}
           delta={delta(resultado(data.current), resultado(data.previous))}
           deltaCaption={labels.kpi.vsPrevious}

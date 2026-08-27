@@ -1,6 +1,11 @@
 import { intlLocale, type Locale } from '@/lib/i18n/config';
 
-type Currency = 'GTQ' | 'USD';
+/**
+ * Exportado (antes era local) porque la lente de moneda de vista (`lib/fx-display.ts`) y el
+ * contexto que la sostiene hablan de lo mismo. Repetir la unión en cada archivo la dejaría
+ * desincronizada el día que el producto acepte una tercera moneda.
+ */
+export type Currency = 'GTQ' | 'USD';
 
 /**
  * Centralized locale-aware formatting (design guide §11.5). ALWAYS show the explicit
