@@ -863,6 +863,14 @@ export const en: Dictionary = {
       notSummed:
         'The amounts above are in different currencies and are not added together; what gets consolidated is what each contributed in {currency}.',
     },
+    viewCurrency: {
+      label: 'View in',
+      convertedAt: 'Converted to {currency} at the {rate} rate from {date}.',
+      notAccounting:
+        'This is a view only: your books stay recorded in {currency} at each entry\u2019s own rate.',
+      missingRate: 'Set your exchange rate to see these figures in {currency}.',
+      configure: 'Set exchange rate',
+    },
     kpi: {
       revenue: 'Revenue',
       revenueHint: 'Revenue invoiced this period.',
