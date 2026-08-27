@@ -954,6 +954,18 @@ export const es: Dictionary = {
       notSummed:
         'Los montos de arriba están en monedas distintas y no se suman entre sí; lo que se consolida es lo que cada una aportó en {currency}.',
     },
+    viewCurrency: {
+      label: 'Ver en',
+      /* El aviso vive junto a las cifras convertidas y no en un tooltip: quien lee un número
+         convertido tiene que ver de dónde salió sin tener que buscarlo. */
+      convertedAt: 'Convertido a {currency} con la tasa {rate} del {date}.',
+      notAccounting:
+        'Es solo una vista: tu contabilidad sigue registrada en {currency} con la tasa de cada movimiento.',
+      /* El estado que dispara el flujo: no hay tasa, así que en vez de convertir se invita a
+         configurarla. El texto nombra la pantalla porque el botón lleva ahí. */
+      missingRate: 'Configura tu tipo de cambio para ver estas cifras en {currency}.',
+      configure: 'Configurar tipo de cambio',
+    },
     kpi: {
       revenue: 'Ingresos',
       revenueHint: 'Ingresos facturados del período.',

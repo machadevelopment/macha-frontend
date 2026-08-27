@@ -9,6 +9,14 @@ import { KpiCard } from '@/components/charts/kpi-card';
 import { CHART_HEIGHT } from '@/components/charts/chart-primitives';
 import { AnalyticsKpiHeader, totalDeCartera } from '@/components/analytics/kpi-header';
 import { TabCartera } from '@/components/analytics/tab-cartera';
+import { useVistaDeMoneda } from '@/components/money/display-currency';
+import { CurrencyToggle } from '@/components/money/currency-toggle';
+import {
+  carteraEnVista,
+  categoriasEnVista,
+  metricasEnVista,
+  productosEnVista,
+} from '@/lib/fx-display-shapes';
 import {
   PanelCostos,
   PanelFlujo,
@@ -81,6 +89,7 @@ export function AnalyticsClient({
   labels,
   kpiLabels,
   periodLabels,
+  viewCurrencyLabels,
   common,
 }: {
   locale: Locale;
@@ -92,10 +101,18 @@ export function AnalyticsClient({
    */
   kpiLabels: Dictionary['dashboard']['kpi'];
   periodLabels: Dictionary['dashboard']['period'];
+  /* Del diccionario del dashboard y no de uno propio bajo `analytics`, por el mismo motivo
+     que `kpiLabels` y `periodLabels`: es el MISMO control sobre las mismas métricas, y dos
+     juegos de textos para lo mismo terminan divergiendo. */
+  viewCurrencyLabels: Dictionary['dashboard']['viewCurrency'];
   common: Dictionary['common'];
 }) {
   const [periodo, setPeriodo] = useState<PeriodKey>('month');
   const [rango, setRango] = useState<DateRange>(() => computeRange('month', new Date()));
+
+  // Junto al resto de los hooks: esta pantalla retorna temprano en carga, error y vacío, y un
+  // hook después de un `return` cambia el orden de llamada entre renders.
+  const v = useVistaDeMoneda(rango.to);
   const [tab, setTab] = useState<TabKey>('overview');
 
   const [metricas, setMetricas] = useState<PeriodMetricsResponse | null>(null);
@@ -191,11 +208,40 @@ export function AnalyticsClient({
     );
   }
 
-  const moneda = (metricas.baseCurrency ?? 'GTQ') as 'GTQ' | 'USD';
+  /*
+    ═══ LA CONVERSIÓN PASA ACÁ, EN EL BORDE, Y NO EN LOS PANELES ═══
+
+    Esta pantalla reparte sus datos a una docena de paneles que formatean dinero por su cuenta.
+    Si cada uno supiera de conversión serían doce lugares donde olvidarse de una cifra; en vez
+    de eso los datos se convierten una vez al entrar y los paneles siguen recibiendo números
+    con una moneda al lado, sin enterarse de nada.
+
+    `vistaMetricas` SOMBREA a `metricas` de acá abajo y ese nombre no es casual: todo lo que se
+    calcule después —los puntos de la serie, el delta, el rótulo de moneda— tiene que salir de
+    la versión convertida, y dejar las dos con nombres parecidos invita a usar la equivocada.
+    Lo que sigue usando `metricas` a secas es solo `pantallaVacia`, y ahí da igual: dividir por
+    una tasa positiva no convierte un cero en un no-cero.
+
+    En la vista base los conversores devuelven la MISMA referencia, así que para la inmensa
+    mayoría de los clientes —que operan en una sola moneda— esto no cuesta ni un re-render.
+  */
+  const vistaMetricas = metricasEnVista(metricas, v.vista);
+  const carteraVista = cartera
+    ? {
+        ...cartera,
+        ar: carteraEnVista(cartera.ar, v.vista),
+        ap: carteraEnVista(cartera.ap, v.vista),
+      }
+    : null;
+
+  const moneda = (vistaMetricas.baseCurrency ?? 'GTQ') as 'GTQ' | 'USD';
   // CU-868ktvh75: el rango decide la granularidad. Sin él, "este año" pintaba 365 puntos.
-  const puntos = puntosDeSerie(metricas.series, locale, labels, rango);
-  const itemsProducto = productos?.items ?? [];
-  const deltaIngreso = delta(metricas.current.revenue, metricas.previous.revenue);
+  const puntos = puntosDeSerie(vistaMetricas.series, locale, labels, rango);
+  const itemsProducto = productosEnVista(productos?.items ?? [], v.vista);
+  const categoriasVista = categorias
+    ? { ...categorias, rows: categoriasEnVista(categorias.rows, v.vista) }
+    : null;
+  const deltaIngreso = delta(vistaMetricas.current.revenue, vistaMetricas.previous.revenue);
   /*
    * "No hay nada" se decide con el período Y con la cartera — ver `vacio.ts`. Una empresa sin
    * movimientos este mes pero con facturas por cobrar de meses anteriores NO ve el mensaje:
@@ -224,12 +270,21 @@ export function AnalyticsClient({
 
   return (
     <>
-      <div className="mb-4">{filtro}</div>
+      {/*
+        El control de moneda va junto al de período y no arriba del todo: los dos son
+        controles de VISTA sobre las mismas cifras, y separarlos haría que el de moneda
+        pareciera un filtro de datos. Se envuelven en un flex que los deja lado a lado cuando
+        hay ancho y apilados cuando no.
+      */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        {filtro}
+        <CurrencyToggle locale={locale} labels={viewCurrencyLabels} v={v} />
+      </div>
 
       <div className="flex flex-col gap-4">
         <AnalyticsKpiHeader
-          metricas={metricas}
-          arApTotal={cartera ? totalDeCartera(cartera.ar) : null}
+          metricas={vistaMetricas}
+          arApTotal={carteraVista ? totalDeCartera(carteraVista.ar) : null}
           locale={locale}
           labels={labels}
           kpiLabels={kpiLabels}
@@ -269,7 +324,7 @@ export function AnalyticsClient({
             */}
             <div className="grid grid-cols-1 gap-4 app:grid-cols-[1.35fr_1fr]">
               <PanelTendencia
-                metricas={metricas}
+                metricas={vistaMetricas}
                 puntos={puntos}
                 moneda={moneda}
                 locale={locale}
@@ -298,7 +353,7 @@ export function AnalyticsClient({
               medición en `chart-primitives.tsx`.
             */}
             <PanelTendencia
-              metricas={metricas}
+              metricas={vistaMetricas}
               puntos={puntos}
               moneda={moneda}
               locale={locale}
@@ -319,17 +374,22 @@ export function AnalyticsClient({
               alto={CHART_HEIGHT.areaWide}
               // El neto solo se corona en SU tab: en el Resumen la cifra ancla es el ingreso,
               // y dos números grandes compitiendo en la misma vista no dejan ancla a ninguno.
-              resumen={{ neto: resultado(metricas.current) }}
+              resumen={{ neto: resultado(vistaMetricas.current) }}
             />
           </TabsContent>
 
           <TabsContent value="costs" className="mt-4 flex flex-col gap-4">
-            <PanelCostos categorias={categorias} moneda={moneda} locale={locale} labels={labels} />
+            <PanelCostos
+              categorias={categoriasVista}
+              moneda={moneda}
+              locale={locale}
+              labels={labels}
+            />
           </TabsContent>
 
           <TabsContent value="receivables" className="mt-4">
             <TabCartera
-              buckets={cartera?.ar ?? null}
+              buckets={carteraVista?.ar ?? null}
               concentracion={contrapartes?.ar ?? null}
               moneda={moneda}
               locale={locale}
@@ -342,7 +402,7 @@ export function AnalyticsClient({
 
           <TabsContent value="payables" className="mt-4">
             <TabCartera
-              buckets={cartera?.ap ?? null}
+              buckets={carteraVista?.ap ?? null}
               concentracion={contrapartes?.ap ?? null}
               moneda={moneda}
               locale={locale}
@@ -358,7 +418,7 @@ export function AnalyticsClient({
             tablas desaparecerían según qué tab esté abierto — y la accesibilidad de una
             pantalla no puede depender de eso. */}
         <TablasAccesibles
-          metricas={metricas}
+          metricas={vistaMetricas}
           items={itemsProducto}
           moneda={moneda}
           locale={locale}
