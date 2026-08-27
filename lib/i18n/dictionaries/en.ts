@@ -987,6 +987,9 @@ export const en: Dictionary = {
     thinking: 'Macha is thinking…',
     stopWaiting: 'Cancel',
     stoppedWaiting: 'You cancelled the answer. Your question is saved in this chat.',
+    insufficientCredits:
+      'You\u2019re out of credits, so this message wasn\u2019t sent. Your text is still here.',
+    topUp: 'Buy credits',
     welcome: {
       title: 'What do you want to know about your business?',
       subtitle:

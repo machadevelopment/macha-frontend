@@ -1000,6 +1000,16 @@ export interface Dictionary {
     stopWaiting: string;
     stoppedWaiting: string;
     /**
+     * Sin créditos no se manda el prompt — CU-868kxjucv.
+     *
+     * El chat cobraba y no bloqueaba, así que una empresa sin saldo seguía usando el asesor y
+     * su balance se iba a negativo. Ahora el backend responde 402 antes de llamar al modelo, y
+     * este texto es lo que hace tolerable que el corte ocurra a mitad de una conversación:
+     * dice qué falta y ofrece dónde resolverlo, en vez del error genérico de red.
+     */
+    insufficientCredits: string;
+    topUp: string;
+    /**
      * Estado vacío del asesor (CU-868knx189). Sustituye a la antigua `chat.empty`, que era
      * una sola línea gris — se borra en vez de dejarla huérfana en el diccionario.
      */
