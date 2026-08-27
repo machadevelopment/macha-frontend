@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
+import { Calendar, type RangoDeCalendario } from '@/components/ui/calendar';
 import {
   computeRange,
   localIsoDate,
@@ -98,10 +99,25 @@ export function PeriodFilter({
     return new Date(y!, m! - 1, d!);
   };
 
-  // Tope duro del `<input type="date">`: el navegador no deja elegir más allá de hoy.
-  // La validación en JS igual se hace — `max` no cubre el tecleado directo en todos los
-  // navegadores, y es el usuario el que decide si escribe o si abre el calendario.
+  // Hoy, para bloquear el futuro en el calendario. La validación en JS igual se hace: la
+  // interfaz evita el error, `fallo` lo RECHAZA, y un rango puede llegar mal por otro camino
+  // (un atajo, el estado inicial, un cambio futuro de esta pantalla).
   const hoy = localIsoDate(new Date());
+
+  /*
+   * Del `YYYY-MM-DD` del estado a los `Date` del calendario, y de vuelta.
+   *
+   * Se REUSA el `aFecha` de arriba, que construye desde las partes en hora local. Mi primer
+   * intento agregó un segundo helper con `new Date(\`${'${iso}'}T12:00:00\`)` —el truco del mediodía
+   * para que ningún huso cruce la medianoche— y era una segunda respuesta a un problema que
+   * este archivo ya tenía resuelto mejor: construir desde las partes no depende de la hora
+   * porque nunca pasa por UTC. Dos formas de convertir la misma fecha en el mismo archivo es
+   * exactamente cómo terminan discrepando.
+   */
+  const aIso = (d: Date) => localIsoDate(d);
+  const rangoElegido: RangoDeCalendario | undefined = desde
+    ? { from: aFecha(desde), to: hasta ? aFecha(hasta) : undefined }
+    : undefined;
 
   const mensajeError: Record<CustomRangeError, string> = {
     incomplete: labels.customIncomplete,
@@ -251,38 +267,51 @@ export function PeriodFilter({
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1">
-              <span className="font-mono text-eyebrow uppercase text-faint">
-                {labels.customFrom}
-              </span>
-              <input
-                type="date"
-                value={desde}
-                max={hoy}
-                onChange={(e) => {
-                  setDesde(e.target.value);
-                  setError(null);
-                }}
-                className="rounded-md border border-input bg-background px-2 py-1.5 text-body tabular-nums"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="font-mono text-eyebrow uppercase text-faint">{labels.customTo}</span>
-              <input
-                type="date"
-                value={hasta}
-                // `min={desde}` hace que el calendario ni siquiera ofrezca un final
-                // anterior al inicio, que es el error más fácil de cometer.
-                min={desde || undefined}
-                max={hoy}
-                onChange={(e) => {
-                  setHasta(e.target.value);
-                  setError(null);
-                }}
-                className="rounded-md border border-input bg-background px-2 py-1.5 text-body tabular-nums"
-              />
-            </label>
+          {/*
+            ═══ EL CALENDARIO REEMPLAZA A LOS DOS `<input type="date">` — CU-868kx7d5x ═══
+
+            Jose pidió que fuera *"más amigable y más fluido"*. Los dos campos nativos eran una
+            decisión consciente —este archivo la documentaba, junto con la condición para
+            cambiarla— y lo que la vuelve insuficiente es el gesto: elegir un rango con dos
+            campos separados obliga a abrir un calendario, elegir, cerrarlo, abrir el otro y
+            elegir otra vez, sin ver nunca los dos extremos a la vez. Con uno de rango, el rango
+            ES el gesto: se pinta mientras se arrastra.
+
+            ⚠️ LA VALIDACIÓN NO SE MUEVE, se refuerza. `disabled={{ after: hoy }}` impide elegir
+            el futuro en la interfaz, y el modo `range` de la librería hace imposible un final
+            anterior al inicio (los ordena solo). Pero `fallo`/`error` siguen ahí y siguen
+            gobernando el botón: la comprobación de la UI evita el error, la de abajo lo
+            RECHAZA, y son dos cosas distintas — un rango puede llegar mal por un atajo, por el
+            estado inicial o por un cambio futuro de esta pantalla.
+          */}
+          <Calendar
+            locale={locale}
+            selected={rangoElegido}
+            onSelect={(r) => {
+              setDesde(r?.from ? aIso(r.from) : '');
+              setHasta(r?.to ? aIso(r.to) : '');
+              setError(null);
+            }}
+            disabled={{ after: aFecha(hoy) }}
+          />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/*
+              Las fechas elegidas, EN TEXTO y no solo pintadas en el calendario. Dos motivos, y
+              el segundo es el que obliga: permite comprobarlas de un vistazo antes de aplicar,
+              y es lo único que un lector de pantalla puede leer sin recorrer la grilla día por
+              día.
+
+              Van con `customFrom`/`customTo`, las etiquetas que rotulaban los dos campos que el
+              calendario reemplazó. Se conservan a propósito en vez de borrarlas: sin ellas esto
+              sería "05 ago 2026 → 12 ago 2026", dos fechas y una flecha que hay que interpretar.
+              Y se formatean con el mismo `fmt` que las píldoras, así que la fecha se lee igual
+              en toda la pantalla.
+            */}
+            <p className="flex-1 text-caption tabular-nums text-muted-foreground">
+              {labels.customFrom} {desde ? fmt.format(aFecha(desde)) : '—'} · {labels.customTo}{' '}
+              {hasta ? fmt.format(aFecha(hasta)) : '—'}
+            </p>
             <Button size="sm" onClick={aplicar} disabled={fallo !== null}>
               {labels.customApply}
             </Button>

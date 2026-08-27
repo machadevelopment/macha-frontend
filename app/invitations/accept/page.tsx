@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/api/client';
 import { getLocale } from '@/lib/i18n/server';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { AcceptInvitationPanel } from '@/components/members/accept-invitation-panel';
+import { signOutParaOtraCuenta } from '@/app/actions/sign-out';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { MachaMark } from '@/components/ui/macha-mark';
 import {
@@ -121,6 +122,8 @@ export default async function AcceptInvitationPage({
         token={token}
         invitations={invitations}
         backendUnavailable={backendUnavailable}
+        sessionEmail={user.email}
+        onUseAnotherAccount={signOutParaOtraCuenta}
         labels={t.members.accept}
         roles={t.members.role}
       />

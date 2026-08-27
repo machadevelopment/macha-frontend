@@ -57,13 +57,24 @@ describe('la severidad se pinta como estado, no como tema', () => {
     expect(panel).toContain('variant={');
   });
 
-  test('critical → danger, warning → warning, y el resto neutral', () => {
-    // `info` va en `neutral` a propósito: es contexto, y pintarlo de color gastaría la señal
-    // que `critical` necesita para destacar.
+  test('critical → danger, warning → warning, e `info` sin chip', () => {
+    /*
+     * ⚠️ ESTE TEST EXIGÍA `'neutral'` PARA `info`, Y ESO CAMBIÓ (CU-868kx7a73).
+     *
+     * Jose: *"sale la palabra CONTEXTO; que ese tag sea según la data, por ejemplo cashflow o
+     * revenue"*. "Contexto" es el rótulo de `info`, y salía como un chip del mismo peso que
+     * "Urgente" justo al lado del tema — dos etiquetas contiguas iguales se leen como una sola
+     * cosa, y la que más llamaba la atención era la que no significaba nada.
+     *
+     * El razonamiento viejo ("`neutral` para no gastar la señal que `critical` necesita") era
+     * correcto y este lo termina: la forma más barata de no gastar una señal es no emitirla.
+     * La AUSENCIA de chip es "no urge".
+     */
     const bloque = panel.slice(panel.indexOf('<Badge'), panel.indexOf('</Badge>'));
     expect(bloque).toContain("'danger'");
     expect(bloque).toContain("'warning'");
-    expect(bloque).toContain("'neutral'");
+    // La guarda es lo que hace que `info` no llegue nunca al Badge.
+    expect(panel).toContain("insight.severity !== 'info'");
   });
 
   test('la CATEGORÍA sigue sin color', () => {
@@ -86,16 +97,71 @@ describe('el orden y la ausencia', () => {
 
   test('un consejo SIN severidad se trata como `info`, no rompe', () => {
     /*
-     * `insight_requests` es un ledger append-only con consejos guardados ANTES de este ticket que
-     * no traen el campo. Tratarlos como el nivel más bajo es lo correcto: no se puede afirmar que
-     * algo urge cuando nadie lo evaluó.
+     * `insight_requests` es un ledger append-only con consejos guardados ANTES de que existiera
+     * el campo. Tratarlos como el nivel más bajo es lo correcto: no se puede afirmar que algo
+     * urge cuando nadie lo evaluó.
+     *
+     * Se comprueba en los DOS lugares que lo deciden, y desde CU-868kx7a73 son distintos: el
+     * ORDEN sigue usando `?? 'info'` para colocarlo al final, y el CHIP lo omite por la guarda
+     * de verdad (`insight.severity &&`), que también cubre el `undefined`. Antes bastaba con
+     * mirar el primero porque el chip se pintaba siempre.
      */
-    expect(panel).toContain("insight.severity ?? 'info'");
+    expect(panel).toContain("rango[a.severity ?? 'info']");
+    expect(panel).toContain('{insight.severity && insight.severity');
   });
 
   test('la acción solo se pinta si vino', () => {
     // Un consejo de contexto ("tus ventas crecieron 30 %") no tiene acción, y obligar al modelo a
     // inventarle una produce exactamente el consejo vacío que este panel no debería dar.
     expect(panel).toContain('{insight.action && (');
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * "EL CONSEJO FINANCIERO DIARIO NO SIRVE" — CU-868kx4a02 (Jose, 2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * El ticket decía que faltaba detalle y que no había captura. La captura SÍ estaba adjunta y
+ * dice exactamente qué pasó: el panel clavado en **"Generating…"**, el botón deshabilitado y
+ * ningún resultado.
+ *
+ * Y la generación no era el problema. Medido en la base de producción: **10 consejos pedidos
+ * ese mismo día, los 10 con resultado guardado**, y específicos — con cifras reales de la
+ * empresa, no texto genérico. El backend contestó; la pantalla no se enteró.
+ *
+ * Lo que faltaba era un TECHO DE ESPERA. Si la conexión queda abierta sin responder —el
+ * contenedor muere con la petición en vuelo, que es lo que hacía el backend ese día— `fetch` no
+ * rechaza nunca, el `await` no vuelve y el estado se queda en `loading` para siempre. La única
+ * salida era recargar la página.
+ */
+describe('el consejo diario no se puede quedar generando para siempre', () => {
+  test('la petición lleva un AbortController con temporizador', () => {
+    /*
+     * Las dos piezas juntas: sin el `signal`, el `abort()` no alcanza a la petición; sin el
+     * `setTimeout`, el controlador no se dispara nunca. Tener una sola es no tener ninguna.
+     */
+    expect(panel).toContain('new AbortController()');
+    expect(panel).toMatch(/setTimeout\(\(\) => corte\.abort\(\), 90_000\)/);
+    expect(panel).toContain('corte.signal');
+  });
+
+  test('el temporizador se limpia cuando la respuesta llegó', () => {
+    /*
+     * Sin esto, cada consejo generado deja un `setTimeout` de 90 s pendiente. El panel vive en
+     * el rail del dashboard toda la sesión, así que se acumulan — y el `abort()` de uno viejo
+     * podría cancelar una petición nueva.
+     */
+    expect(panel).toContain('clearTimeout(reloj)');
+  });
+
+  test('al vencer cae al estado que YA ofrece reintentar', () => {
+    /*
+     * Un aborto hace que `fetch` rechace, y `request` trata cualquier rechazo como `network`,
+     * que `classify` manda a `failed`. Ese estado ya pinta el botón de reintentar, así que no
+     * hace falta un motivo nuevo: para el usuario "no contestó" y "falló" se resuelven igual.
+     */
+    expect(panel).toContain("return { kind: 'failed' };");
+    expect(panel).toContain('labels.insightError.retry');
   });
 });

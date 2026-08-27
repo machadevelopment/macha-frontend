@@ -90,6 +90,7 @@ export function AnalyticsClient({
   kpiLabels,
   periodLabels,
   viewCurrencyLabels,
+  role,
   common,
 }: {
   locale: Locale;
@@ -105,6 +106,12 @@ export function AnalyticsClient({
      que `kpiLabels` y `periodLabels`: es el MISMO control sobre las mismas métricas, y dos
      juegos de textos para lo mismo terminan divergiendo. */
   viewCurrencyLabels: Dictionary['dashboard']['viewCurrency'];
+  /**
+   * Rol del usuario en la empresa activa, tal como lo devuelve `getActiveRole()` (texto libre:
+   * `null` significa que la cookie de empresa activa no resolvió una membresía). Solo decide
+   * qué se OFRECE; la autoridad es `settle_receivables` del backend.
+   */
+  role: string | null;
   common: Dictionary['common'];
 }) {
   const [periodo, setPeriodo] = useState<PeriodKey>('month');
@@ -391,6 +398,9 @@ export function AnalyticsClient({
             <TabCartera
               buckets={carteraVista?.ar ?? null}
               concentracion={contrapartes?.ar ?? null}
+              cara="ar"
+              role={role}
+              onCambio={() => void cargarPeriodo(rango)}
               moneda={moneda}
               locale={locale}
               labels={labels}
@@ -404,6 +414,9 @@ export function AnalyticsClient({
             <TabCartera
               buckets={carteraVista?.ap ?? null}
               concentracion={contrapartes?.ap ?? null}
+              cara="ap"
+              role={role}
+              onCambio={() => void cargarPeriodo(rango)}
               moneda={moneda}
               locale={locale}
               labels={labels}

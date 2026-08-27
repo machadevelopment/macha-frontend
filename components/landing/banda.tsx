@@ -57,6 +57,7 @@ export function Banda({
   tono = 'lienzo',
   id,
   paddingSuperior,
+  paddingInferior,
   children,
   className = '',
 }: {
@@ -73,6 +74,18 @@ export function Banda({
    * media query y el cambio solo se vería en móvil.
    */
   paddingSuperior?: string;
+  /**
+   * Relleno INFERIOR distinto, y hoy lo usa solo el hero (CU-868kx4374).
+   *
+   * Mismo mecanismo y misma advertencia que `paddingSuperior`: es un override completo de las
+   * tres clases, no un modificador — pasar `pb-8` sin apagar el `md:`/`lg:` deja al media query
+   * ganando y el cambio solo se ve en móvil.
+   *
+   * Existe porque el hero pasó a ocupar el alto de la ventana: con el `pb-32` de una banda
+   * normal SUMADO al `min-h`, el conjunto siempre mide más que la pantalla y el mockup vuelve a
+   * quedar cortado — justo lo que el ticket vino a arreglar.
+   */
+  paddingInferior?: string;
   children: ReactNode;
   className?: string;
 }) {
@@ -131,7 +144,7 @@ export function Banda({
       <div
         className={`mx-auto max-w-[1170px] px-6 lg:px-8 ${
           paddingSuperior ?? 'pt-20 md:pt-24 lg:pt-32'
-        } pb-20 md:pb-24 lg:pb-32`}
+        } ${paddingInferior ?? 'pb-20 md:pb-24 lg:pb-32'}`}
       >
         {children}
       </div>

@@ -699,16 +699,20 @@ export const es: Dictionary = {
       cta: 'Solicitar demo',
       items: [
         {
-          nombre: 'Emprendedor',
+          nombre: 'Base',
           para: 'Para negocios que empiezan a ordenar sus finanzas.',
+          precio: '$59 + IVA',
           incluye: ['Dashboard financiero', 'Insights automáticos', 'Conexión con Excel'],
         },
         {
-          nombre: 'Empresa',
+          nombre: 'Pro',
           para: 'Para operaciones con varias fuentes de datos y equipos.',
+          precio: '$139 + IVA',
           incluye: [
-            'Todo lo de Emprendedor',
-            'Conexión con ERP y bancos',
+            'Todo lo de Base',
+            // Sin "y bancos" (Jose, 2026-08-26): el producto no conecta con ningún banco, y
+            // prometerlo en la pantalla donde el cliente decide si paga es vender lo que no hay.
+            'Conexión con ERP',
             'Reportes y alertas automáticas',
             'Accesos por usuario',
           ],
@@ -1009,9 +1013,12 @@ export const es: Dictionary = {
       aging: 'Antigüedad',
     },
     insightCategory: {
+      cashflow: 'Flujo de caja',
+      revenue: 'Ingresos',
+      expenses: 'Gastos',
       collections: 'Cobranza',
-      sales: 'Ventas',
       financial: 'Financiero',
+      sales: 'Ventas',
     },
     /*
      * Severidad del consejo (CU-868ku6r48). Los CÓDIGOS los manda el backend; acá solo se
@@ -1364,6 +1371,8 @@ export const es: Dictionary = {
       signedOutTitle: 'Te invitaron a una empresa en Macha Finance',
       signedOutSubtitle:
         'Entra con tu cuenta para unirte. No vas a crear una empresa: te sumas a la que ya existe, con el rol que te asignaron.',
+      signedInAs: 'Estás en la sesión de {email}.',
+      useAnotherAccount: 'Entrar con otra cuenta',
       signedOutCreateAccount: 'Crear mi cuenta y unirme',
       signedOutSignIn: 'Ya tengo cuenta',
       emailHint: 'Usa el mismo correo al que te llegó la invitación: es con el que la verificamos.',
@@ -1395,6 +1404,8 @@ export const es: Dictionary = {
     revenueByProduct: 'Ingreso por producto',
     inflow: 'Entradas',
     outflow: 'Salidas',
+    outflowCogs: 'Costo de lo vendido',
+    outflowOpex: 'Gastos operativos',
     net: 'Neto',
     periodTotal: 'TOTAL DEL PERÍODO',
     shareOfRevenue: 'Participación en el ingreso',
@@ -1437,6 +1448,17 @@ export const es: Dictionary = {
       colOverdue: 'Vencido',
       colInvoices: 'Documentos',
       colOldest: 'Más antiguo',
+      colAmount: 'Monto',
+      openTitle: 'Cuentas abiertas',
+      openHint: 'Marca una cuenta como saldada y deja de sumar en el balance abierto.',
+      openEmpty: 'No hay cuentas abiertas.',
+      colDue: 'Vence',
+      colStatus: 'Estado',
+      markPaid: 'Marcar como pagada',
+      markOpen: 'Volver a abierta',
+      statusPaid: 'Pagada',
+      statusOpen: 'Abierta',
+      noDueDate: 'Sin fecha',
       totalOpen: 'TOTAL ABIERTO',
       overdueTotal: 'Vencido',
       emptyAr: 'No tienes facturas por cobrar abiertas.',

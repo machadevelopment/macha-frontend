@@ -389,3 +389,53 @@ describe('el orbe del asesor conserva la geometría del HTML de referencia', () 
     expect(css).toMatch(/\.ip-chip\s*\{[^}]*--ip-rim:\s*1\.5px/);
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL "BOTÓN VERDE MUY GRANDE" DEL CHAT — CU-868kxajpd (Jose, 2026-08-26)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"Hacer el botón verde más pequeño, casi 50% más pequeño."* No es un botón: es el
+ * `InsightPoint` que acompaña a cada respuesta del asesor. El ticket no lo encontró porque
+ * buscó botones y buscó `--green`, y esto es un `<span>` pintado con `--brand-gradient`.
+ *
+ * Y **ya está achicado**. Su captura es anterior al rediseño del orbe: antes `size="md"` era un
+ * disco salvia SÓLIDO de 36px, y ahora es una caja de 36px con el núcleo al 72 %.
+ *
+ *     disco viejo   π·18²        = 1018 px²
+ *     núcleo nuevo  π·(36·0,72/2)² =  528 px²   →  48 % menos de área
+ *
+ * Este test fija las dos cosas que producen ese 48 %, porque tocar cualquiera lo deshace sin
+ * que nada falle: el tamaño con el que el chat monta el sello, y la proporción del núcleo. Y
+ * existe además para que nadie lo achique una segunda vez — otro 50 % lo dejaría en el 26 % del
+ * original, que es un punto perdido al lado del texto y no un sello.
+ */
+describe('el sello del asesor en el chat conserva su masa', () => {
+  const chat = readFileSync(
+    join(import.meta.dir, '..', 'components', 'chat', 'chat-client.tsx'),
+    'utf8',
+  );
+  const css = readFileSync(join(import.meta.dir, 'globals.css'), 'utf8');
+
+  test('el avatar de cada respuesta se monta en `md`', () => {
+    // 36px. Si alguien lo baja a `sm` (24px), el núcleo queda en 17px y desaparece.
+    expect(chat).toMatch(/<InsightPoint\s+size="md"/);
+  });
+
+  test('el núcleo ocupa el 72 % de la caja, que es de dónde sale el 48 %', () => {
+    expect(css).toMatch(/\.ip-core\s*\{[^}]*inset:\s*14%/);
+  });
+
+  /*
+   * La aritmética, escrita para que el número del ticket sea comprobable y no una afirmación
+   * en un comentario. Si alguien cambia el `inset`, este test dice en cuánto quedó la
+   * reducción en vez de solo ponerse rojo.
+   */
+  test('la reducción medida contra el disco sólido anterior es de ~48 %', () => {
+    const inset = Number(css.match(/\.ip-core\s*\{[^}]*inset:\s*([\d.]+)%/)![1]) / 100;
+    const caja = 36;
+    const areaVieja = Math.PI * (caja / 2) ** 2;
+    const areaNueva = Math.PI * ((caja * (1 - 2 * inset)) / 2) ** 2;
+    expect(1 - areaNueva / areaVieja).toBeCloseTo(0.48, 2);
+  });
+});

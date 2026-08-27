@@ -15,23 +15,29 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  *   algo a quien lo aprieta buscando qué hacemos con sus datos, y no es lo que queremos que
  *   aprenda. Hay test que lo fija.
  *
- * · Las REDES sin cuenta confirmada ("LinkedIn", "Youtube", "Facebook"): el diseño las lista, pero
+ * · Las REDES sin cuenta confirmada ("Youtube", "Facebook"): el diseño las lista, pero
  *   no trae ninguna URL. Un enlace a un perfil equivocado —o a uno que alguien más ocupó con el
  *   nombre de la marca— es peor que el nombre suelto.
  *
  * En los dos casos el criterio es el mismo: el diseño pide que el nombre esté, no que lleve a
  * ninguna parte. Lo que no puede pasar es que aparezca un enlace vacío en el camino.
  *
- * ═══ INSTAGRAM SÍ ES ENLACE (CU-868kw1r0m) ═══
+ * ═══ INSTAGRAM (CU-868kw1r0m) Y LINKEDIN (CU-868kxar7b) SÍ SON ENLACE ═══
  *
- * Jose confirmó la cuenta, así que pasa a enlace. Es exactamente el caso que la nota de arriba
- * anticipaba —"cuando exista la cuenta, se cambia"—, y por eso el cambio es de UNA línea: la
- * lista dejó de ser de strings y pasó a ser `{ nombre, url? }`. Las otras tres siguen sin URL y
- * se siguen pintando como texto; el día que se confirmen, es agregarles la suya.
+ * Jose confirmó las cuentas, así que pasan a enlace. Es exactamente el caso que la nota de arriba
+ * anticipaba —"cuando exista la cuenta, se cambia"—, y por eso cada uno cuesta UNA línea: la
+ * lista dejó de ser de strings y pasó a ser `{ nombre, url? }`. Youtube y Facebook siguen sin URL
+ * y se siguen pintando como texto; el día que se confirmen, es agregarles la suya.
  *
- * La URL va LIMPIA, sin el `?igsh=` con el que llegó compartida: ese parámetro identifica a quién
- * le mandaron el enlace, así que publicarlo en el footer haría que cada visitante que entre por
- * ahí quede contado como si viniera de la persona que lo compartió con nosotros.
+ * ═══ LAS DOS URLS VAN LIMPIAS, Y CADA PARÁMETRO QUE SE QUITA TIENE SU MOTIVO ═══
+ *
+ * · Instagram llegó con `?igsh=`: identifica a QUIÉN le mandaron el enlace, así que publicarlo en
+ *   el footer haría que cada visitante que entre por ahí quede contado como si viniera de la
+ *   persona que lo compartió con nosotros.
+ * · LinkedIn llegó con `?viewAsMember=true`: es la vista de "cómo se ve mi página para alguien
+ *   sin sesión", una herramienta de quien ADMINISTRA la página. Publicarla es enlazar una
+ *   previsualización en vez de la página, y además delata que el enlace se copió desde el panel
+ *   de administración.
  *
  * `rel="noopener noreferrer"` con `target="_blank"`: sin `noopener`, la pestaña que se abre puede
  * tocar `window.opener` y redirigir la landing desde el sitio de destino.
@@ -41,7 +47,7 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
  */
 
 const REDES: { nombre: string; url?: string }[] = [
-  { nombre: 'LinkedIn' },
+  { nombre: 'LinkedIn', url: 'https://www.linkedin.com/company/machafinance/about/' },
   { nombre: 'Instagram', url: 'https://www.instagram.com/macha.finance' },
   { nombre: 'Youtube' },
   { nombre: 'Facebook' },

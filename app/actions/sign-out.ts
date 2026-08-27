@@ -44,3 +44,27 @@ export async function signOutAction() {
   cookies().delete(ACTIVE_COMPANY_COOKIE);
   await signOut({ returnTo: urlCanonica('/') });
 }
+
+/**
+ * Cerrar sesión y volver a ESTA MISMA invitación — reporte de Jose (2026-08-26).
+ *
+ * El invitado que llega con una sesión abierta de otra cuenta veía "no pudimos usar esta
+ * invitación" y un solo botón, que reintentaba exactamente lo mismo. Sin una forma de salir,
+ * la única maniobra posible era cerrar sesión desde otra pantalla y volver a buscar el correo
+ * con el enlace — y el enlace es de un solo uso conceptual, así que mucha gente simplemente
+ * abandona. Medido: de 10 invitaciones creadas en producción, ninguna se aceptó nunca.
+ *
+ * ⚠️ RECIBE EL TOKEN, NO LA RUTA DE VUELTA, y esa diferencia es de seguridad. Un server action
+ * que aceptara un destino arbitrario del cliente sería un redirector abierto con la firma del
+ * producto: el atacante manda `?returnTo=https://…` y nosotros despachamos al usuario con
+ * nuestro propio logout. Acá la ruta se arma con una constante más el token codificado, así que
+ * no hay nada que inyectar aunque el token venga manipulado.
+ */
+export async function signOutParaOtraCuenta(formData: FormData) {
+  cookies().delete(ACTIVE_COMPANY_COOKIE);
+  const token = String(formData.get('token') ?? '');
+  const destino = token
+    ? `/invitations/accept?token=${encodeURIComponent(token)}`
+    : '/invitations/accept';
+  await signOut({ returnTo: urlCanonica(destino) });
+}

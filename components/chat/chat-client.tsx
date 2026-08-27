@@ -450,6 +450,26 @@ export function ChatClient({
                     quieto, que es lo correcto: ya terminaron de contestar.
                   */
                   <div className="flex items-start gap-2.5">
+                    {/*
+                      ═══ ESTE ES EL "BOTÓN VERDE" DE CU-868kxajpd, Y NO ES UN BOTÓN ═══
+
+                      Jose (2026-08-26): *"hacer el botón verde más pequeño, casi 50% más
+                      pequeño"*, con el módulo marcado como Asesor de IA. El diagnóstico del
+                      ticket no lo encontró y explicó por qué: buscó BOTONES y buscó `--green`.
+                      Esto es un `<span>` y su color sale de `--brand-gradient` — el salvia de
+                      marca, no el verde funcional. Dos motivos por los que una búsqueda
+                      razonable no da con él.
+
+                      ⚠️ NO SE ACHICA ACÁ, y esa es la conclusión que importa: **ya se achicó**.
+                      Su captura es de las 5:21 PM del 26/08 y el rediseño del orbe salió a
+                      producción la mañana del 27. Antes `size="md"` pintaba un disco salvia
+                      SÓLIDO de 36px; ahora pinta una caja de 36px con el núcleo al 72 %, o sea
+                      una esfera de 25,9px. Medido en área: 1018 px² → 528 px², **48 % menos**.
+
+                      Achicarlo otra vez un 50 % lo dejaría en el 26 % del original, que es un
+                      punto y no un sello. El tamaño se conserva y hay test que fija la
+                      proporción (`styles/densidad-prototipo.test.ts`).
+                    */}
                     <InsightPoint
                       size="md"
                       state={i === messages.length - 1 && hablando ? 'speaking' : 'idle'}
