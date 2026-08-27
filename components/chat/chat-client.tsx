@@ -524,11 +524,35 @@ export function ChatClient({
         {/* COMPOSER anclado abajo, alineado con la columna de lectura. */}
         <div className="border-t border-border px-3 py-3">
           <div className="mx-auto w-full max-w-[46rem]">
-            {sendError && (
-              <div className="mb-2">
-                <LoadError error={sendError} labels={common.loadError} />
-              </div>
-            )}
+            {sendError &&
+              /*
+                ═══ SIN CRÉDITOS SE DICE QUE FALTAN CRÉDITOS, NO "algo salió mal" ═══
+
+                CU-868kxjucv. Desde que el chat bloquea por saldo, el backend responde 402 con
+                `{ error: 'insufficient_credits', required, balance }` — la MISMA forma que ya
+                usaba el Consejo Diario, justamente para poder reusar este trato.
+
+                `LoadError` es el mensaje genérico de red/servidor, y para un 402 sería falso:
+                no falló nada, faltan créditos, y lo accionable es comprarlos. Es el mismo
+                criterio que el panel del Consejo — mandar a pagar por un problema ajeno es tan
+                malo como esconder que hay que pagar.
+
+                El texto del borrador NO se pierde: el manejador de error de `send()` ya lo
+                devuelve al input y retira el mensaje optimista. Eso es lo que hace tolerable
+                que el corte ocurra a mitad de una conversación: lo que escribiste sigue ahí.
+              */
+              (sinCreditos(sendError) ? (
+                <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-danger-bd bg-danger-bg px-3 py-2 text-body text-danger">
+                  <span>{labels.insufficientCredits}</span>
+                  <a href="/credits" className="font-medium underline underline-offset-2">
+                    {labels.topUp}
+                  </a>
+                </div>
+              ) : (
+                <div className="mb-2">
+                  <LoadError error={sendError} labels={common.loadError} />
+                </div>
+              ))}
             <div className="flex items-end gap-2">
               <Textarea
                 value={draft}
@@ -594,4 +618,18 @@ export function ChatClient({
       </div>
     </div>
   );
+}
+
+/**
+ * ¿El envío falló por falta de créditos? — CU-868kxjucv.
+ *
+ * Se exige el `402` **y** el marcador del cuerpo, no uno de los dos. El status solo sería
+ * frágil (cualquier otro 402 futuro caería acá) y el cuerpo solo también (un proxy puede
+ * devolver un cuerpo con esa forma en un error que no es este). Es el mismo par que
+ * `classify()` verifica en el panel del Consejo Diario.
+ */
+function sinCreditos(error: RequestError): boolean {
+  if (error.status !== 402) return false;
+  const body = error.body as { error?: unknown } | undefined;
+  return body?.error === 'insufficient_credits';
 }

@@ -1086,6 +1086,9 @@ export const es: Dictionary = {
     thinking: 'Macha está pensando…',
     stopWaiting: 'Cancelar',
     stoppedWaiting: 'Cancelaste la respuesta. Tu pregunta quedó guardada en el chat.',
+    insufficientCredits:
+      'Te quedaste sin créditos, así que este mensaje no se envió. Tu texto sigue acá.',
+    topUp: 'Comprar créditos',
     welcome: {
       title: '¿Qué quieres saber de tu negocio?',
       subtitle:
