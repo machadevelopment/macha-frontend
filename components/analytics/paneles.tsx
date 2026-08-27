@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { chartColors } from '@/components/charts/chart-theme';
 import { CHART_HEIGHT, TrendArea } from '@/components/charts/chart-primitives';
+import { makeChartTooltip, type DesgloseDeSerie } from '@/components/charts/chart-tooltip';
 import { formatDateAxis, formatMoney, formatNumber, formatPct } from '@/lib/format';
 import { agruparSerieDeTendencia } from '@/lib/metrics/series-grouping';
 import type {
@@ -96,7 +97,33 @@ export function puntosDeSerie(
     // categoría del tab de Costos.
     [labels.inflow]: p.revenue,
     [labels.outflow]: p.cogs + p.opex,
+    /*
+     * Las DOS PARTES de la salida, que el chart no dibuja (no están en `categories`) y el
+     * tooltip sí muestra. Bug de Jose del 2026-08-26: reportó que las salidas "no coinciden
+     * con el Excel" y el número era correcto — lo que no se podía saber es que la cifra suma
+     * costo de ventas con gasto operativo, que en su libro son dos hojas distintas.
+     *
+     * Las claves llevan prefijo `_` y NO el rótulo traducido: si usaran el rótulo, cambiar el
+     * diccionario rompería el desglose en silencio, y en inglés `outflowOpex` podría chocar
+     * con el nombre de otra serie.
+     */
+    _cogs: p.cogs,
+    _opex: p.opex,
   }));
+}
+
+/**
+ * El desglose de "Salidas" para el tooltip. Vive acá, al lado de quien pone `_cogs`/`_opex` en
+ * el punto, porque las claves tienen que coincidir y separarlas invita a que se desincronicen.
+ */
+export function desgloseDeSalidas(labels: Dictionary['analytics']): DesgloseDeSerie {
+  return {
+    serie: labels.outflow,
+    partes: [
+      { etiqueta: labels.outflowCogs, clave: '_cogs' },
+      { etiqueta: labels.outflowOpex, clave: '_opex' },
+    ],
+  };
 }
 
 /**
@@ -228,6 +255,8 @@ export function PanelFlujo({
         currency={moneda}
         locale={locale}
         yAxisWidth={64}
+        /* El tooltip abre "Salidas" en sus dos partes. Ver `desgloseDeSalidas`. */
+        customTooltip={makeChartTooltip(moneda, locale, desgloseDeSalidas(labels))}
       />
     </Card>
   );

@@ -1,5 +1,6 @@
 'use client';
 
+import { CuentasAbiertas } from '@/components/analytics/cuentas-abiertas';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -61,6 +62,9 @@ export function TabCartera({
   common,
   vacio,
   titulo,
+  cara,
+  role,
+  onCambio,
 }: {
   /** `null` si `/ar-ap` falló: su tarjeta queda marcada y el resto del tab sirve igual. */
   buckets: AgingBuckets | null;
@@ -77,6 +81,12 @@ export function TabCartera({
   /** Mensaje de "no hay nada", distinto para cobrar y para pagar. */
   vacio: string;
   titulo: string;
+  /** `ar` = por cobrar, `ap` = por pagar. La lista de cuentas necesita saber cuál pide. */
+  cara: 'ar' | 'ap';
+  /** Solo decide si se ofrece el botón de saldar; autoriza `settle_receivables` del backend. */
+  role: string | null;
+  /** El aging de arriba sale de otra llamada: al saldar una cuenta hay que recargarlo. */
+  onCambio: () => void;
 }) {
   const t = labels.arAp;
   const total = buckets ? TRAMOS.reduce((s, b) => s + buckets[b], 0) : 0;
@@ -234,6 +244,24 @@ export function TabCartera({
           </div>
         )}
       </Card>
+
+      {/*
+        ═══ LAS CUENTAS UNA POR UNA, AL FINAL Y NO ARRIBA — CU-868kx4cr6 ═══
+
+        El orden es deliberado: primero cuánto se debe y a quién (los agregados, que es la
+        pregunta con la que se abre esta pantalla), después la lista donde se ACTÚA. Ponerla
+        arriba obligaría a bajar para ver el total, que es lo primero que alguien mira.
+
+        Se pinta sola si no hay cuentas, así que no agrega ruido a una empresa sin cartera.
+      */}
+      <CuentasAbiertas
+        cara={cara}
+        moneda={moneda}
+        locale={locale}
+        labels={t}
+        puedeSaldar={role !== null}
+        onCambio={onCambio}
+      />
     </div>
   );
 }

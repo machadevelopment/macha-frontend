@@ -85,7 +85,19 @@ export interface CreditsBalanceResponse {
  * Categoría de un consejo. Son los CÓDIGOS que manda el backend, no etiquetas: la
  * traducción a ES/EN vive en el diccionario, igual que con `ruleKey` de las alertas.
  */
-export type InsightCategory = 'collections' | 'sales' | 'financial';
+/**
+ * El TEMA de un consejo — ampliado en CU-868kx7a73 (2026-08-27).
+ *
+ * Jose pidió que el tag dijera de qué habla el consejo ("cashflow", "revenue") en vez de la
+ * palabra que salía, "CONTEXTO", que era la severidad más baja leída como si fuera un tema.
+ * Los tres viejos eran demasiado anchos: `financial` cubría margen, costos y caja a la vez.
+ *
+ * `financial` y `sales` se conservan pero el backend ya no los ofrece al modelo: hay consejos
+ * guardados con esas etiquetas en `insight_requests`, que es append-only, y sin ellas el panel
+ * pintaría el código crudo.
+ */
+export type InsightCategory =
+  'cashflow' | 'revenue' | 'expenses' | 'collections' | 'financial' | 'sales';
 
 /**
  * Qué tan urgente es un consejo — CU-868ku6r48.

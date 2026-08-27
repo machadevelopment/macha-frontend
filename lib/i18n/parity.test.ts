@@ -80,6 +80,21 @@ describe('paridad de diccionarios ES/EN', () => {
     'landing.nav.faq', // "FAQ" — sigla internacional, no se traduce
     'landing.footer.copyright', // "© 2026 Macha Finance" — el nombre legal es uno solo
     'landing.como.flujo.macha', // "Macha Finance" — el nombre del producto no se traduce
+    /*
+     * CU-868kxar6m — los planes pasaron a llamarse "Base" y "Pro" (Jose, 2026-08-26), y son
+     * NOMBRES DE PRODUCTO: se escriben igual en los dos idiomas, como el wordmark. El tercero
+     * ("Personalizado" / "Custom") sí se traduce y por eso no está acá.
+     */
+    'landing.planes.items.0.nombre',
+    'landing.planes.items.1.nombre',
+    /*
+     * Y los precios son idénticos A PROPÓSITO, que es lo importante de esta excepción: son la
+     * cifra que Jose aprobó, en dólares. Una landing que muestre un número distinto según el
+     * idioma del navegador es un problema legal antes que de copy. "IVA" tampoco se traduce:
+     * nombra un impuesto guatemalteco concreto, no una categoría genérica.
+     */
+    'landing.planes.items.0.precio',
+    'landing.planes.items.1.precio',
   ]);
 
   test('ningún valor quedó sin traducir (idéntico en ES y EN sin justificación)', () => {

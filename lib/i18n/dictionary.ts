@@ -564,7 +564,18 @@ export interface Dictionary {
       title: string;
       nota: string;
       cta: string;
-      items: { nombre: string; para: string; incluye: string[] }[];
+      /**
+       * `precio` es OPCIONAL y eso es la mitad del diseño (CU-868kxar6m, Jose 2026-08-26).
+       *
+       * Este componente documentaba por qué la landing NO mostraba precios: *"un placeholder de
+       * precios de un producto financiero sería lo peor que se podría hacer acá, un número que
+       * nadie aprobó, en la pantalla donde el cliente decide si puede pagarlo."* Ese
+       * razonamiento no se revierte — se cumple: Jose, que es quien aprueba el precio, dio dos
+       * cifras concretas. Los planes que SÍ tienen precio aprobado lo muestran; "Personalizado"
+       * sigue sin ninguno porque se cotiza, y un `precio` obligatorio obligaría a inventarle
+       * algo, que es exactamente lo que la nota prohíbe.
+       */
+      items: { nombre: string; para: string; precio?: string; incluye: string[] }[];
     };
     faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
     cta: { title: string; subtitle: string; demo: string };
@@ -869,7 +880,15 @@ export interface Dictionary {
      * (`collections`/`sales`/`financial`) y la traducción vive acá — mismo criterio que
      * `alerts.rule`: el backend clasifica, el diccionario nombra.
      */
-    insightCategory: { collections: string; sales: string; financial: string };
+    insightCategory: {
+      cashflow: string;
+      revenue: string;
+      expenses: string;
+      collections: string;
+      /** Solo para consejos guardados antes de CU-868kx7a73; el modelo ya no los emite. */
+      financial: string;
+      sales: string;
+    };
     /**
      * CU-868ku6r48: severidad del consejo. Mismo criterio que la línea de arriba — el backend
      * manda el código, el diccionario nombra. Los tres niveles son obligatorios: un consejo sin
@@ -1327,6 +1346,21 @@ export interface Dictionary {
        */
       signedOutTitle: string;
       signedOutSubtitle: string;
+      /**
+       * Con qué cuenta se está viendo la pantalla — reporte de Jose, 2026-08-26 ("al aceptar
+       * la invitación no sirve").
+       *
+       * Medido en producción: de 10 invitaciones creadas, **ninguna se aceptó jamás**, y en la
+       * captura el invitado tenía sesión pero sin ninguna invitación para su correo. Ese estado
+       * es casi siempre el mismo: entró con una cuenta distinta de la invitada. La pantalla lo
+       * decía ("revisa con qué correo iniciaste sesión") sin decir CUÁL era, y el único botón
+       * reintentaba lo mismo — un callejón sin salida.
+       *
+       * `{email}`: el correo de la sesión actual.
+       */
+      signedInAs: string;
+      /** Cerrar sesión y volver a esta misma invitación, conservando el token. */
+      useAnotherAccount: string;
       signedOutCreateAccount: string;
       signedOutSignIn: string;
       /** Por qué importa con qué correo entra: la aceptación compara correos. */
@@ -1365,6 +1399,17 @@ export interface Dictionary {
     revenueByProduct: string;
     inflow: string;
     outflow: string;
+    /**
+     * De qué se compone "Salidas", para el tooltip — bug reportado por Jose el 2026-08-26.
+     *
+     * Reportó que el total de salidas "no coincide con el Excel". Medido contra producción:
+     * **el número era correcto**. El 5 de agosto de Gym Supplements son GTQ 10.780,52, y su
+     * Excel mostraba la nómina de 10.306,41; la diferencia son 474,11 de COSTO DE VENTAS, que
+     * en su libro vive en otra hoja. La serie suma las dos cosas a propósito —así sale el
+     * dinero de la cuenta— pero sin decirlo la cifra no se puede reconciliar con nada.
+     */
+    outflowCogs: string;
+    outflowOpex: string;
     net: string;
     /**
      * CU-868knx15v: rótulo de la cifra grande que corona la tendencia. Sin él, un monto
@@ -1420,6 +1465,27 @@ export interface Dictionary {
       colOverdue: string;
       colInvoices: string;
       colOldest: string;
+      /**
+       * ═══ LA LISTA DE CUENTAS, UNA POR UNA — CU-868kx4cr6 ═══
+       *
+       * Jose: *"si ya está pagada, se debería restar del balance abierto. Actualmente sale el
+       * capital completo de las cuentas aunque ya están pagadas."* No había forma de marcarla,
+       * y tampoco de VERLA: la pantalla solo mostraba totales por tramo y por contraparte.
+       */
+      openTitle: string;
+      openHint: string;
+      openEmpty: string;
+      colDue: string;
+      colStatus: string;
+      colAmount: string;
+      /** Acción sobre una cuenta abierta. */
+      markPaid: string;
+      /** Deshacer: marcar la equivocada es el error más probable de esta pantalla. */
+      markOpen: string;
+      statusPaid: string;
+      statusOpen: string;
+      /** Sin fecha de vencimiento en la fila del Excel. */
+      noDueDate: string;
       totalOpen: string;
       overdueTotal: string;
       emptyAr: string;
