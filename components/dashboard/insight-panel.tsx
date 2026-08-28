@@ -32,7 +32,7 @@ import type {
 type Failure =
   | { kind: 'insufficient'; required: number; balance: number }
   | { kind: 'rateLimited' }
-  | { kind: 'failed' };
+  | { kind: 'failed'; detail?: string };
 
 export function InsightPanel({
   locale,
@@ -231,6 +231,9 @@ export function InsightPanel({
                   ? labels.insightError.rateLimited
                   : labels.insightError.failed}
               </p>
+              {state.failure.kind === 'failed' && state.failure.detail && (
+                <p className="text-eyebrow text-muted-foreground">{state.failure.detail}</p>
+              )}
               <button type="button" onClick={generate} className="text-body underline">
                 {labels.insightError.retry}
               </button>
@@ -399,11 +402,18 @@ function classify(status: number | undefined, body: unknown): Failure {
   if (status === 402 && isInsufficient(body)) {
     return { kind: 'insufficient', required: body.required, balance: body.balance };
   }
-  return { kind: 'failed' };
+  const detail = mensajeDeError(body);
+  return { kind: 'failed', detail };
 }
 
 function isInsufficient(body: unknown): body is InsufficientCreditsResponse {
   if (!body || typeof body !== 'object') return false;
   const candidate = body as Partial<InsufficientCreditsResponse>;
   return typeof candidate.required === 'number' && typeof candidate.balance === 'number';
+}
+
+function mensajeDeError(body: unknown): string | undefined {
+  if (!body || typeof body !== 'object' || !('error' in body)) return undefined;
+  const value = (body as { error: unknown }).error;
+  return typeof value === 'string' && value.trim() !== '' ? value : undefined;
 }

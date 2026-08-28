@@ -161,7 +161,7 @@ describe('el consejo diario no se puede quedar generando para siempre', () => {
      * que `classify` manda a `failed`. Ese estado ya pinta el botón de reintentar, así que no
      * hace falta un motivo nuevo: para el usuario "no contestó" y "falló" se resuelven igual.
      */
-    expect(panel).toContain("return { kind: 'failed' };");
+    expect(panel).toContain("return { kind: 'failed', detail };");
     expect(panel).toContain('labels.insightError.retry');
   });
 });
