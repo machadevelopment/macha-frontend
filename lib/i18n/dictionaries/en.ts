@@ -741,6 +741,13 @@ export const en: Dictionary = {
       conceptosTitle: 'And only you know what this is',
       conceptosHint: '{n} items are still unclassified. You can publish now and answer them later.',
       publicar: 'Looks right, publish',
+      confirmarTitulo: 'Publish this upload?',
+      confirmarDetalle:
+        "You're about to publish {n} sheets. You can revert it from the list afterwards if something looks off.",
+      confirmarDetalleConExcluidas:
+        "You're about to publish {n} sheets and leave {x} out. You can revert it from the list afterwards if something looks off.",
+      confirmarSi: 'Yes, publish',
+      volver: 'Back',
       publicando: 'Publishing…',
       publicado: 'Done: your data is now in the dashboard.',
       error: "Couldn't publish. Please try again.",
@@ -765,6 +772,7 @@ export const en: Dictionary = {
       submitNext: 'Save and continue → "{siguiente}"',
       submitLast: 'Save',
       skip: 'Skip for now',
+      atras: 'Back',
       progress: 'Item {n} of {total}',
       type: {
         revenue: 'Income',

@@ -644,6 +644,20 @@ export interface Dictionary {
       /** Lleva `{n}`. */
       conceptosHint: string;
       publicar: string;
+      /**
+       * El paso de "¿seguro?" antes de publicar (pedido de Keneth, 2026-09-01).
+       *
+       * Publicar es el clic caro de esta pantalla y estaba a un solo toque, pegado a los
+       * controles de excluir hojas. La salida no es esconder el botón sino que el paso diga
+       * QUÉ va a pasar —cuántas hojas entran y cuántas quedan afuera— y ofrezca volver.
+       */
+      confirmarTitulo: string;
+      /** Lleva `{n}`. */
+      confirmarDetalle: string;
+      /** Lleva `{n}` y `{x}`: cuando el cliente desconoció alguna hoja. */
+      confirmarDetalleConExcluidas: string;
+      confirmarSi: string;
+      volver: string;
       publicando: string;
       publicado: string;
       error: string;
@@ -668,6 +682,14 @@ export interface Dictionary {
       /** Sin `{siguiente}`: es el último concepto. */
       submitLast: string;
       skip: string;
+      /**
+       * Volver al concepto anterior.
+       *
+       * Pedido de Keneth: *"botones de regresar por si presiono eso por accidente y no estaba
+       * seguro"*. Sin esto, avanzar era irreversible — y el botón de avanzar está pegado al de
+       * omitir, así que equivocarse cuesta un clic.
+       */
+      atras: string;
       /** Lleva `{n}` y `{total}`. En pantalla son los puntos; esto es para lectores de pantalla. */
       progress: string;
       submit: string;

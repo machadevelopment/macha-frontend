@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronRight, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { InsightPoint } from '@/components/ui/insight-point';
 import { cn } from '@/lib/cn';
 import { request } from '@/lib/api/browser';
@@ -427,6 +427,25 @@ export function ConceptosPendientes({
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
+                {/*
+                  ATRÁS (pedido de Keneth, 2026-09-01: *"por si presiono eso por accidente y no
+                  estaba seguro"*). Avanzar era irreversible y el botón de avanzar está pegado
+                  al de omitir, así que equivocarse costaba un clic y no había vuelta.
+                
+                  No pierde nada: las respuestas viven en `respuestas`, indexadas por concepto,
+                  y el formulario las vuelve a leer al volver — que es la misma garantía que
+                  hace que avanzar no borre lo anterior. Solo aparece si hay a dónde volver.
+                */}
+                {indice > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIndice(indice - 1)}
+                    className="flex items-center gap-1 text-body text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={1.7} />
+                    {labels.atras}
+                  </button>
+                )}
                 {/*
                   El botón NOMBRA el siguiente concepto. Es del archivo y es lo que convierte
                   "guardar" en "ya casi": el cliente ve que queda uno y cuál es, en vez de

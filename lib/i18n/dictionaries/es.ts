@@ -805,6 +805,13 @@ export const es: Dictionary = {
       conceptosHint:
         'Quedaron {n} conceptos por clasificar. Puedes publicar sin contestarlos y hacerlo después.',
       publicar: 'Todo correcto, publicar',
+      confirmarTitulo: '¿Publicamos esta carga?',
+      confirmarDetalle:
+        'Vas a publicar {n} hojas. Después puedes revertirla desde la lista si algo no cuadra.',
+      confirmarDetalleConExcluidas:
+        'Vas a publicar {n} hojas y dejar {x} afuera. Después puedes revertirla desde la lista si algo no cuadra.',
+      confirmarSi: 'Sí, publicar',
+      volver: 'Volver',
       publicando: 'Publicando…',
       publicado: 'Listo: tus datos ya están en el dashboard.',
       error: 'No se pudo publicar. Intenta de nuevo.',
@@ -851,6 +858,7 @@ export const es: Dictionary = {
       /** Sin `{siguiente}`: es el último. */
       submitLast: 'Guardar',
       skip: 'Omitir por ahora',
+      atras: 'Atrás',
       /** Lleva `{n}` y `{total}`. Para lectores de pantalla; en pantalla son los puntos. */
       progress: 'Concepto {n} de {total}',
       submit: 'Guardar y aplicar',

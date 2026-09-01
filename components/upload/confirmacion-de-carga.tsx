@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, ChevronLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InsightPoint } from '@/components/ui/insight-point';
 import { cn } from '@/lib/cn';
@@ -87,6 +87,16 @@ export function ConfirmacionDeCarga({
   const [publicando, setPublicando] = useState(false);
   const [error, setError] = useState(false);
   const [listo, setListo] = useState(false);
+  /*
+   * EL PASO DE "¿SEGURO?" (pedido de Keneth, 2026-09-01: *"botones de regresar por si presiono
+   * eso por accidente y no estaba seguro"*).
+   *
+   * Publicar es el clic caro de esta pantalla y estaba a un solo toque, pegado a los controles
+   * de excluir hojas. La salida no es esconder el botón sino que el paso diga QUÉ va a pasar
+   * —cuántas hojas entran y cuántas quedan afuera— y ofrezca volver. Un "¿seguro?" que no dice
+   * nada nuevo solo agrega un clic.
+   */
+  const [confirmando, setConfirmando] = useState(false);
 
   useEffect(() => {
     let vivo = true;
@@ -254,14 +264,47 @@ export function ConfirmacionDeCarga({
           {error && <p className="mt-4 text-body text-danger">{labels.error}</p>}
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button
-              size="sm"
-              className="rounded-lg px-[22px] py-2.5"
-              disabled={publicando}
-              onClick={() => void publicar()}
-            >
-              {publicando ? labels.publicando : labels.publicar}
-            </Button>
+            {confirmando ? (
+              <div className="flex w-full flex-col gap-2 rounded-lg border border-warning-bd bg-warning-bg px-3.5 py-3">
+                <p className="text-body font-semibold">{labels.confirmarTitulo}</p>
+                <p className="text-body text-muted-foreground">
+                  {(excluidas.size > 0
+                    ? labels.confirmarDetalleConExcluidas
+                    : labels.confirmarDetalle
+                  )
+                    .replace('{n}', formatNumber(usadas.length - excluidas.size, locale))
+                    .replace('{x}', formatNumber(excluidas.size, locale))}
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-3">
+                  <Button
+                    size="sm"
+                    className="rounded-lg px-[22px] py-2.5"
+                    disabled={publicando}
+                    onClick={() => void publicar()}
+                  >
+                    {publicando ? labels.publicando : labels.confirmarSi}
+                  </Button>
+                  {/* La salida. Sin esto el paso sería un obstáculo, no una red. */}
+                  <button
+                    type="button"
+                    onClick={() => setConfirmando(false)}
+                    className="flex items-center gap-1 text-body text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 shrink-0" strokeWidth={1.7} />
+                    {labels.volver}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                className="rounded-lg px-[22px] py-2.5"
+                disabled={publicando}
+                onClick={() => setConfirmando(true)}
+              >
+                {labels.publicar}
+              </Button>
+            )}
             {/*
               Se puede publicar SIN contestar los conceptos: sus filas quedan retenidas y el
               resto entra. Obligar a contestarlas convertiría el portón en un trámite bloqueante,
