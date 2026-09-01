@@ -42,15 +42,22 @@ describe('la cadena del deep link no se corta en ningún eslabón', () => {
     expect(PAGINA).toContain('Array.isArray(doc)');
   });
 
-  test('3) la PANTALLA hace scroll esperando a que la fila exista', () => {
+  test('3) la PANTALLA hace scroll esperando a que la fila exista, y RE-AFIRMA al crecer', () => {
     /*
      * La lista se carga por `fetch` DESPUÉS del primer render, así que al montar no hay a qué
      * hacer scroll. Un `setTimeout` adivinaría cuánto tarda la petición; el observador espera
-     * al elemento real y se desconecta al encontrarlo.
+     * al elemento real.
+     *
+     * ⚠️ Y esperar a que EXISTA no basta: este test afirmaba solo eso y pasaba en verde con el
+     * scroll roto en producción. Con el panel cerrado el documento apenas pasa el alto de la
+     * ventana, así que el primer `scrollIntoView` no mueve nada; el panel se abre un segundo
+     * después y ahí sí hay a dónde ir. La conducta la mide `deep-link-scroll.test.tsx`, que
+     * MONTA la pantalla y hace crecer la fila; acá solo queda fijada la pieza.
      */
     expect(PANTALLA).toContain('MutationObserver');
     expect(PANTALLA).toContain('scrollIntoView');
     expect(PANTALLA).toContain('disconnect()');
+    expect(PANTALLA).toContain('ResizeObserver');
   });
 
   test('4) el scroll respeta `prefers-reduced-motion`', () => {
