@@ -98,6 +98,16 @@ describe('publicar abre el portón', () => {
       screen.getByRole('button', { name: es.upload.confirmacion.publicar }),
     );
     fireEvent.click(boton);
+    /*
+     * Publicar es el clic caro y pasa por un "¿seguro?" que dice QUÉ va a pasar. Un paso que no
+     * dice nada nuevo solo agregaría un clic; este nombra cuántas hojas entran.
+     */
+    await waitFor(() =>
+      expect(screen.getByText(es.upload.confirmacion.confirmarTitulo)).toBeDefined(),
+    );
+    expect(publicado).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.confirmarSi }));
     await waitFor(() => expect(screen.getByText(es.upload.confirmacion.publicado)).toBeDefined());
     expect(publicado).not.toBeNull();
   });
@@ -114,6 +124,9 @@ describe('publicar abre el portón', () => {
     fireEvent.click(excluir[0]!);
 
     fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.publicar }));
+    fireEvent.click(
+      await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.confirmarSi })),
+    );
     await waitFor(() => expect(publicado).not.toBeNull());
     expect(publicado!.excluir).toEqual(['Ventas']);
   });
@@ -127,5 +140,48 @@ describe('una carga ya confirmada no vuelve a pedir nada', () => {
     await new Promise((r) => setTimeout(r, 60));
     // Volver a pedir un visto bueno ya dado es la forma de que se apriete sin mirar.
     expect(container.textContent).toBe('');
+  });
+});
+
+describe('siempre se puede volver atrás', () => {
+  /*
+   * Pedido de Keneth (2026-09-01): *"botones de regresar por si presiono eso por accidente y no
+   * estaba seguro"*. Lo que se protege es el clic caro — publicar — y la exclusión de una hoja,
+   * que son las dos decisiones de esta pantalla.
+   */
+  test('el "¿seguro?" tiene salida y NO publica al volver', async () => {
+    conBackend();
+    pintar();
+    fireEvent.click(
+      await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.publicar })),
+    );
+    fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.volver }));
+
+    // Se vuelve al estado anterior y no se mandó nada.
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: es.upload.confirmacion.publicar })).toBeDefined(),
+    );
+    expect(publicado).toBeNull();
+  });
+
+  test('desconocer una hoja se puede DESHACER', async () => {
+    conBackend();
+    pintar();
+    await waitFor(() => expect(screen.getByText('Ventas')).toBeDefined());
+
+    fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.excluir }));
+    // El control cambia de sentido: la misma hoja ahora ofrece volver a incluirla.
+    const deshacer = await waitFor(() =>
+      screen.getByRole('button', { name: es.upload.confirmacion.deshacer }),
+    );
+    fireEvent.click(deshacer);
+
+    fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.publicar }));
+    fireEvent.click(
+      await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.confirmarSi })),
+    );
+    await waitFor(() => expect(publicado).not.toBeNull());
+    // Si el deshacer no funcionara, `Ventas` viajaría excluida y su dinero no entraría.
+    expect(publicado!.excluir).toEqual([]);
   });
 });

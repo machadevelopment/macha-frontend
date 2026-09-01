@@ -270,3 +270,40 @@ describe('el botón principal exige el rubro DEL concepto en pantalla', () => {
     expect((principal() as HTMLButtonElement).disabled).toBe(true);
   });
 });
+
+describe('siempre se puede volver al concepto anterior', () => {
+  /*
+   * Pedido de Keneth (2026-09-01): *"botones de regresar por si presiono eso por accidente y no
+   * estaba seguro"*. Avanzar era irreversible, y el botón de avanzar está pegado al de omitir:
+   * equivocarse costaba un clic y no había vuelta.
+   */
+  test('no se ofrece en el PRIMER concepto: no hay a dónde volver', async () => {
+    montar();
+    await abierto();
+    // Un botón que no hace nada enseña a desconfiar de los que sí.
+    expect(screen.queryByRole('button', { name: labels.atras })).toBeNull();
+  });
+
+  test('vuelve al anterior Y conserva lo que ya se había contestado', async () => {
+    montar();
+    await abierto();
+
+    fireEvent.change(screen.getByLabelText(labels.categoryLabel), {
+      target: { value: 'transporte' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Guardar/ }));
+    await screen.findByText('Pago Vecinos SA');
+
+    fireEvent.click(screen.getByRole('button', { name: labels.atras }));
+    await screen.findByText('Flete Cropa');
+
+    /*
+     * Y el rubro sigue escrito. Es la misma garantía que hace que avanzar no borre lo
+     * anterior: las respuestas viven indexadas por concepto, no en el formulario. Si volver
+     * las perdiera, el botón de regresar seria una trampa peor que no tenerlo.
+     */
+    expect((screen.getByLabelText(labels.categoryLabel) as HTMLInputElement).value).toBe(
+      'transporte',
+    );
+  });
+});
