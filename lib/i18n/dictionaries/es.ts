@@ -791,6 +791,7 @@ export const es: Dictionary = {
   upload: {
     conceptos: {
       cta: 'Ayúdanos a clasificar {n} concepto(s)',
+      ctaSinConteo: 'Ayúdanos a clasificar tus conceptos',
       /*
        * El encabezado dice POR QUÉ se pregunta, no solo qué. "No pudimos clasificar" suena a
        * fallo nuestro y pone al cliente a la defensiva; "solo tú sabes qué es" es literalmente

@@ -196,3 +196,36 @@ describe('omitir', () => {
     expect(screen.queryByText('Pago Vecinos SA')).toBeNull();
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LO QUE SOLO SE VE EN UN NAVEGADOR (verificación E2E contra producción, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * Los dos defectos de abajo pasaron toda la suite anterior y los encontró abrir la página en
+ * Chrome. Se fijan acá para que no vuelvan por donde no se mira.
+ */
+describe('defectos encontrados abriendo la pantalla de verdad', () => {
+  test('el disparador cerrado NO afirma "0 conceptos"', () => {
+    // Sin `abrirAlMontar`, `conceptos` todavía es `undefined`: la lista se pide AL abrir.
+    // Antes decía "Ayúdanos a clasificar 0 concepto(s)" — el producto le decía al cliente que
+    // no hay nada que contestar en el único control que existe para que conteste.
+    render(
+      <ConceptosPendientes documentId="doc-1" labels={labels} common={es.common} locale="es" />,
+    );
+
+    expect(screen.getByRole('button', { name: labels.ctaSinConteo })).toBeDefined();
+    expect(screen.queryByText(/0 concepto/)).toBeNull();
+  });
+
+  test('el panel expandido de la lista recupera el ajuste de línea de la celda', async () => {
+    // La celda lleva `whitespace-nowrap` para que el nombre del archivo no se parta, y eso se
+    // heredaba a toda la prosa del panel: la tabla se ensanchaba 114 px sobre su contenedor y
+    // la pregunta quedaba cortada por la derecha. Ningún render de ESTE componente lo ve —
+    // la regla vive en `document-list` —, así que se afirma sobre su fuente.
+    const fuente = await Bun.file(new URL('./document-list.tsx', import.meta.url).pathname).text();
+    const panel = fuente.replace(/\s+/g, ' ');
+
+    expect(panel).toContain('mt-1.5 flex flex-col gap-1.5 whitespace-normal');
+  });
+});
