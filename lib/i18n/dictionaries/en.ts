@@ -762,7 +762,10 @@ export const en: Dictionary = {
           '· not read: it repeats the same money as another sheet, and counting it twice would inflate your figures ({n} rows)',
         ya_ingerida: '· we already had it in full from an earlier upload ({n} rows)',
         vacia: '· it has no rows to read',
+        sin_fecha_ni_monto:
+          "· not read: we couldn't find a date column with amounts beside it, so its rows aren't transactions ({n} rows)",
       },
+      sheetSkippedMoney: 'Did not reach your numbers: {monto}',
       totals: '{movimientos} transactions came through. {descartadas} rows were not read.',
     },
     eyebrow: 'INGESTION',
@@ -899,11 +902,12 @@ export const en: Dictionary = {
     ingest: {
       eyebrow: 'UPLOAD IN PROGRESS',
       processing: "We're processing {docs} file(s). Your numbers appear once it finishes.",
-      inReview: "You have {docs} upload(s) under review. Their data isn't in your numbers yet.",
+      inReview:
+        'You have {docs} upload(s) with something pending. The rest of their data is already in your numbers.',
       inReviewWithRows:
-        'You have {docs} upload(s) under review: {rows} rows need checking before they can join your numbers.',
+        'You have {docs} upload(s) with {rows} rows left to classify. The rest is already in your numbers.',
       explainer:
-        'Nothing reaches your reports until the whole upload is reviewed, so questionable data never mixes with good data.',
+        'Whatever we read cleanly is already in your reports. Only the rows we could not classify are waiting: tell us what they are and they join in.',
       cta: 'See my uploads',
     },
     arApTitle: 'Accounts receivable / payable',

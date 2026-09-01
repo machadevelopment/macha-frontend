@@ -18,13 +18,22 @@ interface DocumentRow {
  * CU-868kn5hqu — por qué el dashboard puede estar en cero.
  *
  * EL PROBLEMA QUE RESUELVE. El primer Excel real de producción se ingirió completo —1.062
- * filas clasificadas— y el dashboard siguió mostrando **ceros**. No es un bug: 542 filas
- * quedaron marcadas por baja confianza y la promoción es atómica, así que nada entra al
- * ledger hasta que se resuelvan. Pero el dueño no ve nada de eso: sube su Excel, abre el
- * panorama financiero y encuentra ceros mudos, justo después de la acción más importante
- * que existe en el producto. Se lee como que está roto.
+ * filas clasificadas— y el dashboard siguió mostrando **ceros**. No era un bug: 542 filas
+ * quedaron marcadas por baja confianza. El dueño no veía nada de eso: subía su Excel, abría el
+ * panorama financiero y encontraba ceros mudos, justo después de la acción más importante que
+ * existe en el producto. Se lee como que está roto.
  *
- * Esto no cambia la atomicidad ni promueve nada: solo deja de ocultar el motivo.
+ * ⚠️ EL TEXTO DECÍA "LA PROMOCIÓN ES ATÓMICA" Y ESO DEJÓ DE SER CIERTO (corregido 2026-08-31).
+ * Desde la migración 0020 —promoción PARCIAL, decisión de Keneth del 2026-08-07— las filas
+ * limpias entran solas y solo se retienen las marcadas. El cartel siguió diciéndole al cliente
+ * que "nada entra a tus reportes hasta que la carga completa esté revisada", que es lo
+ * contrario de lo que pasa, durante tres semanas.
+ *
+ * No es un detalle de redacción: el correo de confirmación que se está construyendo dice —bien—
+ * que "el resto de tus datos ya está en tu dashboard". Los dos mensajes juntos se contradicen
+ * sobre la misma carga con minutos de diferencia, en una herramienta cuyo valor entero es
+ * confiar en las cifras. Y el texto viejo además decía que las filas "necesitan que LAS
+ * REVISEMOS", cuando desde el acuerdo con Semi (2026-08-20) las contesta el CLIENTE.
  *
  * Se muestra únicamente cuando hay algo en vuelo. Un dashboard en cero porque la empresa
  * realmente no tiene datos NO debe explicarse con este cartel — ahí el cero es la verdad.

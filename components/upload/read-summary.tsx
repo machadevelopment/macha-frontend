@@ -83,8 +83,25 @@ interface HojaInventario {
 interface HojaDescartada {
   estado: 'descartada';
   nombre: string;
-  motivo: 'catalogo' | 'reporte' | 'duplica_otra_hoja' | 'ya_ingerida' | 'vacia';
+  motivo:
+    | 'catalogo'
+    | 'reporte'
+    | 'duplica_otra_hoja'
+    | 'ya_ingerida'
+    | 'vacia'
+    /**
+     * No se le pudo leer una columna de fecha con dinero al lado.
+     *
+     * Antes esto se reportaba como `catalogo`, cuyo texto afirma que la hoja "describe tus
+     * clientes, productos o proveedores" — una afirmación sobre el CONTENIDO que nosotros no
+     * sabemos. Cuando esa explicación no le calza a lo que el dueño tiene delante, deja de
+     * creerle al resumen entero, que es la única herramienta que tenemos para que nos
+     * desmienta. Y es el filtro que dejó el dashboard de un cliente en cero.
+     */
+    | 'sin_fecha_ni_monto';
   filas: number;
+  /** Cuánto dinero se llevó el descarte, estimado. Ver el porqué abajo. */
+  montos?: MontoPorMoneda[];
 }
 type Hoja = HojaMovimientos | HojaInventario | HojaDescartada;
 
@@ -194,6 +211,32 @@ export function ReadSummary({
                     tienen monto convertido, así que un total mezclado no sería ninguna de las
                     dos monedas.
                   */}
+                  {/*
+                    Y CUÁNTO DINERO SE LLEVÓ UN DESCARTE — la mitad que faltaba.
+
+                    "No se leyó: 220 filas" no le dice nada a nadie. "No se leyó: Q 2.707.318
+                    porque repite el dinero de otra hoja" se contesta de un vistazo, y es
+                    exactamente la frase que habría evitado los reportes de ingesta que
+                    llegaron: cada uno fue una exclusión o una inclusión equivocada, y el
+                    dinero es lo único que las vuelve evidentes.
+
+                    Va en `warning` y no en el color del dato: es una cifra que NO está en su
+                    dashboard, y pintarla igual que la que sí entró sería lo contrario de lo
+                    que hay que comunicar.
+                  */}
+                  {hoja.estado === 'descartada' && hoja.montos && hoja.montos.length > 0 && (
+                    <div className="ml-5 flex flex-col gap-0.5">
+                      {hoja.montos.map((m) => (
+                        <p key={m.moneda} className="font-mono text-body tabular-nums text-warning">
+                          {labels.sheetSkippedMoney.replace(
+                            '{monto}',
+                            dinero(m.total, m.moneda, locale),
+                          )}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+
                   {hoja.estado === 'movimientos' && hoja.montos && hoja.montos.length > 0 && (
                     <div className="ml-5 flex flex-col gap-0.5">
                       {hoja.montos.map((m) => (
