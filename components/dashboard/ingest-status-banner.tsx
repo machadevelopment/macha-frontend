@@ -47,9 +47,28 @@ export function IngestStatusBanner({ labels }: { labels: Dictionary['dashboard']
     // sobre el mismo dato en la pantalla que más peticiones hace.
     void request<{ documents: DocumentRow[] }>('/api/documents?limit=20').then((r) => {
       if (!r.ok) return; // el fallo ya lo reportan los paneles de datos; acá callar es correcto
+      /*
+       * ⚠️ `promoted` CON filas marcadas también espera al cliente, y ese es el caso NORMAL.
+       *
+       * Desde la promoción parcial (migración `0020`, decisión de Keneth 2026-08-07) las
+       * filas limpias entran solas, así que una carga con conceptos pendientes termina en
+       * `promoted` con `flagged_count > 0`; a `review` solo llega la que no promovió NADA.
+       * Filtrando por `review` a secas, el banner **se perdía justo el caso más común**:
+       * verificado en producción el 2026-09-01 con una carga de 3 conceptos pendientes que
+       * el banner no mencionaba, mientras anunciaba los 12 de otro documento.
+       *
+       * Es el MISMO punto ciego que el correo de aviso ya documenta haber corregido
+       * (`lib/aviso-de-revision.ts`: "no se dispara donde el ticket decía"). Estaba aprendido
+       * en un lado y sin aplicar en el otro, que es cómo el producto termina diciendo dos
+       * cosas distintas sobre la misma carga.
+       */
       setEnVuelo(
         r.data.documents.filter(
-          (d) => d.status === 'queued' || d.status === 'processing' || d.status === 'review',
+          (d) =>
+            d.status === 'queued' ||
+            d.status === 'processing' ||
+            d.status === 'review' ||
+            (d.status === 'promoted' && (d.flaggedCount ?? 0) > 0),
         ),
       );
     });
@@ -57,7 +76,12 @@ export function IngestStatusBanner({ labels }: { labels: Dictionary['dashboard']
 
   if (enVuelo.length === 0) return null;
 
-  const enRevision = enVuelo.filter((d) => d.status === 'review');
+  // "Espera al cliente" es tener filas marcadas, no estar en un estado concreto: ver la nota
+  // del filtro de arriba. `review` sin marcadas es una carga que no produjo nada y también
+  // necesita que alguien la mire.
+  const enRevision = enVuelo.filter(
+    (d) => d.status === 'review' || (d.status === 'promoted' && (d.flaggedCount ?? 0) > 0),
+  );
   const procesando = enVuelo.length - enRevision.length;
   // `?? 0` y no un guion: la suma es informativa y un documento viejo puede no tener el
   // conteo persistido (se empezó a guardar en CU-868kn5hqu).
