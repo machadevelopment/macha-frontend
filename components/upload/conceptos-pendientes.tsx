@@ -432,14 +432,22 @@ export function ConceptosPendientes({
                   "guardar" en "ya casi": el cliente ve que queda uno y cuál es, en vez de
                   apretar a ciegas.
 
-                  Sigue deshabilitado sin rubro escrito, como antes: un botón activo que no hace
-                  nada es peor que uno apagado — se aprieta, no pasa nada, y la conclusión es que
-                  la pantalla está rota.
+                  ⚠️ Va deshabilitado sin rubro EN ESTE concepto, y la condición mira `respuestas`
+                  y no `listas`. Con `listas.length === 0` el candado solo protegía a la PRIMERA
+                  pregunta: contestada una, el botón quedaba activo para todas las siguientes con
+                  el campo vacío, y apretarlo avanzaba sin guardar nada de la que se estaba
+                  mirando. Es peor que un botón apagado justo por el motivo que este comentario
+                  ya decía — el cliente lee "Guardar y seguir", lo aprieta, y ese concepto queda
+                  sin contestar sin que nada se lo diga. Encontrado abriendo la pantalla en
+                  producción (2026-09-01); "Omitir por ahora" sigue siendo el camino explícito
+                  para pasar de largo.
                 */}
                 <Button
                   size="sm"
                   className="rounded-lg px-[22px] py-2.5"
-                  disabled={guardando || listas.length === 0}
+                  disabled={
+                    guardando || (respuestas[actual.concepto]?.category ?? '').trim() === ''
+                  }
                   onClick={() => (esUltimo ? void guardar() : setIndice(indice + 1))}
                 >
                   {guardando
