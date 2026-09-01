@@ -47,20 +47,72 @@ export function UploadScreen({
     const irA = (el: Element) =>
       el.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'center' });
 
+    /*
+     * ⚠️ UN SOLO SCROLL NO ALCANZA, y así estuvo en producción. Medido el 2026-09-01 con el
+     * enlace del correo: la fila aparecía a los ~375 ms midiendo 152 px, se llamaba
+     * `scrollIntoView`, y `scrollY` se quedaba en **0** — con el panel cerrado el documento
+     * apenas pasa el alto de la ventana, así que no hay a dónde scrollear. Un segundo después
+     * el panel de preguntas se abre solo, la fila pasa a 716 px, el documento a 1473, y ahí sí
+     * había 549 px de scroll disponible que nadie volvía a pedir. Resultado: la fila quedaba
+     * resaltada abajo del pliegue y la pregunta —lo único que el cliente vino a contestar—
+     * fuera de la vista. Nada falla, que es el patrón de esta pantalla.
+     *
+     * Así que se RE-AFIRMA mientras la fila CREZCA (`ResizeObserver`), no una vez y listo. Se
+     * deja de insistir en cuanto deja de crecer, y también si el cliente scrollea por su
+     * cuenta: recuperar la posición de alguien que decidió mirar otra cosa es peor que no
+     * haber hecho scroll nunca. Es la misma pieza del deep link, ahora ejecutada cuando el
+     * layout ya existe.
+     */
+    let cancelado = false;
+    let observadorDeTamano: ResizeObserver | undefined;
+    let ultimoAlto = -1;
+
+    const soltar = () => {
+      cancelado = true;
+      observadorDeTamano?.disconnect();
+    };
+    // Cualquier gesto de scroll del cliente gana. `scroll` a secas no sirve: lo emite el
+    // propio `scrollIntoView`.
+    const GESTOS = ['wheel', 'touchstart', 'keydown'] as const;
+    GESTOS.forEach((g) => window.addEventListener(g, soltar, { passive: true, once: true }));
+
+    const seguir = (el: Element) => {
+      irA(el);
+      if (typeof ResizeObserver === 'undefined') return;
+      observadorDeTamano = new ResizeObserver(() => {
+        if (cancelado) return;
+        const alto = el.getBoundingClientRect().height;
+        if (alto <= ultimoAlto) {
+          observadorDeTamano?.disconnect();
+          return;
+        }
+        ultimoAlto = alto;
+        irA(el);
+      });
+      observadorDeTamano.observe(el);
+    };
+
     const ya = document.querySelector(`[data-doc="${CSS.escape(destacado)}"]`);
     if (ya) {
-      irA(ya);
-      return;
+      seguir(ya);
+      return () => {
+        soltar();
+        GESTOS.forEach((g) => window.removeEventListener(g, soltar));
+      };
     }
 
     const observador = new MutationObserver(() => {
       const el = document.querySelector(`[data-doc="${CSS.escape(destacado)}"]`);
       if (!el) return;
       observador.disconnect();
-      irA(el);
+      seguir(el);
     });
     observador.observe(document.body, { childList: true, subtree: true });
-    return () => observador.disconnect();
+    return () => {
+      observador.disconnect();
+      soltar();
+      GESTOS.forEach((g) => window.removeEventListener(g, soltar));
+    };
   }, [destacado]);
 
   return (
