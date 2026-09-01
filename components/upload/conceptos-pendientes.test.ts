@@ -158,10 +158,18 @@ describe('el formulario no puede clasificar sin que el cliente escriba el rubro'
     expect(FUENTE).toContain("filter(([, r]) => r.category.trim() !== '')");
   });
 
-  test('el botón se apaga cuando no hay nada que mandar', () => {
-    // Un botón activo que no hace nada es peor que uno apagado: el cliente aprieta, no pasa
-    // nada visible, y concluye que la pantalla está rota.
-    expect(FUENTE).toContain('disabled={guardando || listas.length === 0}');
+  test('el botón mira el rubro DEL concepto en pantalla, no las respuestas acumuladas', () => {
+    /*
+     * ⚠️ Este test afirmaba el STRING `disabled={guardando || listas.length === 0}` y pasaba
+     * en verde mientras la conducta estaba mal: `listas` son las respuestas ACUMULADAS, así
+     * que el candado solo protegía a la PRIMERA pregunta y a partir de la segunda el botón
+     * quedaba activo con el campo vacío. Probaba la implementación, no lo que el cliente
+     * necesita — el mismo error que `email-shell.test.ts` documenta haber cometido con el
+     * logo. La conducta la mide `tarjeta-guiada.test.tsx`, que MONTA el componente; acá solo
+     * queda fijado que la condición se evalúa sobre el concepto actual.
+     */
+    expect(FUENTE).toContain("(respuestas[actual.concepto]?.category ?? '').trim() === ''");
+    expect(FUENTE).not.toContain('disabled={guardando || listas.length === 0}');
   });
 });
 
@@ -206,10 +214,11 @@ describe('la tarjeta guiada conserva lo que el panel ya garantizaba', () => {
     expect(CODIGO).toContain('respuestas: listas.map');
   });
 
-  test('el botón principal sigue apagado sin rubro escrito', () => {
-    // Un botón activo que no hace nada es peor que uno apagado: se aprieta, no pasa nada
-    // visible, y la conclusión es que la pantalla está rota.
-    expect(CODIGO).toContain('disabled={guardando || listas.length === 0}');
+  test('el botón principal sigue apagado sin rubro escrito EN ESTE concepto', () => {
+    // Ver la nota del test hermano de arriba: la versión que miraba `listas.length` dejaba el
+    // botón encendido desde la segunda pregunta, y apretarlo avanzaba sin guardar nada de la
+    // que se estaba mirando. La conducta se mide montando el componente.
+    expect(CODIGO).toContain("(respuestas[actual.concepto]?.category ?? '').trim() === ''");
   });
 
   test('las opciones de tipo son radios de verdad, no divs clicables', () => {

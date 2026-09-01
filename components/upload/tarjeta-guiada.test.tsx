@@ -229,3 +229,28 @@ describe('defectos encontrados abriendo la pantalla de verdad', () => {
     expect(panel).toContain('mt-1.5 flex flex-col gap-1.5 whitespace-normal');
   });
 });
+
+describe('el botón principal exige el rubro DEL concepto en pantalla', () => {
+  test('sigue deshabilitado en el segundo concepto aunque el primero ya esté contestado', async () => {
+    montar();
+    await abierto();
+
+    const principal = () => screen.getByRole('button', { name: /Guardar/ });
+
+    // Primer concepto: sin rubro está apagado, con rubro se enciende.
+    expect((principal() as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText(labels.categoryLabel), {
+      target: { value: 'transporte' },
+    });
+    expect((principal() as HTMLButtonElement).disabled).toBe(false);
+
+    // Avanzar al segundo. El campo vuelve vacío, así que el botón tiene que volver a apagarse:
+    // antes miraba las respuestas ACUMULADAS y quedaba encendido, y apretarlo dejaba este
+    // concepto sin contestar diciendo "Guardar y seguir".
+    fireEvent.click(principal());
+    await screen.findByText('Pago Vecinos SA');
+
+    expect((screen.getByLabelText(labels.categoryLabel) as HTMLInputElement).value).toBe('');
+    expect((principal() as HTMLButtonElement).disabled).toBe(true);
+  });
+});
