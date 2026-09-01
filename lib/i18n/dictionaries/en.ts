@@ -727,6 +727,25 @@ export const en: Dictionary = {
     demoAsunto: 'Macha Finance demo request',
   },
   upload: {
+    confirmacion: {
+      eyebrow: 'BEFORE PUBLISHING',
+      title: "Here's what we understood from your file",
+      subtitle: "Check it's right and publish it. Nothing reaches your reports until you confirm.",
+      sheetsTitle: 'What we did with each sheet',
+      usada: '{n} entries · {monto}',
+      noUsada: "We didn't use it",
+      inventario: 'Updated your inventory',
+      excluir: "This one shouldn't count",
+      excluida: "Won't be counted",
+      deshacer: 'Include it again',
+      conceptosTitle: 'And only you know what this is',
+      conceptosHint: '{n} items are still unclassified. You can publish now and answer them later.',
+      publicar: 'Looks right, publish',
+      publicando: 'Publishing…',
+      publicado: 'Done: your data is now in the dashboard.',
+      error: "Couldn't publish. Please try again.",
+      pendiente: 'This upload is waiting for your confirmation.',
+    },
     conceptos: {
       cta: 'Help us classify {n} item(s)',
       ctaSinConteo: 'Help us classify your items',
@@ -820,6 +839,7 @@ export const en: Dictionary = {
       failed: 'Error',
       unsupported: 'Unreadable',
       cancelled: 'Cancelled',
+      awaiting_confirmation: 'Waiting for your confirmation',
     },
   },
   dashboard: {

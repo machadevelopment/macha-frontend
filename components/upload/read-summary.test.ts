@@ -74,7 +74,14 @@ describe('el resumen se ofrece cuando de verdad hay algo que contar', () => {
       require('node:path').join(import.meta.dir, 'document-list.tsx'),
       'utf8',
     );
-    expect(lista).toContain("!IN_FLIGHT.includes(doc.status) && doc.status !== 'cancelled'");
+    /*
+     * ⚠️ Y desde el portón (migración 0042) tampoco mientras la carga espera confirmación: ahí
+     * el cliente ve la pantalla del portón, que YA trae el resumen por hoja. Dos paneles
+     * diciendo lo mismo sobre la misma carga es la forma de que no se lea ninguno.
+     */
+    expect(lista).toContain('!IN_FLIGHT.includes(doc.status)');
+    expect(lista).toContain("doc.status !== 'cancelled'");
+    expect(lista).toContain("doc.status !== 'awaiting_confirmation'");
   });
 });
 

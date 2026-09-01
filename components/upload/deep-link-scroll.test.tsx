@@ -19,30 +19,34 @@ const llamadas: { block?: string }[] = [];
 
 const DOC = 'doc-destacado';
 
-mock.module('@/lib/api/browser', () => ({
-  request: async (url: string) => {
-    if (url.includes('/api/documents?')) {
-      return {
-        ok: true,
-        data: {
-          documents: [
-            {
-              id: DOC,
-              filename: 'Concesionaria.xlsx',
-              status: 'promoted',
-              createdAt: '2026-08-26T00:00:00.000Z',
-              flaggedCount: 0,
-            },
-          ],
-          hasMore: false,
-        },
-      };
+/*
+ * Ver la nota de `tarjeta-guiada.test.tsx`: `mock.module` es global al proceso, así que doblar
+ * `@/lib/api/browser` le impone esta respuesta a cualquier otro test que monte un componente
+ * que llame al backend. Se sustituye `fetch`, que además ejercita el `request` de verdad.
+ */
+const fetchPrevio = globalThis.fetch;
+/* Ver la nota de `tarjeta-guiada.test.tsx`: se pone por test, no una vez al cargar. */
+const ponerFetch = () => {
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    const u = String(typeof url === 'object' && 'url' in url ? url.url : url);
+    if (u.includes('/api/documents?')) {
+      return Response.json({
+        documents: [
+          {
+            id: DOC,
+            filename: 'Concesionaria.xlsx',
+            originalFilename: 'Concesionaria.xlsx',
+            status: 'promoted',
+            createdAt: '2026-08-26T00:00:00.000Z',
+            flaggedCount: 0,
+          },
+        ],
+        hasMore: false,
+      });
     }
-    return { ok: true, data: { conceptos: [] } };
-  },
-  requestJson: async () => ({ ok: true, data: {} }),
-  errorMessage: () => '',
-}));
+    return Response.json({ conceptos: [] });
+  }) as unknown as typeof fetch;
+};
 
 const { UploadScreen } = await import('./upload-screen');
 
@@ -58,7 +62,10 @@ class ResizeObserverFalso {
   }
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  globalThis.fetch = fetchPrevio;
+  cleanup();
+});
 
 describe('el scroll del deep link se re-afirma cuando la fila crece', () => {
   test('scrollIntoView se llama al aparecer la fila y OTRA VEZ al abrirse el panel', async () => {
@@ -84,6 +91,7 @@ describe('el scroll del deep link se re-afirma cuando la fila crece', () => {
       llamadas.push(typeof opciones === 'object' ? opciones : {});
     };
 
+    ponerFetch();
     render(
       <UploadScreen
         locale="es"

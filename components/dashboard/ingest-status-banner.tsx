@@ -9,7 +9,15 @@ import type { Dictionary } from '@/lib/i18n/dictionary';
 interface DocumentRow {
   id: string;
   originalFilename: string;
-  status: 'queued' | 'processing' | 'review' | 'promoted' | 'reverted' | 'failed' | 'cancelled';
+  status:
+    | 'queued'
+    | 'processing'
+    | 'review'
+    | 'promoted'
+    | 'reverted'
+    | 'failed'
+    | 'cancelled'
+    | 'awaiting_confirmation';
   rowCount: number | null;
   flaggedCount: number | null;
 }
@@ -68,6 +76,10 @@ export function IngestStatusBanner({ labels }: { labels: Dictionary['dashboard']
             d.status === 'queued' ||
             d.status === 'processing' ||
             d.status === 'review' ||
+            // El portón (migración 0042): esperando al DUEÑO. Es, desde el portón, el estado
+            // más común de una carga recién procesada — y el banner es una de las dos únicas
+            // cosas que le dicen que su contabilidad está esperando su visto bueno.
+            d.status === 'awaiting_confirmation' ||
             (d.status === 'promoted' && (d.flaggedCount ?? 0) > 0),
         ),
       );
@@ -80,7 +92,10 @@ export function IngestStatusBanner({ labels }: { labels: Dictionary['dashboard']
   // del filtro de arriba. `review` sin marcadas es una carga que no produjo nada y también
   // necesita que alguien la mire.
   const enRevision = enVuelo.filter(
-    (d) => d.status === 'review' || (d.status === 'promoted' && (d.flaggedCount ?? 0) > 0),
+    (d) =>
+      d.status === 'review' ||
+      d.status === 'awaiting_confirmation' ||
+      (d.status === 'promoted' && (d.flaggedCount ?? 0) > 0),
   );
   const procesando = enVuelo.length - enRevision.length;
   // `?? 0` y no un guion: la suma es informativa y un documento viejo puede no tener el
