@@ -32,21 +32,37 @@ const RESUMEN = {
   filas: 42,
   marcadas: 0,
   hojas: [
-    { nombre: 'Ventas', estado: 'movimientos', filas: 8, montos: [{ moneda: 'GTQ', total: 13196, filas: 8 }] },
+    {
+      nombre: 'Ventas',
+      estado: 'movimientos',
+      filas: 8,
+      montos: [{ moneda: 'GTQ', total: 13196, filas: 8 }],
+      columnas: { fecha: 'Fecha', monto: 'Total Línea', 'cliente o proveedor': 'Cliente' },
+    },
     { nombre: 'Resumen_Ventas', estado: 'descartada', motivo: 'duplica_otra_hoja', filas: 4, montos: [{ moneda: 'GTQ', total: 13196, filas: 4 }] },
     { nombre: 'Inventario', estado: 'inventario' },
   ],
+  detalle: {
+    Ventas: {
+      tipos: { revenue: 8 },
+      muestra: [
+        { fecha: '2026-01-08', concepto: 'Cliente 1', monto: 1240.5, moneda: 'GTQ', tipo: 'revenue', categoria: 'ventas' },
+        { fecha: '2026-02-15', concepto: 'Cliente 2', monto: 980, moneda: 'GTQ', tipo: 'revenue', categoria: 'ventas' },
+      ],
+    },
+  },
 }; // prettier-ignore
 
 /** Lo que el cliente mandó al publicar, para poder afirmar las hojas excluidas. */
-let publicado: { excluir?: string[] } | null = null;
+let publicado: { excluir?: string[]; reclasificar?: { hoja: string; type: string }[] } | null =
+  null;
 
 function conBackend() {
   publicado = null;
   globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
     const u = String(typeof url === 'object' && 'url' in url ? url.url : url);
     if (u.includes('/confirmar')) {
-      publicado = JSON.parse(String(init?.body ?? '{}')) as { excluir?: string[] };
+      publicado = JSON.parse(String(init?.body ?? '{}')) as typeof publicado;
       return Response.json({ confirmado: true, yaEstaba: false, hojasExcluidas: 0 });
     }
     return Response.json(RESUMEN);
@@ -183,5 +199,54 @@ describe('siempre se puede volver atrás', () => {
     await waitFor(() => expect(publicado).not.toBeNull());
     // Si el deshacer no funcionara, `Ventas` viajaría excluida y su dinero no entraría.
     expect(publicado!.excluir).toEqual([]);
+  });
+});
+
+describe('cada hoja se puede abrir para ver qué entendimos', () => {
+  /*
+   * Pedido de Keneth (2026-09-01). Aprobar un nombre y un total alcanza para detectar una hoja
+   * de más o de menos —que es lo que atrapó los siete fallos de esta semana— pero NO alcanza
+   * para el que queda: leer la columna equivocada, donde el total se ve perfecto y cada fila
+   * está mal.
+   */
+  test('el panel dice de DÓNDE salió cada dato y muestra filas reales', async () => {
+    conBackend();
+    pintar();
+    fireEvent.click(
+      await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.verDetalle })),
+    );
+
+    const texto = document.body.textContent ?? '';
+    // El mapa de columnas: es lo único que delata un encabezado corrido.
+    expect(texto).toContain('Total Línea');
+    // Y filas reales, para reconocerlas contra el archivo que el dueño tiene al lado.
+    expect(texto).toContain('Cliente 1');
+    expect(texto).toContain('1,240.50');
+  });
+
+  test('"esto es otra cosa" corrige la hoja ENTERA y viaja en la confirmación', async () => {
+    conBackend();
+    pintar();
+    fireEvent.click(
+      await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.verDetalle })),
+    );
+
+    // Las cuatro naturalezas son radios de verdad, no divs clicables.
+    const opciones = screen.getAllByRole('radio');
+    expect(opciones.length).toBe(4);
+    fireEvent.click(screen.getByRole('radio', { name: es.upload.conceptos.type.opex }));
+
+    fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.publicar }));
+    fireEvent.click(
+      await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.confirmarSi })),
+    );
+    await waitFor(() => expect(publicado).not.toBeNull());
+
+    /*
+     * Si esto no viajara, el cliente vería su corrección aplicada en pantalla y su dashboard
+     * saldría igual que antes — la forma exacta de fallo que esta pantalla existe para
+     * eliminar.
+     */
+    expect(publicado!.reclasificar).toEqual([{ hoja: 'Ventas', type: 'opex' }]);
   });
 });
