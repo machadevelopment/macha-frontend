@@ -184,3 +184,95 @@ describe('lo contestado no reaparece', () => {
      */
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * UNA PREGUNTA A LA VEZ (CU-868kyur58)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * El rediseño es de PRESENTACIÓN: mismo contrato, mismo endpoint, misma llamada única al
+ * guardar. Lo que se protege acá es justamente eso — que la reescritura visual no se lleve por
+ * delante ninguna de las garantías que el panel ya tenía.
+ */
+describe('la tarjeta guiada conserva lo que el panel ya garantizaba', () => {
+  test('sigue siendo UNA sola llamada al guardar, con todas las respuestas juntas', () => {
+    /*
+     * El riesgo del "una pregunta a la vez" es convertirlo en un POST por concepto: cuatro
+     * llamadas, cuatro promociones encoladas y un cliente que ve el dashboard moverse a
+     * pedazos. Se acumula en `respuestas` y se manda al final, como antes.
+     */
+    expect(CODIGO).toContain("method: 'POST'");
+    expect(CODIGO.match(/method: 'POST'/g)).toHaveLength(1);
+    expect(CODIGO).toContain('respuestas: listas.map');
+  });
+
+  test('el botón principal sigue apagado sin rubro escrito', () => {
+    // Un botón activo que no hace nada es peor que uno apagado: se aprieta, no pasa nada
+    // visible, y la conclusión es que la pantalla está rota.
+    expect(CODIGO).toContain('disabled={guardando || listas.length === 0}');
+  });
+
+  test('las opciones de tipo son radios de verdad, no divs clicables', () => {
+    /*
+     * Media implementación sería peor que un `<select>`: cuatro tarjetas que se ven elegibles
+     * y que el teclado no alcanza. `role="radio"` + `aria-checked` es lo que hace que un
+     * lector de pantalla anuncie "opción 1 de 4, seleccionada".
+     */
+    expect(CODIGO).toContain('role="radiogroup"');
+    expect(CODIGO).toContain('role="radio"');
+    expect(CODIGO).toContain('aria-checked={elegido}');
+  });
+
+  test('el progreso viaja como TEXTO además de como puntos', () => {
+    // Cuatro rectángulos de color no le dicen nada a quien no los ve.
+    expect(CODIGO).toContain('aria-hidden="true"');
+    expect(CODIGO).toContain('labels.progress');
+    expect(CODIGO).toContain('sr-only');
+  });
+
+  test('el punto CONTESTADO usa el verde funcional y el actual la tinta de marca', () => {
+    /*
+     * Regla de los dos verdes: "esto ya está" es un estado del DATO (`success`), y el salvia
+     * queda para "esto es Macha" — el orbe y el resalte del concepto. Invertirlos haría que el
+     * color de marca significara progreso, que es exactamente lo que la regla prohíbe.
+     */
+    expect(CODIGO).toContain('bg-success');
+    expect(CODIGO).toContain('bg-brand-ink');
+  });
+
+  test('omitir el ÚLTIMO concepto guarda lo contestado en vez de tirarlo', () => {
+    // Sin esta rama, "omitir por ahora" en la última pregunta descarta las tres respuestas
+    // anteriores — el cliente hizo el trabajo y el producto lo pierde.
+    expect(CODIGO).toContain('esUltimo');
+    // El `?` que decide guardar-vs-avanzar sobrevive al formateo de Prettier, así que se
+    // normalizan los espacios antes de buscarlo en vez de fijar un salto de línea concreto.
+    expect(CODIGO.replace(/\s+/g, ' ')).toContain('esUltimo ? listas.length > 0');
+  });
+
+  test('ningún texto de la tarjeta queda quemado en el componente', () => {
+    // El panel del cliente es bilingüe como el resto: los cuatro textos nuevos salen del
+    // diccionario, igual que los que ya existían.
+    for (const t of ['labels.typeHint', 'labels.submitNext', 'labels.submitLast', 'labels.skip']) {
+      expect(CODIGO).toContain(t);
+    }
+  });
+});
+
+describe('los textos nuevos existen en los dos idiomas', () => {
+  test.each([
+    ['es', es],
+    ['en', en],
+  ])('%s trae ayuda por tipo, botones y progreso', (_idioma, dict) => {
+    const c = dict.upload.conceptos;
+    for (const t of ['revenue', 'cogs', 'opex', 'other'] as const) {
+      expect(c.typeHint[t].trim().length).toBeGreaterThan(0);
+    }
+    // Los marcadores tienen que sobrevivir a cualquier reescritura del copy: sin ellos el
+    // botón diría «Guardar y seguir → {siguiente}» literal.
+    expect(c.submitNext).toContain('{siguiente}');
+    expect(c.progress).toContain('{n}');
+    expect(c.progress).toContain('{total}');
+    expect(c.submitLast.trim().length).toBeGreaterThan(0);
+    expect(c.skip.trim().length).toBeGreaterThan(0);
+  });
+});

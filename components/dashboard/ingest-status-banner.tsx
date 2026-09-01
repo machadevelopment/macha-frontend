@@ -62,6 +62,8 @@ export function IngestStatusBanner({ labels }: { labels: Dictionary['dashboard']
   // `?? 0` y no un guion: la suma es informativa y un documento viejo puede no tener el
   // conteo persistido (se empezó a guardar en CU-868kn5hqu).
   const filasPendientes = enRevision.reduce((total, d) => total + (d.flaggedCount ?? 0), 0);
+  const destino =
+    enRevision.length === 1 ? `/upload?doc=${encodeURIComponent(enRevision[0]!.id)}` : '/upload';
 
   return (
     <Card className="border-warning-bd bg-warning-bg">
@@ -76,7 +78,16 @@ export function IngestStatusBanner({ labels }: { labels: Dictionary['dashboard']
           : labels.processing.replace('{docs}', String(procesando))}
       </p>
       <p className="mt-1 text-body text-muted-foreground">{labels.explainer}</p>
-      <Link href="/upload" className="mt-2 inline-block text-body underline">
+      {/*
+        EL CTA LLEVA AL DOCUMENTO EXACTO cuando hay uno solo esperando respuesta (CU-868kyur58).
+        Antes enlazaba siempre a `/upload` a secas, y ahí el cliente tenía que encontrar cuál de
+        sus archivos era y abrir el panel él mismo — dos pasos entre el aviso y la acción.
+
+        Con VARIOS en revisión se enlaza a la lista sin parámetro, a propósito: resaltar uno solo
+        cuando hay tres sugiere que los otros dos no necesitan nada. Es la misma decisión que
+        toma el correo consolidado.
+      */}
+      <Link href={destino} className="mt-2 inline-block text-body underline">
         {labels.cta}
       </Link>
     </Card>
