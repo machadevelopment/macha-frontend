@@ -250,3 +250,114 @@ describe('cada hoja se puede abrir para ver qué entendimos', () => {
     expect(publicado!.reclasificar).toEqual([{ hoja: 'Ventas', type: 'opex' }]);
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LAS DOS SALIDAS QUE FALTABAN (migración 0043, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * El portón le ENSEÑA al dueño las dos cosas que más caro cuestan de esta ingesta —una hoja
+ * descartada por error y un dato leído de la columna equivocada— y no le daba salida para
+ * ninguna: las veía y no podía hacer nada. Lo que se mide acá es la CONDUCTA, no la fuente:
+ *
+ *  · que apretar mande la corrección al endpoint con la forma que el backend espera —un
+ *    `forzar` que llegue como otra cosa es un 200 que no arregla nada—;
+ *  · que el picker de columna mande el ÍNDICE de la columna elegida, porque `sheet_overrides`
+ *    se indexa por posición y un nombre no lo puede consumir nadie;
+ *  · y que una portada no se liste como si hubiéramos descartado contabilidad.
+ */
+
+/** El mismo libro, más una portada sin dinero y con los encabezados de la hoja de ventas. */
+const RESUMEN_0043 = {
+  ...RESUMEN,
+  hojas: [
+    {
+      ...RESUMEN.hojas[0],
+      encabezados: ['Fecha', 'Cliente', 'Precio Unitario', 'Total Línea'],
+    },
+    RESUMEN.hojas[1],
+    RESUMEN.hojas[2],
+    // Sin un solo monto medido: es una carátula, no un descarte que haya que defender.
+    { nombre: 'Portada', estado: 'descartada', motivo: 'vacia', filas: 2, montos: [] },
+    { nombre: 'Notas', estado: 'descartada', motivo: 'vacia', filas: 3 },
+  ],
+};
+
+/** Lo que el cliente mandó a corregir, para poder afirmar la forma exacta del cuerpo. */
+let corregido: { hoja: string; forzar?: boolean; columnas?: Record<string, number> } | null = null;
+
+function conBackend0043() {
+  corregido = null;
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const u = String(typeof url === 'object' && 'url' in url ? url.url : url);
+    if (u.includes('/corregir-hoja')) {
+      corregido = JSON.parse(String(init?.body ?? '{}')) as typeof corregido;
+      return Response.json({ reprocesando: true, hoja: corregido!.hoja });
+    }
+    return Response.json(RESUMEN_0043);
+  }) as unknown as typeof fetch;
+}
+
+describe('el dueño puede rescatar una hoja y corregirle la columna', () => {
+  test('"sí, esta hoja debería contar" manda `forzar` para ESA hoja', async () => {
+    conBackend0043();
+    pintar();
+    await screen.findByText('Resumen_Ventas');
+
+    /*
+     * Hay varios controles con el mismo texto —uno por hoja descartada—, así que se toma el de
+     * la fila de `Resumen_Ventas`. Apretar el que no es sería indistinguible en un `getAllBy`,
+     * y el daño de rescatar la hoja equivocada es contar el dinero dos veces.
+     */
+    const fila = screen.getByText('Resumen_Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(fila.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.siCuenta),
+      )!,
+    );
+
+    await waitFor(() => expect(corregido).not.toBeNull());
+    expect(corregido).toEqual({ hoja: 'Resumen_Ventas', forzar: true });
+  });
+
+  test('el picker manda el ÍNDICE de la columna, no su nombre', async () => {
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+
+    fireEvent.click(screen.getByText(es.upload.confirmacion.verDetalle));
+    await screen.findByText(es.upload.confirmacion.columnaCorrecta);
+
+    // El dueño dice "el monto no sale de «Precio Unitario», sale de «Total Línea»".
+    fireEvent.click(screen.getByRole('button', { name: 'Total Línea' }));
+
+    await waitFor(() => expect(corregido).not.toBeNull());
+    /*
+     * `amount: 3` es la posición de «Total Línea» en `encabezados`. Mandar el NOMBRE dejaría
+     * un override que el worker no puede consumir: `sheet_overrides.columnas` se indexa por
+     * posición, igual que el mapa que devuelve el modelo.
+     */
+    expect(corregido).toEqual({ hoja: 'Ventas', columnas: { amount: 3 } });
+  });
+
+  test('las hojas SIN dinero van juntas y colapsadas, no listadas una por una', async () => {
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+
+    /*
+     * Listadas sueltas entre las descartadas, una portada y unas notas hacen parecer que
+     * descartamos medio archivo. El descarte que el dueño SÍ tiene que mirar es el que se
+     * llevó dinero, y el ruido se lo tapa.
+     */
+    expect(screen.queryByText('Portada')).toBeNull();
+    expect(screen.queryByText('Notas')).toBeNull();
+    // Pero se dice cuántas son y se pueden abrir: esconderlas del todo sería ocultar el dato.
+    const resumen = screen.getByText(es.upload.confirmacion.sinDatos.replace('{n}', '2'));
+    fireEvent.click(resumen);
+    expect(screen.getByText('Portada')).toBeTruthy();
+
+    // Y el descarte CON dinero sigue arriba, entero: es el que se puede desmentir.
+    expect(screen.getByText('Resumen_Ventas')).toBeTruthy();
+  });
+});

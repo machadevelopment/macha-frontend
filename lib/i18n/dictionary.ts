@@ -658,6 +658,30 @@ export interface Dictionary {
       /** Lleva `{tipo}`. */
       corregirAplicado: string;
       sinMuestra: string;
+      /**
+       * ═══ LAS DOS SALIDAS QUE FALTABAN (migración 0043, 2026-09-01) ═══
+       *
+       * El portón le ENSEÑA al dueño las dos cosas que más caro cuestan de esta ingesta —una
+       * hoja descartada por error y un dato leído de la columna equivocada— y no le daba
+       * salida para ninguna: las veía y no podía hacer nada. Las dos se resuelven igual
+       * (reprocesar esa hoja con la corrección) y por eso comparten el aviso de espera.
+       */
+      /** El control sobre una hoja descartada: "sí, esta hoja debería contar". */
+      siCuenta: string;
+      /** El picker de columna dentro del panel expandido. */
+      columnaCorrecta: string;
+      columnaHint: string;
+      /** Mientras la hoja se vuelve a leer. */
+      reprocesando: string;
+      /**
+       * Las hojas SIN datos (portada, notas, instrucciones) van juntas y colapsadas.
+       *
+       * Listadas una por una entre las descartadas, ocupan la mitad de la pantalla y hacen
+       * parecer que descartamos medio archivo — cuando lo que descartamos es la carátula. El
+       * dueño no puede desmentir eso y no debería tener que leerlo. Lleva `{n}`.
+       */
+      sinDatos: string;
+      verSinDatos: string;
       excluida: string;
       deshacer: string;
       conceptosTitle: string;
