@@ -189,3 +189,34 @@ export function hayDatosFueraDelRango(
   // Fechas ISO (`YYYY-MM-DD`): el orden lexicográfico ES el cronológico.
   return dataRange.from < range.from || dataRange.to > range.to;
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * CON QUÉ PERÍODO ABRE UNA PANTALLA (2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * `/analytics?from=…&to=…` abría SIEMPRE en "este mes" y descartaba el rango del enlace en
+ * silencio, así que llevaba a un período distinto del que promete. Es el mismo daño que
+ * `hayDatosFueraDelRango` documenta y que costó un día entero: el cliente ve cifras correctas
+ * de OTRO período y concluye que el sistema no leyó su archivo — ahí fue *"esta data no tiene
+ * absolutamente nada que ver con el Excel"* sobre cifras exactas al quetzal.
+ *
+ * Vive acá, como función pura, y no dentro del componente: es la decisión de producto —qué
+ * gana, el enlace o el default— y es lo único de este arreglo que se puede equivocar. El
+ * componente solo la llama.
+ *
+ * El período que devuelve es `custom` cuando hay rango, y eso no es un detalle: sin él la
+ * pantalla mostraría el rango del enlace con "Este mes" resaltado, dos cosas que se
+ * contradicen sobre el mismo período en el control que existe para explicarlo.
+ *
+ * Un rango ausente o inválido degrada al default **sin error**, con el mismo criterio que un
+ * `?doc=` que ya no existe: un enlace de hace tres días no puede terminar en una pantalla rota.
+ */
+export function periodoInicial(
+  rangoDelEnlace: DateRange | undefined,
+  hoy: Date,
+  porDefecto: Exclude<PeriodKey, 'custom'> = 'month',
+): { periodo: PeriodKey; rango: DateRange } {
+  if (!rangoDelEnlace) return { periodo: porDefecto, rango: computeRange(porDefecto, hoy) };
+  return { periodo: 'custom', rango: rangoDelEnlace };
+}

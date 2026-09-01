@@ -26,7 +26,7 @@ import {
   puntosDeSerie,
 } from '@/components/analytics/paneles';
 import { request, type RequestError } from '@/lib/api/browser';
-import { computeRange, type DateRange, type PeriodKey } from '@/lib/period';
+import { periodoInicial, type DateRange, type PeriodKey } from '@/lib/period';
 import { delta, resultado } from '@/lib/metrics/period-totals';
 import { pantallaVacia } from '@/components/analytics/vacio';
 import type {
@@ -92,6 +92,7 @@ export function AnalyticsClient({
   viewCurrencyLabels,
   role,
   common,
+  rangoInicial,
 }: {
   locale: Locale;
   labels: Dictionary['analytics'];
@@ -107,6 +108,14 @@ export function AnalyticsClient({
      juegos de textos para lo mismo terminan divergiendo. */
   viewCurrencyLabels: Dictionary['dashboard']['viewCurrency'];
   /**
+   * El rango del enlace (`/analytics?from=&to=`), ya validado en el SERVIDOR.
+   *
+   * Ausente = no venía, o venía mal y degradó a "este mes" sin error. La validación NO se
+   * repite acá: un segundo criterio se separaría del primero, y sería la URL aceptando algo
+   * que el selector rechaza.
+   */
+  rangoInicial?: DateRange;
+  /**
    * Rol del usuario en la empresa activa, tal como lo devuelve `getActiveRole()` (texto libre:
    * `null` significa que la cookie de empresa activa no resolvió una membresía). Solo decide
    * qué se OFRECE; la autoridad es `settle_receivables` del backend.
@@ -114,8 +123,14 @@ export function AnalyticsClient({
   role: string | null;
   common: Dictionary['common'];
 }) {
-  const [periodo, setPeriodo] = useState<PeriodKey>('month');
-  const [rango, setRango] = useState<DateRange>(() => computeRange('month', new Date()));
+  /*
+   * El rango del enlace (`/analytics?from=&to=`) manda sobre el default. Ver `rangoDeLaUrl` en
+   * la página: viene del SERVIDOR ya validado, así que acá no se vuelve a decidir nada — un
+   * segundo criterio se separaría del primero.
+   */
+  const inicial = periodoInicial(rangoInicial, new Date());
+  const [periodo, setPeriodo] = useState<PeriodKey>(inicial.periodo);
+  const [rango, setRango] = useState<DateRange>(inicial.rango);
 
   // Junto al resto de los hooks: esta pantalla retorna temprano en carga, error y vacío, y un
   // hook después de un `return` cambia el orden de llamada entre renders.

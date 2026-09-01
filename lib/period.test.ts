@@ -6,6 +6,7 @@ import {
   rangeDays,
   rollingRange,
   validateCustomRange,
+  periodoInicial,
 } from './period';
 
 /** Jueves 6 de agosto de 2026, en hora local. */
@@ -204,5 +205,40 @@ describe('avisar cuando el período visible deja datos afuera', () => {
   test('calla cuando la empresa todavía no tiene datos', () => {
     expect(hayDatosFueraDelRango(agosto, null)).toBe(false);
     expect(hayDatosFueraDelRango(agosto, undefined)).toBe(false);
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * EL RANGO DEL ENLACE MANDA SOBRE EL DEFAULT (2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * `/analytics?from=…&to=…` abría SIEMPRE en "este mes" y descartaba el rango en silencio. Es el
+ * mismo daño que `hayDatosFueraDelRango` documenta y que costó un día entero: el cliente ve
+ * cifras correctas de OTRO período y concluye que el sistema no leyó su archivo.
+ */
+describe('periodoInicial', () => {
+  const HOY = new Date(2026, 8, 1); // 1 de septiembre de 2026
+
+  test('el rango del enlace gana, y el selector queda en «personalizado»', () => {
+    const r = periodoInicial({ from: '2026-01-01', to: '2026-06-30' }, HOY);
+    expect(r.rango).toEqual({ from: '2026-01-01', to: '2026-06-30' });
+    /*
+     * `custom` no es un detalle: sin él la pantalla mostraría el rango del enlace con "Este
+     * mes" resaltado — dos cosas que se contradicen sobre el mismo período, en el control que
+     * existe justamente para explicarlo.
+     */
+    expect(r.periodo).toBe('custom');
+  });
+
+  test('sin rango, abre en el default y nada cambia', () => {
+    /*
+     * La guarda del arreglo: esto solo puede AGREGAR sobre un enlace que trae rango. Quien
+     * entra por el menú tiene que ver exactamente lo de antes, o estaría cambiando la pantalla
+     * que abre el 99 % de las veces para arreglar el 1 %.
+     */
+    const r = periodoInicial(undefined, HOY);
+    expect(r.periodo).toBe('month');
+    expect(r.rango).toEqual(computeRange('month', HOY));
   });
 });
