@@ -797,7 +797,9 @@ export const es: Dictionary = {
        * cierto —es su libro, sus proveedores— y convierte la pregunta en algo que vale
        * contestar.
        */
-      title: 'Solo tú sabes qué son estos',
+      // SINGULAR desde CU-868kyur58: la tarjeta pregunta un concepto a la vez, así que
+      // "estos" ya no describe lo que el cliente tiene delante.
+      title: 'Solo tú sabes qué es esto',
       subtitle:
         'Cada respuesta ordena todas las filas con ese concepto, y no te lo volvemos a preguntar en las próximas cargas.',
       rows: '{n} filas · {monto}',
@@ -810,6 +812,25 @@ export const es: Dictionary = {
         opex: 'Un gasto de operación',
         other: 'Otro movimiento',
       },
+      /*
+       * El ejemplo bajo cada opción, del HTML aprobado por Jose. Es lo que hace contestable la
+       * pregunta sin saber contabilidad: "un costo de lo que vendo" es ambiguo para quien lleva
+       * una tienda; "solo lo que costó producir o comprar" no lo es. Y es la misma frontera
+       * cogs/opex que el prompt define para el modelo, dicha en el idioma del dueño.
+       */
+      typeHint: {
+        revenue: 'Dinero que entra por ventas',
+        cogs: 'Solo lo que costó producir o comprar',
+        opex: 'Renta, planilla, servicios',
+        other: 'Ninguno de los anteriores',
+      },
+      /** Lleva `{siguiente}`: el concepto al que pasa. Nombrarlo evita el "¿cuánto falta?". */
+      submitNext: 'Guardar y seguir → «{siguiente}»',
+      /** Sin `{siguiente}`: es el último. */
+      submitLast: 'Guardar',
+      skip: 'Omitir por ahora',
+      /** Lleva `{n}` y `{total}`. Para lectores de pantalla; en pantalla son los puntos. */
+      progress: 'Concepto {n} de {total}',
       submit: 'Guardar y aplicar',
       submitting: 'Guardando…',
       // Se dice cuántas filas se acomodaron, no un "listo" a secas: es la prueba de que

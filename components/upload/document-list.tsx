@@ -73,12 +73,21 @@ export function DocumentList({
   common,
   refreshToken,
   canRevert,
+  destacado,
 }: {
   locale: Locale;
   labels: Dictionary['upload'];
   common: Dictionary['common'];
   refreshToken: number;
   canRevert: boolean;
+  /**
+   * El documento al que llegó el cliente desde el correo o el banner (`/upload?doc=<id>`).
+   *
+   * Se resalta su fila y se le abre el panel de preguntas. `undefined` —o un id que no está en
+   * la lista, porque ya se resolvió o es de otra empresa— deja la pantalla exactamente como
+   * estaba: un parámetro que no corresponde a nada NO es un error que mostrarle a nadie.
+   */
+  destacado?: string;
 }) {
   const [reverting, setReverting] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -233,7 +242,18 @@ export function DocumentList({
         </TableHeader>
         <TableBody>
           {documents.map((doc) => (
-            <TableRow key={doc.id}>
+            <TableRow
+              key={doc.id}
+              // El ancla del scroll (ver `UploadScreen`). Va en la fila y no en el panel: es lo
+              // que existe en el DOM en cuanto la lista responde.
+              data-doc={doc.id}
+              // El resalte es un `outline` y no un `border`: un borde cambiaría el alto de la
+              // fila y correría la tabla entera al aterrizar desde el correo.
+              className={cn(
+                doc.id === destacado &&
+                  'rounded-lg bg-brand-soft outline outline-2 -outline-offset-1 outline-brand-strong',
+              )}
+            >
               <TableCell className="text-body">{doc.originalFilename}</TableCell>
               <TableCell>
                 {IN_FLIGHT.includes(doc.status) ? (
@@ -306,6 +326,10 @@ export function DocumentList({
                         common={common}
                         locale={locale}
                         onResuelto={reload}
+                        // Llegó desde el correo: se abre sola. El cliente hizo clic en
+                        // "Revisar y confirmar" — pedirle un clic más para ver la pregunta es
+                        // perder justo la intención que el correo acaba de conseguir.
+                        abrirAlMontar={doc.id === destacado}
                       />
                     )}
                   </div>

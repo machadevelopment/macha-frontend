@@ -626,6 +626,15 @@ export interface Dictionary {
       categoryLabel: string;
       categoryPlaceholder: string;
       type: Record<'revenue' | 'cogs' | 'opex' | 'other', string>;
+      /** El ejemplo bajo cada opción: es lo que hace contestable la pregunta sin saber contabilidad. */
+      typeHint: Record<'revenue' | 'cogs' | 'opex' | 'other', string>;
+      /** Lleva `{siguiente}`: el concepto al que se pasa después de guardar. */
+      submitNext: string;
+      /** Sin `{siguiente}`: es el último concepto. */
+      submitLast: string;
+      skip: string;
+      /** Lleva `{n}` y `{total}`. En pantalla son los puntos; esto es para lectores de pantalla. */
+      progress: string;
       submit: string;
       submitting: string;
       done: string;

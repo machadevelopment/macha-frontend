@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, HelpCircle } from 'lucide-react';
+import { InsightPoint } from '@/components/ui/insight-point';
 import { cn } from '@/lib/cn';
 import { request } from '@/lib/api/browser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { formatMoney, formatNumber } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -114,6 +114,7 @@ export function ConceptosPendientes({
   common,
   locale,
   onResuelto,
+  abrirAlMontar = false,
 }: {
   documentId: string;
   labels: Dictionary['upload']['conceptos'];
@@ -121,6 +122,14 @@ export function ConceptosPendientes({
   locale: Locale;
   /** Para que la lista de cargas refresque su conteo de filas marcadas. */
   onResuelto?: () => void;
+  /**
+   * Abrir el panel sin esperar un clic, para quien llegó desde el correo (`/upload?doc=<id>`).
+   *
+   * Va como PROP y no leyendo el parámetro acá: este componente se monta una vez por documento
+   * de la lista, y que cada instancia consultara la URL para decidir si le toca sería repartir
+   * la misma decisión entre N copias. La lee la pantalla, que es quien conoce la lista.
+   */
+  abrirAlMontar?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [conceptos, setConceptos] = useState<Concepto[] | undefined>(undefined);
@@ -128,6 +137,16 @@ export function ConceptosPendientes({
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(false);
   const [resueltas, setResueltas] = useState<number | null>(null);
+  /**
+   * Cuál de los conceptos se está preguntando. Es lo único que el rediseño agrega al estado:
+   * las respuestas siguen acumulándose en `respuestas` y se mandan TODAS JUNTAS al final, con
+   * el mismo `POST` de una sola llamada que ya existía.
+   *
+   * Se guarda el ÍNDICE y no el concepto porque `conceptos` se filtra al guardar (se quitan los
+   * contestados), y un índice sobre la lista viva es lo que hace que "siguiente" siga
+   * significando lo mismo después de esa poda.
+   */
+  const [indice, setIndice] = useState(0);
 
   async function alternar() {
     const siguiente = !abierto;
@@ -143,6 +162,24 @@ export function ConceptosPendientes({
     }
     setConceptos(r.data.conceptos);
   }
+
+  /*
+   * La apertura automática pasa por `alternar()` y no por `setAbierto(true)`: es `alternar`
+   * quien además PIDE los conceptos. Abrir sin pedirlos dejaría al cliente que viene del correo
+   * mirando un panel abierto y vacío, que es peor que uno cerrado.
+   *
+   * Corre una sola vez por montaje. `abrirAlMontar` sale del parámetro de la URL, que no cambia
+   * mientras la pantalla vive; volver a abrirlo tras cerrarlo sería pelearle al usuario.
+   */
+  const abrioSolo = useRef(false);
+  useEffect(() => {
+    if (!abrirAlMontar || abrioSolo.current) return;
+    abrioSolo.current = true;
+    void alternar();
+    // `alternar` se recrea en cada render y meterla como dependencia reabriría el panel en
+    // bucle; lo que gobierna este efecto es la bandera, que es estable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abrirAlMontar]);
 
   /*
    * Solo se mandan los conceptos que el cliente REALMENTE contestó (con rubro escrito). Un
@@ -180,6 +217,7 @@ export function ConceptosPendientes({
     const contestados = new Set(listas.map(([c]) => c));
     setConceptos((previos) => (previos ?? []).filter((c) => !contestados.has(c.concepto)));
     setRespuestas({});
+    setIndice(0);
     onResuelto?.();
   }
 
@@ -198,6 +236,10 @@ export function ConceptosPendientes({
   }
 
   const pendientes = conceptos?.length ?? 0;
+  /** El concepto que se está preguntando, y el que viene, para nombrarlo en el botón. */
+  const actual = conceptos?.[indice];
+  const siguiente = conceptos?.[indice + 1];
+  const esUltimo = conceptos !== undefined && indice >= conceptos.length - 1;
 
   return (
     <div className="flex flex-col gap-2">
@@ -240,75 +282,183 @@ export function ConceptosPendientes({
             <p className="text-body text-faint">{labels.empty}</p>
           )}
 
-          {conceptos && conceptos.length > 0 && (
-            <>
-              <div className="flex flex-col gap-0.5">
-                <p className="text-body font-medium">{labels.title}</p>
-                <p className="text-micro text-muted-foreground">{labels.subtitle}</p>
+          {conceptos && conceptos.length > 0 && actual && (
+            /*
+             * ═══════════════════════════════════════════════════════════════════════════════
+             * UNA PREGUNTA A LA VEZ (CU-868kyur58) — RÉPLICA DEL HTML QUE APROBÓ JOSE
+             * ═══════════════════════════════════════════════════════════════════════════════
+             *
+             * Antes esto listaba TODOS los conceptos apilados, cada uno con un `<Select>` chico
+             * y un `<Input>`. Se veía y se sentía como un formulario de trabajo, y lo que el
+             * cliente tiene que hacer son dos o tres decisiones simples sobre su propio negocio.
+             *
+             * ⚠️ **Es un cambio de PRESENTACIÓN y nada más.** Mismo contrato (`Concepto`,
+             * `Respuestas`), mismo endpoint, misma llamada única al guardar. Lo que cambia es
+             * que se muestra un concepto por vez y que las opciones son tarjetas grandes en vez
+             * de un desplegable.
+             *
+             * Las medidas salen del HTML de referencia, traducidas a tokens y NO a los hex del
+             * archivo: `--brand-soft` en vez de `#eef1ec`, `--brand-ink` en vez de `#4a5745`.
+             * Escribir el hex es el error que parece fidelidad — no tiene contraparte en tema
+             * oscuro, y quien tenga el sistema en oscuro vería un bloque claro cegador.
+             */
+            <div className="flex flex-col gap-0 rounded-2xl border border-border bg-card px-[30px] py-[26px] shadow-sm">
+              {/* Cabecera: el orbe de marca al lado del título, como en el archivo. */}
+              <div className="flex items-center gap-3.5">
+                <InsightPoint size="md" className="shrink-0" />
+                <p className="text-[18px] font-bold leading-tight">{labels.title}</p>
               </div>
-
-              {conceptos.map((c) => (
-                <div
-                  key={c.concepto}
-                  className="flex min-w-0 flex-col gap-1.5 border-t border-border pt-2.5"
-                >
-                  <div className="flex min-w-0 flex-col">
-                    {/*
-                      `break-words` y no `truncate`: la descripción de una fila real puede ser
-                      larga, y recortarla es justo lo que le quita al cliente la información
-                      con la que reconoce su propio concepto.
-                    */}
-                    <p className="break-words text-body font-medium">{c.ejemplo}</p>
-                    <p className="font-mono text-micro tabular-nums text-faint">
-                      {labels.rows
-                        .replace('{n}', formatNumber(c.filas, locale))
-                        .replace('{monto}', montosLegibles(c.montos, locale))}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <label className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-micro text-faint">{labels.typeLabel}</span>
-                      <Select
-                        value={respuestas[c.concepto]?.type ?? 'opex'}
-                        onChange={(e) =>
-                          actualizar(c.concepto, { type: e.target.value as TipoDeMovimiento })
-                        }
-                      >
-                        {TIPOS.map((t) => (
-                          <option key={t} value={t}>
-                            {labels.type[t]}
-                          </option>
-                        ))}
-                      </Select>
-                    </label>
-                    <label className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="text-micro text-faint">{labels.categoryLabel}</span>
-                      <Input
-                        value={respuestas[c.concepto]?.category ?? ''}
-                        onChange={(e) => actualizar(c.concepto, { category: e.target.value })}
-                        placeholder={labels.categoryPlaceholder}
-                        maxLength={80}
-                      />
-                    </label>
-                  </div>
-                </div>
-              ))}
+              <p className="ml-[52px] mt-0.5 text-body text-muted-foreground">{labels.subtitle}</p>
 
               {/*
-                Deshabilitado mientras no haya al menos un rubro escrito. Un botón activo que no
-                hace nada es peor que uno apagado: el cliente aprieta, no pasa nada visible, y
-                concluye que la pantalla está rota.
+                PROGRESO. El ticket lo pide y resuelve la pregunta que un flujo paso a paso
+                genera solo: "¿cuántas faltan?". Sin esto, una pregunta a la vez se siente
+                interminable justo cuando hay varias — que es cuando más importa que no lo sea.
+
+                Los puntos van `aria-hidden` y el estado real viaja en un texto para lector de
+                pantalla: cuatro rectángulos de color no dicen nada a quien no los ve.
+
+                ⚠️ El punto CONTESTADO usa el verde FUNCIONAL (`bg-success`) y el actual la
+                tinta de marca. No es decorativo: "esto ya está" es un estado del dato, y la
+                regla de los dos verdes reserva el salvia para "esto es Macha".
               */}
-              <Button
-                size="sm"
-                className="self-start"
-                disabled={guardando || listas.length === 0}
-                onClick={() => void guardar()}
+              <div className="ml-[52px] mt-4 mb-[18px] flex gap-[5px]" aria-hidden="true">
+                {conceptos.map((c, i) => (
+                  <span
+                    key={c.concepto}
+                    className={cn(
+                      'h-1 w-[22px] rounded-sm',
+                      i < indice && 'bg-success',
+                      i === indice && 'bg-brand-ink',
+                      i > indice && 'bg-border',
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="sr-only" aria-live="polite">
+                {labels.progress
+                  .replace('{n}', formatNumber(indice + 1, locale))
+                  .replace('{total}', formatNumber(conceptos.length, locale))}
+              </p>
+
+              {/*
+                EL CONCEPTO, destacado. `break-words` y no `truncate`: la descripción de una
+                fila real puede ser larga, y recortarla le quita al cliente justo aquello con lo
+                que reconoce su propio concepto.
+              */}
+              <div className="mb-4 rounded-lg bg-brand-soft px-[18px] py-3.5">
+                <p className="break-words text-[16px] font-bold">{actual.ejemplo}</p>
+                <p className="mt-0.5 font-mono text-delta tabular-nums text-brand-ink">
+                  {labels.rows
+                    .replace('{n}', formatNumber(actual.filas, locale))
+                    .replace('{monto}', montosLegibles(actual.montos, locale))}
+                </p>
+              </div>
+
+              {/*
+                "QUÉ ES" — cuatro tarjetas grandes en vez de un desplegable.
+                `role="radiogroup"` con `<button role="radio">`: visualmente son tarjetas y
+                semánticamente son lo que son, una elección única. Un `<div onClick>` dejaría
+                esto fuera del teclado y sin anunciar, que es media implementación.
+              */}
+              <p className="mb-2 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                {labels.typeLabel}
+              </p>
+              <div
+                role="radiogroup"
+                aria-label={labels.typeLabel}
+                className="mb-[18px] grid grid-cols-1 gap-2.5 sm:grid-cols-2"
               >
-                {guardando ? labels.submitting : labels.submit}
-              </Button>
-            </>
+                {TIPOS.map((t) => {
+                  const elegido = (respuestas[actual.concepto]?.type ?? 'opex') === t;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      role="radio"
+                      aria-checked={elegido}
+                      onClick={() => actualizar(actual.concepto, { type: t })}
+                      className={cn(
+                        'rounded-xl border-[1.5px] p-4 text-left text-body font-semibold transition-colors',
+                        elegido
+                          ? 'border-brand-ink bg-brand-soft text-brand-ink'
+                          : 'border-border hover:border-brand-bd',
+                      )}
+                    >
+                      {labels.type[t]}
+                      <span
+                        className={cn(
+                          'mt-0.5 block text-micro font-normal',
+                          elegido ? 'text-brand-ink opacity-80' : 'text-muted-foreground',
+                        )}
+                      >
+                        {labels.typeHint[t]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* RUBRO: sigue siendo texto libre, con el aire que pide el archivo. */}
+              <div className="mb-5 flex flex-col gap-1.5">
+                <label
+                  htmlFor={`rubro-${documentId}`}
+                  className="font-mono text-eyebrow uppercase tracking-wide text-faint"
+                >
+                  {labels.categoryLabel}
+                </label>
+                <Input
+                  id={`rubro-${documentId}`}
+                  className="rounded-lg border-[1.5px] px-3.5 py-2.5 text-body"
+                  value={respuestas[actual.concepto]?.category ?? ''}
+                  onChange={(e) => actualizar(actual.concepto, { category: e.target.value })}
+                  placeholder={labels.categoryPlaceholder}
+                  maxLength={80}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/*
+                  El botón NOMBRA el siguiente concepto. Es del archivo y es lo que convierte
+                  "guardar" en "ya casi": el cliente ve que queda uno y cuál es, en vez de
+                  apretar a ciegas.
+
+                  Sigue deshabilitado sin rubro escrito, como antes: un botón activo que no hace
+                  nada es peor que uno apagado — se aprieta, no pasa nada, y la conclusión es que
+                  la pantalla está rota.
+                */}
+                <Button
+                  size="sm"
+                  className="rounded-lg px-[22px] py-2.5"
+                  disabled={guardando || listas.length === 0}
+                  onClick={() => (esUltimo ? void guardar() : setIndice(indice + 1))}
+                >
+                  {guardando
+                    ? labels.submitting
+                    : esUltimo
+                      ? labels.submitLast
+                      : labels.submitNext.replace('{siguiente}', siguiente?.ejemplo ?? '')}
+                </Button>
+                {/*
+                  OMITIR. En el último concepto guarda lo que ya haya contestado en vez de pasar
+                  a un índice que no existe: omitir el último no puede significar tirar las tres
+                  respuestas anteriores.
+                */}
+                <button
+                  type="button"
+                  className="text-body text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                  onClick={() =>
+                    esUltimo
+                      ? listas.length > 0
+                        ? void guardar()
+                        : setAbierto(false)
+                      : setIndice(indice + 1)
+                  }
+                >
+                  {labels.skip}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}

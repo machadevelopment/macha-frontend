@@ -729,13 +729,23 @@ export const en: Dictionary = {
   upload: {
     conceptos: {
       cta: 'Help us classify {n} item(s)',
-      title: 'Only you know what these are',
+      title: 'Only you know what this is',
       subtitle:
         "Each answer sorts every row with that item, and we won't ask again on your next uploads.",
       rows: '{n} rows · {monto}',
       typeLabel: 'What is it',
       categoryLabel: 'Category',
       categoryPlaceholder: 'e.g. utilities, freight, payroll',
+      typeHint: {
+        revenue: 'Money coming in from sales',
+        cogs: 'Only what it cost to make or buy',
+        opex: 'Rent, payroll, utilities',
+        other: 'None of the above',
+      },
+      submitNext: 'Save and continue → "{siguiente}"',
+      submitLast: 'Save',
+      skip: 'Skip for now',
+      progress: 'Item {n} of {total}',
       type: {
         revenue: 'Income',
         cogs: 'Cost of what I sell',
