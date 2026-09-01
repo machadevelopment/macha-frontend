@@ -298,7 +298,15 @@ export function DocumentList({
                   un panel vacío que se llena solo confundiría más que ayudar.
                 */}
                 {!IN_FLIGHT.includes(doc.status) && doc.status !== 'cancelled' && (
-                  <div className="mt-1.5 flex flex-col gap-1.5">
+                  /*
+                    ⚠️ `whitespace-normal` NO es cosmético: la celda que contiene esto lleva
+                    `whitespace-nowrap` para que el NOMBRE DEL ARCHIVO no se parta, y esa regla
+                    se hereda a todo el panel expandido. Medido en producción: la tarjeta de
+                    conceptos empujaba la tabla de 1164 a 1278 px —114 px de scroll horizontal—
+                    y el cliente veía la pregunta cortada por la derecha. Nada falla: la tabla
+                    simplemente se ensancha, y solo se ve en un navegador de verdad.
+                  */
+                  <div className="mt-1.5 flex flex-col gap-1.5 whitespace-normal">
                     <ReadSummary
                       documentId={doc.id}
                       labels={labels.readSummary}

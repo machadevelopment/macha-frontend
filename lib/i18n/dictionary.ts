@@ -619,6 +619,8 @@ export interface Dictionary {
      */
     conceptos: {
       cta: string;
+      /** Sin `{n}`: se usa mientras no se sabe cuántos son (ver el componente). */
+      ctaSinConteo: string;
       title: string;
       subtitle: string;
       rows: string;

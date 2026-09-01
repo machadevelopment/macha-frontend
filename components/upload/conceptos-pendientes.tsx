@@ -235,7 +235,14 @@ export function ConceptosPendientes({
     }));
   }
 
-  const pendientes = conceptos?.length ?? 0;
+  /**
+   * ⚠️ El conteo solo se AFIRMA cuando ya se pidió la lista. Antes decía `?? 0`, así que el
+   * disparador cerrado leía "Ayúdanos a clasificar 0 concepto(s)" hasta que alguien lo abría
+   * —y `conceptos` solo se pide AL abrir, o sea siempre—. Le decía al cliente que no queda
+   * nada por contestar justo en el control que existe para que conteste: la razón más directa
+   * para no hacer clic. Sin lista todavía, el texto no lleva número.
+   */
+  const pendientes = conceptos?.length;
   /** El concepto que se está preguntando, y el que viene, para nombrarlo en el botón. */
   const actual = conceptos?.[indice];
   const siguiente = conceptos?.[indice + 1];
@@ -254,7 +261,9 @@ export function ConceptosPendientes({
           strokeWidth={1.7}
         />
         <HelpCircle className="h-3.5 w-3.5 shrink-0 text-faint" strokeWidth={1.7} />
-        {labels.cta.replace('{n}', formatNumber(pendientes, locale))}
+        {pendientes === undefined
+          ? labels.ctaSinConteo
+          : labels.cta.replace('{n}', formatNumber(pendientes, locale))}
       </button>
 
       {abierto && (

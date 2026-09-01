@@ -729,6 +729,7 @@ export const en: Dictionary = {
   upload: {
     conceptos: {
       cta: 'Help us classify {n} item(s)',
+      ctaSinConteo: 'Help us classify your items',
       title: 'Only you know what this is',
       subtitle:
         "Each answer sorts every row with that item, and we won't ask again on your next uploads.",
