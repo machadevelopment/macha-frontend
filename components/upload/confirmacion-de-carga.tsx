@@ -310,14 +310,28 @@ export function ConfirmacionDeCarga({
                       ? labels.excluida
                       : h.estado === 'inventario'
                         ? labels.inventario
-                        : labels.usada
-                            .replace('{n}', formatNumber(h.filas ?? 0, locale))
-                            .replace(
-                              '{monto}',
-                              (h.montos ?? [])
-                                .map((m) => dinero(m.total, m.moneda, locale))
-                                .join(' + ') || '—',
-                            )}
+                        : (() => {
+                            /*
+                            ⚠️ UNA CARÁTULA NO PRODUJO "3 MOVIMIENTOS" (2026-09-01).
+
+                            Medido en producción: `Portada` y `Notas` se listaban como
+                            "3 movimientos · —" entre las hojas que sí cuentan. Llamar
+                            MOVIMIENTOS a tres renglones de una carátula es la pantalla
+                            afirmando algo que no pasó, justo donde el dueño decide si
+                            publicar.
+
+                            Y NO se agrupan como las descartadas sin dinero: una hoja que
+                            produjo filas va a publicar algo, así que esconderla contradiría
+                            el portón. Lo que estaba mal era el texto. Ver `usadaSinMonto`.
+                          */
+                            const monto = (h.montos ?? [])
+                              .map((m) => dinero(m.total, m.moneda, locale))
+                              .join(' + ');
+                            const filas = formatNumber(h.filas ?? 0, locale);
+                            return monto
+                              ? labels.usada.replace('{n}', filas).replace('{monto}', monto)
+                              : labels.usadaSinMonto.replace('{n}', filas);
+                          })()}
                   </span>
                   {/*
                     Solo se puede desconocer una hoja que SÍ estamos usando. Ofrecer "excluir"
@@ -607,9 +621,14 @@ export function ConfirmacionDeCarga({
               <p className="mb-2 font-mono text-eyebrow uppercase tracking-wide text-faint">
                 {labels.conceptosTitle}
               </p>
-              <p className="mb-2 text-body text-muted-foreground">
-                {labels.conceptosHint.replace('{n}', formatNumber(datos.marcadas, locale))}
-              </p>
+              {/*
+                ⚠️ SIN NÚMERO, y ese es el arreglo. Decía "Quedaron {n} conceptos" con `n` =
+                FILAS MARCADAS, y el panel de abajo —que cuenta CONCEPTOS contestables— decía
+                otra cosa sobre la misma carga: medido en producción, 30 arriba contra 4 abajo.
+                Es el mismo fallo que `conceptos-pendientes` documenta del lado del correo, y
+                encima llamaba "conceptos" a las filas. El único conteo que vale lo da el panel.
+              */}
+              <p className="mb-2 text-body text-muted-foreground">{labels.conceptosHint}</p>
               {/*
                 El panel de conceptos, tal cual. No se reimplementa: es el mismo contrato y el
                 mismo endpoint, y dos versiones del mismo formulario se separan.

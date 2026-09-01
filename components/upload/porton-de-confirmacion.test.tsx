@@ -270,6 +270,7 @@ describe('cada hoja se puede abrir para ver qué entendimos', () => {
 /** El mismo libro, más una portada sin dinero y con los encabezados de la hoja de ventas. */
 const RESUMEN_0043 = {
   ...RESUMEN,
+  marcadas: 30,
   hojas: [
     {
       ...RESUMEN.hojas[0],
@@ -280,6 +281,8 @@ const RESUMEN_0043 = {
     // Sin un solo monto medido: es una carátula, no un descarte que haya que defender.
     { nombre: 'Portada', estado: 'descartada', motivo: 'vacia', filas: 2, montos: [] },
     { nombre: 'Notas', estado: 'descartada', motivo: 'vacia', filas: 3 },
+    // Una hoja que SÍ produjo filas pero ningún monto: la carátula que el modelo leyó igual.
+    { nombre: 'Caratula', estado: 'movimientos', filas: 3, montos: [], columnas: {} },
   ],
 };
 
@@ -325,7 +328,13 @@ describe('el dueño puede rescatar una hoja y corregirle la columna', () => {
     pintar();
     await screen.findByText('Ventas');
 
-    fireEvent.click(screen.getByText(es.upload.confirmacion.verDetalle));
+    // El de la fila de `Ventas`: hay uno por hoja, y abrir otra no muestra sus columnas.
+    const filaVentas = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(filaVentas.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
     await screen.findByText(es.upload.confirmacion.columnaCorrecta);
 
     // El dueño dice "el monto no sale de «Precio Unitario», sale de «Total Línea»".
@@ -359,5 +368,41 @@ describe('el dueño puede rescatar una hoja y corregirle la columna', () => {
 
     // Y el descarte CON dinero sigue arriba, entero: es el que se puede desmentir.
     expect(screen.getByText('Resumen_Ventas')).toBeTruthy();
+  });
+});
+
+describe('lo que la pantalla AFIRMA de una hoja tiene que haber pasado', () => {
+  test('una hoja sin monto medible no se anuncia como "3 movimientos"', async () => {
+    /*
+     * Medido en producción el 2026-09-01: `Portada` y `Notas` se listaban como
+     * "3 movimientos · —" entre las hojas que sí cuentan. Llamar MOVIMIENTOS a tres renglones
+     * de una carátula es la pantalla afirmando algo que no pasó, justo donde el dueño decide
+     * si publicar.
+     *
+     * Y NO se esconde: produjo filas, así que va a publicar algo y agruparla contradiría el
+     * portón. Lo que estaba mal era el texto.
+     */
+    conBackend0043();
+    pintar();
+    await screen.findByText('Caratula');
+
+    const fila = screen.getByText('Caratula').closest('li')!;
+    expect(fila.textContent).toContain(es.upload.confirmacion.usadaSinMonto.replace('{n}', '3'));
+    expect(fila.textContent).not.toContain('movimientos');
+    // Y la hoja que SÍ trae dinero sigue diciendo movimientos y su monto.
+    expect(screen.getByText('Ventas').closest('li')!.textContent).toContain('8 movimientos');
+  });
+
+  test('el aviso de conceptos NO promete un número que el panel desmiente', async () => {
+    /*
+     * Decía "Quedaron {n} conceptos" con `n` = FILAS MARCADAS, y el panel de abajo —que cuenta
+     * CONCEPTOS contestables— decía otra cosa sobre la misma carga: medido en producción, 30
+     * arriba contra 4 abajo. Es el mismo fallo que `conceptos-pendientes` ya documenta del lado
+     * del correo, y encima llamaba "conceptos" a las filas.
+     */
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+    expect(es.upload.confirmacion.conceptosHint).not.toContain('{n}');
   });
 });

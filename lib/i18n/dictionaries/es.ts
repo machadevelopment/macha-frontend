@@ -796,6 +796,7 @@ export const es: Dictionary = {
         'Revisa que sea correcto y publícalo. Nada entra a tus reportes hasta que lo confirmes.',
       sheetsTitle: 'Qué hicimos con cada hoja',
       usada: '{n} movimientos · {monto}',
+      usadaSinMonto: '{n} filas, sin monto que sumar',
       noUsada: 'No la usamos',
       inventario: 'Actualizó tu inventario',
       excluir: 'Esta no debería contar',
@@ -818,7 +819,7 @@ export const es: Dictionary = {
       deshacer: 'Volver a incluirla',
       conceptosTitle: 'Y solo tú sabes qué es esto',
       conceptosHint:
-        'Quedaron {n} conceptos por clasificar. Puedes publicar sin contestarlos y hacerlo después.',
+        'Hay filas que solo tú puedes clasificar. Puedes publicar sin contestarlas y hacerlo después.',
       publicar: 'Todo correcto, publicar',
       confirmarTitulo: '¿Publicamos esta carga?',
       confirmarDetalle:

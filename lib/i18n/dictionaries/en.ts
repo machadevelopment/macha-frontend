@@ -733,6 +733,7 @@ export const en: Dictionary = {
       subtitle: "Check it's right and publish it. Nothing reaches your reports until you confirm.",
       sheetsTitle: 'What we did with each sheet',
       usada: '{n} entries · {monto}',
+      usadaSinMonto: '{n} rows, no amount to add up',
       noUsada: "We didn't use it",
       inventario: 'Updated your inventory',
       excluir: "This one shouldn't count",
@@ -754,7 +755,7 @@ export const en: Dictionary = {
       excluida: "Won't be counted",
       deshacer: 'Include it again',
       conceptosTitle: 'And only you know what this is',
-      conceptosHint: '{n} items are still unclassified. You can publish now and answer them later.',
+      conceptosHint: 'Some rows only you can classify. You can publish now and answer them later.',
       publicar: 'Looks right, publish',
       confirmarTitulo: 'Publish this upload?',
       confirmarDetalle:

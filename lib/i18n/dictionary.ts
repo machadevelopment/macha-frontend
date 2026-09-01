@@ -633,6 +633,17 @@ export interface Dictionary {
       sheetsTitle: string;
       /** Lo que aporta cada hoja que SÍ se usa. Lleva `{n}` y `{monto}`. */
       usada: string;
+      /**
+       * La hoja produjo filas pero NINGÚN monto medible (una portada, unas notas).
+       *
+       * Medido en producción el 2026-09-01: `Portada` y `Notas` se listaban como
+       * *"3 movimientos · —"* entre las hojas que sí cuentan. Llamar MOVIMIENTOS a tres
+       * renglones de una carátula es la pantalla afirmando algo que no pasó, justo donde el
+       * dueño decide si publicar. Y no se esconden: **una hoja que produjo filas va a publicar
+       * algo**, así que agruparla contradiría el portón — lo que estaba mal era el texto.
+       * Lleva `{n}`.
+       */
+      usadaSinMonto: string;
       /** Una hoja que no se usa, con su motivo ya redactado. */
       noUsada: string;
       inventario: string;
@@ -685,7 +696,17 @@ export interface Dictionary {
       excluida: string;
       deshacer: string;
       conceptosTitle: string;
-      /** Lleva `{n}`. */
+      /**
+       * ⚠️ NO lleva número, y ese es el arreglo (2026-09-01).
+       *
+       * Decía *"Quedaron {n} conceptos por clasificar"* con `n` = FILAS MARCADAS, y el panel de
+       * abajo —que cuenta CONCEPTOS contestables— decía otra cosa sobre la misma carga. Medido
+       * en producción: *"Quedaron 30 conceptos"* arriba y *"Ayúdanos a clasificar 4"* abajo.
+       * Es el mismo fallo que `conceptos-pendientes` ya documenta del lado del correo —
+       * prometer un número y mostrar otro— y encima llamaba "conceptos" a las filas.
+       *
+       * El único conteo que vale sale del panel, que es el que sabe cuántos son.
+       */
       conceptosHint: string;
       publicar: string;
       /**
