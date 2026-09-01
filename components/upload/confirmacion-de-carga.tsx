@@ -51,6 +51,12 @@ interface HojaResumen {
   nombre: string;
   /** De dónde salió cada dato: `{ fecha: 'Fecha', monto: 'Total Línea', … }`. */
   columnas?: Record<string, string | null>;
+  /**
+   * TODOS los encabezados de la hoja, en su orden real. `columnas` dice de dónde SALIÓ el
+   * dato; esto es lo que permite elegir otro. Ausente en las cargas anteriores al 2026-09-01:
+   * ahí el picker no se pinta, que es lo correcto — no hay contra qué elegir.
+   */
+  encabezados?: string[];
   estado: 'movimientos' | 'inventario' | 'descartada';
   filas?: number;
   motivo?: keyof Dictionary['upload']['readSummary']['reason'];
@@ -134,17 +140,79 @@ export function ConfirmacionDeCarga({
   const [abierta, setAbierta] = useState<string | null>(null);
   /** Las correcciones de naturaleza que el cliente hizo, por hoja. */
   const [reclasificadas, setReclasificadas] = useState<Record<string, string>>({});
+  /**
+   * Qué hoja se está volviendo a leer.
+   *
+   * Rescatar una hoja o corregirle la columna **reprocesa el archivo**, así que no es un
+   * cambio local como excluir: hay que esperar al worker. Sin este estado el cliente aprieta,
+   * no pasa nada visible, y vuelve a apretar — que con un reproceso encolado es la forma más
+   * directa de duplicarle el trabajo al worker.
+   */
+  const [reprocesando, setReprocesando] = useState<string | null>(null);
+  /** Las hojas sin datos van colapsadas; esto las abre. Ver `sinDatos` en el diccionario. */
+  const [verSinDatos, setVerSinDatos] = useState(false);
+
+  const cargar = useCallback(async () => {
+    const r = await request<Confirmacion>(`/api/documents/${documentId}/confirmacion`);
+    return r.ok ? r.data : null;
+  }, [documentId]);
 
   useEffect(() => {
     let vivo = true;
-    void request<Confirmacion>(`/api/documents/${documentId}/confirmacion`).then((r) => {
-      if (!vivo) return;
-      setDatos(r.ok ? r.data : null);
+    void cargar().then((d) => {
+      if (vivo) setDatos(d);
     });
     return () => {
       vivo = false;
     };
-  }, [documentId]);
+  }, [cargar]);
+
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   * "ESTA HOJA SÍ DEBERÍA CONTAR" / "EL MONTO ESTÁ EN OTRA COLUMNA" (migración 0043)
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   *
+   * Las dos son la misma operación —reprocesar ESA hoja con la corrección— y por eso son una
+   * sola función y un solo endpoint.
+   *
+   * ⚠️ Se ESPERA al worker sondeando el mismo endpoint que ya se usa, no con un `setTimeout`
+   * a ojo: cuánto tarda depende del tamaño de la hoja y de si hay que pagarle al modelo.
+   * Mientras tanto el control queda deshabilitado — un segundo clic encolaría otra corrida
+   * sobre una carga que ya se está procesando.
+   */
+  const corregirHoja = useCallback(
+    async (hoja: string, cambio: { forzar?: boolean; columnas?: Record<string, number> }) => {
+      setReprocesando(hoja);
+      setError(false);
+      const r = await request(`/api/documents/${documentId}/corregir-hoja`, {
+        method: 'POST',
+        body: JSON.stringify({ hoja, ...cambio }),
+      });
+      if (!r.ok) {
+        setReprocesando(null);
+        setError(true);
+        return;
+      }
+      /*
+       * Hasta 60 sondeos de 2 s. El tope existe para no dejar la pantalla girando para
+       * siempre si el worker muere: al agotarse se recarga igual, así el cliente ve el estado
+       * REAL de su carga en vez de una promesa que no se cumplió.
+       */
+      for (let i = 0; i < 60; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const d = await cargar();
+        if (d && d.status !== 'processing') {
+          setDatos(d);
+          break;
+        }
+      }
+      setReprocesando(null);
+      setAbierta(null);
+      const final = await cargar();
+      if (final) setDatos(final);
+    },
+    [documentId, cargar],
+  );
 
   const alternar = useCallback((hoja: string) => {
     setExcluidas((previo) => {
@@ -181,7 +249,22 @@ export function ConfirmacionDeCarga({
 
   const detalle = datos.detalle ?? {};
   const usadas = datos.hojas.filter((h) => h.estado !== 'descartada');
-  const descartadas = datos.hojas.filter((h) => h.estado === 'descartada');
+  /*
+   * ═══ UNA PORTADA NO ES UN DESCARTE QUE HAYA QUE DEFENDER ═══
+   *
+   * Un libro real trae `Portada`, `Notas`, `Instrucciones`. Listadas una por una entre las
+   * hojas descartadas ocupan media pantalla y hacen parecer que descartamos medio archivo,
+   * cuando lo que descartamos es la carátula. El dueño no puede desmentir eso —no hay cifra
+   * que contrastar— y el ruido le tapa el descarte que SÍ tiene que mirar, que es el que se
+   * llevó dinero.
+   *
+   * El corte es por DINERO y no por el nombre de la hoja: "Portada" es una convención y el
+   * próximo cliente la llamará "Carátula". Una hoja sin un solo monto medido no tiene nada
+   * que el dueño pueda desmentir; una con Q 2.707.318 va arriba, entera y con su motivo.
+   */
+  const sinDinero = (h: HojaResumen) => (h.montos ?? []).every((m) => m.total === 0);
+  const descartadas = datos.hojas.filter((h) => h.estado === 'descartada' && !sinDinero(h));
+  const vacias = datos.hojas.filter((h) => h.estado === 'descartada' && sinDinero(h));
 
   return (
     <div className="flex flex-col gap-0 whitespace-normal rounded-2xl border border-border bg-card px-[30px] py-[26px] shadow-sm">
@@ -318,6 +401,55 @@ export function ConfirmacionDeCarga({
                       )}
 
                       {/*
+                        ⚠️ DE QUÉ COLUMNA SALE EL MONTO (migración 0043).
+
+                        Enseñarle al dueño que el monto salió de «Precio Unitario» sin darle
+                        dónde elegir «Total» lo deja mirando el error sin salida — y es el
+                        fallo que `sheet-header` describe como el peor de su clase: no falla
+                        nada visible, el total puede verse perfecto y cada fila estar mal.
+
+                        Solo el MONTO, y es decisión: es la columna que mueve la cifra del
+                        dashboard, y un formulario con las doce del mapa convertiría una
+                        corrección en una tarea. Cambiarla reprocesa la hoja.
+                      */}
+                      {(h.encabezados ?? []).length > 0 && (
+                        <div className="mb-4">
+                          <p className="mb-1.5 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                            {labels.columnaCorrecta}
+                          </p>
+                          <p className="mb-2 text-micro text-muted-foreground">
+                            {labels.columnaHint}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {(h.encabezados ?? []).map((nombre, idx) => {
+                              const actual = h.columnas?.monto === (nombre || `columna ${idx + 1}`);
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  disabled={reprocesando !== null}
+                                  onClick={() =>
+                                    void corregirHoja(h.nombre, { columnas: { amount: idx } })
+                                  }
+                                  className={cn(
+                                    'rounded-lg border-[1.5px] px-3 py-1.5 text-micro font-semibold disabled:opacity-50',
+                                    actual
+                                      ? 'border-brand-ink bg-brand-soft text-brand-ink'
+                                      : 'border-border text-muted-foreground hover:border-brand-bd',
+                                  )}
+                                >
+                                  {nombre || `columna ${idx + 1}`}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {reprocesando === h.nombre && (
+                            <p className="mt-2 text-micro text-brand-ink">{labels.reprocesando}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/*
                         CORREGIR LA HOJA ENTERA. Una hoja es homogénea por construcción, así que
                         preguntar concepto por concepto lo que el dueño dice de un golpe
                         convertiría una decisión en un formulario.
@@ -394,8 +526,80 @@ export function ConfirmacionDeCarga({
                     {h.montos.map((m) => dinero(m.total, m.moneda, locale)).join(' + ')}
                   </span>
                 )}
+                {/*
+                  ⚠️ LA SALIDA QUE FALTABA (migración 0043).
+
+                  Perder una hoja en silencio es el fallo más caro que tiene esta ingesta —el
+                  dashboard de KapePrueba en cero con la contabilidad bien leída, la cartera de
+                  clientes que el filtro de catálogo se llevó puesta—. Hasta hoy esta pantalla
+                  se lo MOSTRABA al dueño y no le daba nada que apretar.
+
+                  Reprocesa el archivo saltándose los filtros SOLO para esta hoja, así que no
+                  es un cambio local como excluir: hay que esperar al worker.
+                */}
+                <button
+                  type="button"
+                  disabled={reprocesando !== null}
+                  onClick={() => void corregirHoja(h.nombre, { forzar: true })}
+                  className="ml-auto shrink-0 text-body text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:no-underline disabled:opacity-50"
+                >
+                  {reprocesando === h.nombre ? labels.reprocesando : labels.siCuenta}
+                </button>
               </li>
             ))}
+
+            {/*
+              Las hojas sin un solo monto medido, juntas y colapsadas. Ver `sinDinero` arriba:
+              el corte es por dinero y no por nombre, porque "Portada" es una convención.
+            */}
+            {vacias.length > 0 && (
+              <li className="rounded-lg bg-muted px-3.5 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => setVerSinDatos((v) => !v)}
+                  aria-expanded={verSinDatos}
+                  className="flex items-center gap-1.5 text-micro text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  <ChevronRight
+                    className={cn(
+                      'h-3.5 w-3.5 shrink-0 transition-transform',
+                      verSinDatos && 'rotate-90',
+                    )}
+                    strokeWidth={1.7}
+                  />
+                  {labels.sinDatos.replace('{n}', formatNumber(vacias.length, locale))}
+                </button>
+                {verSinDatos && (
+                  <ul className="mt-2 flex flex-col gap-1">
+                    {vacias.map((h) => (
+                      <li
+                        key={h.nombre}
+                        className="flex flex-wrap items-center gap-x-3 text-micro text-muted-foreground"
+                      >
+                        <span className="font-semibold">{h.nombre}</span>
+                        <span>
+                          {h.motivo
+                            ? reasonLabels[h.motivo].replace(
+                                '{n}',
+                                formatNumber(h.filas ?? 0, locale),
+                              )
+                            : ''}
+                        </span>
+                        {/* También se pueden rescatar: que no midiéramos dinero no prueba que no lo traiga. */}
+                        <button
+                          type="button"
+                          disabled={reprocesando !== null}
+                          onClick={() => void corregirHoja(h.nombre, { forzar: true })}
+                          className="underline underline-offset-2 hover:text-foreground disabled:no-underline disabled:opacity-50"
+                        >
+                          {reprocesando === h.nombre ? labels.reprocesando : labels.siCuenta}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            )}
           </ul>
 
           {datos.marcadas > 0 && (
