@@ -832,7 +832,10 @@ export const es: Dictionary = {
           '· no se leyó: repite el mismo dinero que otra hoja, y contarlo dos veces inflaría tus cifras ({n} filas)',
         ya_ingerida: '· ya la teníamos completa de una carga anterior ({n} filas)',
         vacia: '· no tiene filas que leer',
+        sin_fecha_ni_monto:
+          '· no se leyó: no encontramos una columna de fecha con montos al lado, así que sus filas no son movimientos ({n} filas)',
       },
+      sheetSkippedMoney: 'No entró a tus números: {monto}',
       totals: 'Entraron {movimientos} movimientos. No se leyeron {descartadas} filas.',
     },
     eyebrow: 'INGESTA',
@@ -998,11 +1001,12 @@ export const es: Dictionary = {
     ingest: {
       eyebrow: 'CARGA EN PROCESO',
       processing: 'Estamos procesando {docs} archivo(s). Tus números aparecen cuando termine.',
-      inReview: 'Tienes {docs} carga(s) en revisión. Sus datos todavía no entran a tus números.',
+      inReview:
+        'Tienes {docs} carga(s) con algo pendiente. El resto de sus datos ya está en tus números.',
       inReviewWithRows:
-        'Tienes {docs} carga(s) en revisión: {rows} filas necesitan que las revisemos antes de entrar a tus números.',
+        'Tienes {docs} carga(s) con {rows} filas pendientes de clasificar. El resto ya está en tus números.',
       explainer:
-        'Nada entra a tus reportes hasta que la carga completa esté revisada, para que no se mezclen datos dudosos con los buenos.',
+        'Lo que se leyó bien ya entró a tus reportes. Solo esperan las filas que no logramos clasificar: en cuanto nos digas qué son, se suman.',
       cta: 'Ver mis cargas',
     },
     arApTitle: 'Cuentas por cobrar / pagar',

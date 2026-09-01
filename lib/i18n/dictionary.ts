@@ -655,9 +655,28 @@ export interface Dictionary {
       sheetInventory: string;
       /** Por qué una hoja no produjo movimientos. Todos llevan `{n}`. */
       reason: Record<
-        'catalogo' | 'reporte' | 'duplica_otra_hoja' | 'ya_ingerida' | 'vacia',
+        | 'catalogo'
+        | 'reporte'
+        | 'duplica_otra_hoja'
+        | 'ya_ingerida'
+        | 'vacia'
+        /**
+         * No se le pudo leer una fecha con dinero al lado. Antes se reportaba como `catalogo`,
+         * que afirma algo sobre el CONTENIDO de la hoja que nosotros no sabemos: una
+         * explicación equivocada le enseña al dueño a no creerle al resumen, que es lo único
+         * con lo que puede desmentirnos.
+         */
+        | 'sin_fecha_ni_monto',
         string
       >;
+      /**
+       * Cuánto dinero se llevó un descarte. Lleva `{monto}`.
+       *
+       * Es la cifra que convierte una decisión invisible en una que el cliente puede
+       * desmentir: "no se leyó, 220 filas" no le dice nada; "no entró a tus números:
+       * Q 2.707.318" se contesta de un vistazo.
+       */
+      sheetSkippedMoney: string;
       /** Lleva `{movimientos}` y `{descartadas}`. */
       totals: string;
     };
