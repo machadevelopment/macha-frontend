@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Check, ChevronLeft, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InsightPoint } from '@/components/ui/insight-point';
 import { cn } from '@/lib/cn';
@@ -49,10 +49,42 @@ interface MontoPorMoneda {
 
 interface HojaResumen {
   nombre: string;
+  /** De dónde salió cada dato: `{ fecha: 'Fecha', monto: 'Total Línea', … }`. */
+  columnas?: Record<string, string | null>;
   estado: 'movimientos' | 'inventario' | 'descartada';
   filas?: number;
   motivo?: keyof Dictionary['upload']['readSummary']['reason'];
   montos?: MontoPorMoneda[];
+}
+
+const TIPOS = ['revenue', 'cogs', 'opex', 'other'] as const;
+
+/**
+ * Con qué tipo entró la hoja: el que más filas produjo.
+ *
+ * No es un promedio ni una suma: es "esta hoja entró como ingreso", que es lo que el dueño
+ * necesita ver para saber si hay algo que corregir. Una hoja con dos tipos (venta + su costo
+ * derivado) muestra el dominante, que es su naturaleza.
+ */
+function tipoDominante(d: DetalleDeHoja | undefined): string | null {
+  const pares = Object.entries(d?.tipos ?? {});
+  if (pares.length === 0) return null;
+  return pares.reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+}
+
+interface FilaDeMuestra {
+  fecha: string | null;
+  concepto: string | null;
+  monto: number | null;
+  moneda: string | null;
+  tipo: string;
+  categoria: string | null;
+}
+
+interface DetalleDeHoja {
+  muestra: FilaDeMuestra[];
+  /** Cuántas filas produjo de cada tipo. Es lo que permite decir "entró como ingreso". */
+  tipos: Record<string, number>;
 }
 
 interface Confirmacion {
@@ -62,6 +94,7 @@ interface Confirmacion {
   filas: number;
   marcadas: number;
   hojas: HojaResumen[];
+  detalle?: Record<string, DetalleDeHoja>;
 }
 
 export function ConfirmacionDeCarga({
@@ -97,6 +130,10 @@ export function ConfirmacionDeCarga({
    * nada nuevo solo agrega un clic.
    */
   const [confirmando, setConfirmando] = useState(false);
+  /** Qué hoja tiene el panel abierto. Una a la vez: la pantalla es para decidir, no para leer. */
+  const [abierta, setAbierta] = useState<string | null>(null);
+  /** Las correcciones de naturaleza que el cliente hizo, por hoja. */
+  const [reclasificadas, setReclasificadas] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let vivo = true;
@@ -123,7 +160,10 @@ export function ConfirmacionDeCarga({
     setError(false);
     const r = await request<{ confirmado: boolean }>(`/api/documents/${documentId}/confirmar`, {
       method: 'POST',
-      body: JSON.stringify({ excluir: [...excluidas] }),
+      body: JSON.stringify({
+        excluir: [...excluidas],
+        reclasificar: Object.entries(reclasificadas).map(([hoja, type]) => ({ hoja, type })),
+      }),
     });
     setPublicando(false);
     if (!r.ok) {
@@ -139,6 +179,7 @@ export function ConfirmacionDeCarga({
   // Ya confirmada: esta pantalla no tiene nada que pedir. El resumen sigue disponible aparte.
   if (datos.confirmedAt !== null && !listo) return null;
 
+  const detalle = datos.detalle ?? {};
   const usadas = datos.hojas.filter((h) => h.estado !== 'descartada');
   const descartadas = datos.hojas.filter((h) => h.estado === 'descartada');
 
@@ -207,6 +248,124 @@ export function ConfirmacionDeCarga({
                     >
                       {fuera ? labels.deshacer : labels.excluir}
                     </button>
+                  )}
+
+                  {/*
+                    VER QUÉ ENTENDIMOS. Aprobar un nombre y un total alcanza para detectar una
+                    hoja de más o de menos; NO alcanza para leer la columna equivocada, donde el
+                    total se ve perfecto y cada fila está mal. Por eso el panel muestra de DÓNDE
+                    salió cada dato y tres filas como quedaron.
+                  */}
+                  {h.estado === 'movimientos' && (
+                    <button
+                      type="button"
+                      onClick={() => setAbierta(abierta === h.nombre ? null : h.nombre)}
+                      aria-expanded={abierta === h.nombre}
+                      className="flex w-full items-center gap-1 text-body text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      <ChevronRight
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0 transition-transform',
+                          abierta === h.nombre && 'rotate-90',
+                        )}
+                        strokeWidth={1.7}
+                      />
+                      {abierta === h.nombre ? labels.ocultarDetalle : labels.verDetalle}
+                    </button>
+                  )}
+
+                  {abierta === h.nombre && (
+                    <div className="w-full border-t border-border pt-3">
+                      {/* De dónde salió cada dato. Es lo que delata un mapa de columnas corrido. */}
+                      {h.columnas && Object.keys(h.columnas).length > 0 && (
+                        <>
+                          <p className="mb-1.5 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                            {labels.comoLeimos}
+                          </p>
+                          <ul className="mb-4 flex flex-wrap gap-x-4 gap-y-1">
+                            {Object.entries(h.columnas).map(([campo, col]) => (
+                              <li key={campo} className="text-micro text-muted-foreground">
+                                {campo}: <span className="font-mono text-foreground">{col}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+
+                      <p className="mb-1.5 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                        {labels.primerasFilas}
+                      </p>
+                      {(detalle[h.nombre]?.muestra ?? []).length === 0 ? (
+                        <p className="mb-4 text-micro text-muted-foreground">{labels.sinMuestra}</p>
+                      ) : (
+                        <ul className="mb-4 flex flex-col gap-1">
+                          {(detalle[h.nombre]?.muestra ?? []).map((f, i) => (
+                            <li
+                              key={i}
+                              className="flex flex-wrap items-baseline gap-x-3 font-mono text-micro tabular-nums"
+                            >
+                              <span className="text-muted-foreground">{f.fecha ?? '—'}</span>
+                              <span className="font-sans text-foreground">{f.concepto ?? '—'}</span>
+                              <span className="text-foreground">
+                                {f.monto !== null && f.moneda
+                                  ? dinero(f.monto, f.moneda, locale)
+                                  : '—'}
+                              </span>
+                              <span className="text-muted-foreground">{f.categoria ?? f.tipo}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {/*
+                        CORREGIR LA HOJA ENTERA. Una hoja es homogénea por construcción, así que
+                        preguntar concepto por concepto lo que el dueño dice de un golpe
+                        convertiría una decisión en un formulario.
+                      */}
+                      <p className="mb-1.5 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                        {labels.corregir}
+                      </p>
+                      <p className="mb-2 text-micro text-muted-foreground">
+                        {labels.corregirHint.replace('{n}', formatNumber(h.filas ?? 0, locale))}
+                      </p>
+                      <div
+                        role="radiogroup"
+                        aria-label={labels.corregir}
+                        className="flex flex-wrap gap-2"
+                      >
+                        {TIPOS.map((t) => {
+                          const actual =
+                            reclasificadas[h.nombre] ?? tipoDominante(detalle[h.nombre]);
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              role="radio"
+                              aria-checked={actual === t}
+                              onClick={() => setReclasificadas((p) => ({ ...p, [h.nombre]: t }))}
+                              className={cn(
+                                'rounded-lg border-[1.5px] px-3 py-1.5 text-micro font-semibold',
+                                actual === t
+                                  ? 'border-brand-ink bg-brand-soft text-brand-ink'
+                                  : 'border-border text-muted-foreground hover:border-brand-bd',
+                              )}
+                            >
+                              {conceptosLabels.type[t]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {reclasificadas[h.nombre] && (
+                        <p className="mt-2 text-micro text-brand-ink">
+                          {labels.corregirAplicado.replace(
+                            '{tipo}',
+                            conceptosLabels.type[
+                              reclasificadas[h.nombre] as keyof typeof conceptosLabels.type
+                            ],
+                          )}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </li>
               );

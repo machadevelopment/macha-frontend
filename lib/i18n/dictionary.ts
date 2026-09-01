@@ -638,6 +638,26 @@ export interface Dictionary {
       inventario: string;
       /** El control para desconocer una hoja. */
       excluir: string;
+      /**
+       * El panel expandido de una hoja (pedido de Keneth, 2026-09-01).
+       *
+       * Aprobar un nombre y un total alcanza para detectar una hoja de más o de menos. NO
+       * alcanza para el fallo que queda: leer la columna equivocada, donde el total se ve
+       * perfecto y cada fila está mal. Por eso el panel muestra de DÓNDE salió cada dato y
+       * tres filas como quedaron — lo único con lo que el dueño puede reconocerlas contra su
+       * archivo.
+       */
+      verDetalle: string;
+      ocultarDetalle: string;
+      comoLeimos: string;
+      primerasFilas: string;
+      entroComo: string;
+      corregir: string;
+      /** Lleva `{n}`. */
+      corregirHint: string;
+      /** Lleva `{tipo}`. */
+      corregirAplicado: string;
+      sinMuestra: string;
       excluida: string;
       deshacer: string;
       conceptosTitle: string;
