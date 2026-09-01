@@ -789,6 +789,27 @@ export const es: Dictionary = {
     demoAsunto: 'Solicitar demo de Macha Finance',
   },
   upload: {
+    confirmacion: {
+      eyebrow: 'ANTES DE PUBLICAR',
+      title: 'Esto entendimos de tu archivo',
+      subtitle:
+        'Revisa que sea correcto y publícalo. Nada entra a tus reportes hasta que lo confirmes.',
+      sheetsTitle: 'Qué hicimos con cada hoja',
+      usada: '{n} movimientos · {monto}',
+      noUsada: 'No la usamos',
+      inventario: 'Actualizó tu inventario',
+      excluir: 'Esta no debería contar',
+      excluida: 'No se va a contar',
+      deshacer: 'Volver a incluirla',
+      conceptosTitle: 'Y solo tú sabes qué es esto',
+      conceptosHint:
+        'Quedaron {n} conceptos por clasificar. Puedes publicar sin contestarlos y hacerlo después.',
+      publicar: 'Todo correcto, publicar',
+      publicando: 'Publicando…',
+      publicado: 'Listo: tus datos ya están en el dashboard.',
+      error: 'No se pudo publicar. Intenta de nuevo.',
+      pendiente: 'Esta carga está esperando tu confirmación.',
+    },
     conceptos: {
       cta: 'Ayúdanos a clasificar {n} concepto(s)',
       ctaSinConteo: 'Ayúdanos a clasificar tus conceptos',
@@ -907,6 +928,7 @@ export const es: Dictionary = {
       // invita a reintentar, que es justo lo que no sirve acá.
       unsupported: 'No legible',
       cancelled: 'Cancelado',
+      awaiting_confirmation: 'Esperando tu confirmación',
     },
   },
   dashboard: {

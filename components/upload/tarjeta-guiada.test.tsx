@@ -37,17 +37,29 @@ const CONCEPTOS = [
   },
 ];
 
-mock.module('@/lib/api/browser', () => ({
-  request: async (url: string, init?: RequestInit) => {
-    pedidos.push({ url, init });
-    if (url.includes('conceptos-pendientes')) {
-      return { ok: true, data: { conceptos: CONCEPTOS } };
-    }
-    return { ok: true, data: { filasResueltas: 6 } };
-  },
-  requestJson: async () => ({ ok: true, data: {} }),
-  errorMessage: () => '',
-}));
+/*
+ * ⚠️ SE SUSTITUYE `globalThis.fetch`, NO EL MÓDULO. `mock.module` es global al proceso: este
+ * archivo doblaba `@/lib/api/browser` y con eso le imponía SU respuesta a cualquier otro test
+ * que montara un componente que llama al backend — puso en rojo cuatro tests del portón, que no
+ * tocan nada de acá. El componente ejecuta su `request` de verdad, que además es mejor
+ * cobertura, y ningún otro archivo se entera. Es el mismo patrón que ya usan
+ * `aceptar-invitacion.test.tsx` y `browser.test.ts`.
+ */
+const fetchPrevio = globalThis.fetch;
+/*
+ * ⚠️ Se pone en `beforeEach` y NO una vez al cargar el módulo: el `afterEach` lo restaura, así
+ * que asignándolo una sola vez solo el PRIMER test del archivo tendría el doble y los demás
+ * llamarían al fetch que dejó otro archivo. Es un modo de fallo que solo aparece con la suite
+ * entera, nunca corriendo este archivo solo.
+ */
+const ponerFetch = () => {
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    const u = String(typeof url === 'object' && 'url' in url ? url.url : url);
+    pedidos.push({ url: u, init });
+    if (u.includes('conceptos-pendientes')) return Response.json({ conceptos: CONCEPTOS });
+    return Response.json({ filasResueltas: 6 });
+  }) as unknown as typeof fetch;
+};
 
 const { ConceptosPendientes } = await import('./conceptos-pendientes');
 
@@ -55,6 +67,7 @@ const labels = es.upload.conceptos;
 
 function montar() {
   pedidos.length = 0;
+  ponerFetch();
   return render(
     <ConceptosPendientes
       documentId="doc-1"
@@ -69,7 +82,10 @@ function montar() {
 /** Espera a que el panel termine de pedir sus conceptos. */
 const abierto = () => screen.findByText('Flete Cropa');
 
-afterEach(cleanup);
+afterEach(() => {
+  globalThis.fetch = fetchPrevio;
+  cleanup();
+});
 
 describe('la tarjeta pregunta un concepto a la vez', () => {
   test('muestra SOLO el primer concepto, no los dos', async () => {

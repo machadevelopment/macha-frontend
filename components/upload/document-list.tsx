@@ -20,6 +20,7 @@ import { errorMessage, request, requestJson } from '@/lib/api/browser';
 import { usePagedList } from '@/lib/api/use-paged-list';
 import { ReadSummary } from '@/components/upload/read-summary';
 import { ConceptosPendientes } from '@/components/upload/conceptos-pendientes';
+import { ConfirmacionDeCarga } from '@/components/upload/confirmacion-de-carga';
 import { formatDate } from '@/lib/format';
 import type { Dictionary } from '@/lib/i18n/dictionary';
 import type { Locale } from '@/lib/i18n/config';
@@ -34,6 +35,11 @@ interface DocumentRow {
   createdAt: string;
 }
 
+/*
+ * `awaiting_confirmation` NO va acá: `IN_FLIGHT` significa "todavía está pasando algo del lado
+ * nuestro" y dispara el re-poll cada 4 s. Una carga que espera al dueño no cambia sola, y
+ * encuestarla sería pedir la lista para siempre sobre algo que solo se mueve cuando él aprieta.
+ */
 const IN_FLIGHT: DocumentStatus[] = ['queued', 'processing', 'review'];
 
 /**
@@ -297,8 +303,30 @@ export function DocumentList({
                   No se ofrece mientras está en vuelo porque todavía no hay nada que contar, y
                   un panel vacío que se llena solo confundiría más que ayudar.
                 */}
-                {!IN_FLIGHT.includes(doc.status) && doc.status !== 'cancelled' && (
-                  /*
+                {/*
+                  EL PORTÓN (migración 0042). Mientras la carga espera confirmación, esto es lo
+                  ÚNICO que se le pide al cliente: el resumen por hoja con su dinero y, dentro,
+                  los conceptos. Va antes del resumen de lectura y en su lugar — dos paneles que
+                  dicen lo mismo sobre la misma carga es la forma de que no se lea ninguno.
+                */}
+                {doc.status === 'awaiting_confirmation' && (
+                  <div className="mt-1.5 whitespace-normal">
+                    <ConfirmacionDeCarga
+                      documentId={doc.id}
+                      labels={labels.confirmacion}
+                      reasonLabels={labels.readSummary.reason}
+                      conceptosLabels={labels.conceptos}
+                      common={common}
+                      locale={locale}
+                      onPublicado={reload}
+                    />
+                  </div>
+                )}
+
+                {!IN_FLIGHT.includes(doc.status) &&
+                  doc.status !== 'cancelled' &&
+                  doc.status !== 'awaiting_confirmation' && (
+                    /*
                     ⚠️ `whitespace-normal` NO es cosmético: la celda que contiene esto lleva
                     `whitespace-nowrap` para que el NOMBRE DEL ARCHIVO no se parta, y esa regla
                     se hereda a todo el panel expandido. Medido en producción: la tarjeta de
@@ -306,15 +334,15 @@ export function DocumentList({
                     y el cliente veía la pregunta cortada por la derecha. Nada falla: la tabla
                     simplemente se ensancha, y solo se ve en un navegador de verdad.
                   */
-                  <div className="mt-1.5 flex flex-col gap-1.5 whitespace-normal">
-                    <ReadSummary
-                      documentId={doc.id}
-                      labels={labels.readSummary}
-                      common={common}
-                      locale={locale}
-                    />
+                    <div className="mt-1.5 flex flex-col gap-1.5 whitespace-normal">
+                      <ReadSummary
+                        documentId={doc.id}
+                        labels={labels.readSummary}
+                        common={common}
+                        locale={locale}
+                      />
 
-                    {/*
+                      {/*
                       "Solo tú sabes qué son estos" — decisión de Semi, 2026-08-20.
                       Se ofrece SOLO cuando el documento tiene filas marcadas, y el motivo es
                       concreto: `flaggedCount` es lo único que este listado sabe sin pedir el
@@ -327,21 +355,21 @@ export function DocumentList({
                       aceptable: el panel dice "no quedó nada por clasificar" y eso es honesto.
                       Al revés —esconderlo cuando sí hay— sería perder la respuesta.
                     */}
-                    {(doc.flaggedCount ?? 0) > 0 && (
-                      <ConceptosPendientes
-                        documentId={doc.id}
-                        labels={labels.conceptos}
-                        common={common}
-                        locale={locale}
-                        onResuelto={reload}
-                        // Llegó desde el correo: se abre sola. El cliente hizo clic en
-                        // "Revisar y confirmar" — pedirle un clic más para ver la pregunta es
-                        // perder justo la intención que el correo acaba de conseguir.
-                        abrirAlMontar={doc.id === destacado}
-                      />
-                    )}
-                  </div>
-                )}
+                      {(doc.flaggedCount ?? 0) > 0 && (
+                        <ConceptosPendientes
+                          documentId={doc.id}
+                          labels={labels.conceptos}
+                          common={common}
+                          locale={locale}
+                          onResuelto={reload}
+                          // Llegó desde el correo: se abre sola. El cliente hizo clic en
+                          // "Revisar y confirmar" — pedirle un clic más para ver la pregunta es
+                          // perder justo la intención que el correo acaba de conseguir.
+                          abrirAlMontar={doc.id === destacado}
+                        />
+                      )}
+                    </div>
+                  )}
               </TableCell>
               <TableCell className="tabular-nums text-muted-foreground">
                 {formatDate(doc.createdAt, locale)}

@@ -15,8 +15,21 @@ export type DocumentStatus =
    * el usuario decidió parar no salió mal, y mezclarlas impediría ver en el panel si la
    * ingesta está sana o si la gente está cancelando porque tarda.
    */
-  | 'cancelled';
+  | 'cancelled'
+  /**
+   * Procesada y esperando que el DUEÑO confirme lo que entendimos (migración 0042).
+   *
+   * Distinto de `review`, que significa "un humano de MACHA tiene que mirar esto" y alimenta
+   * la cola de `/admin`. Esto le toca al cliente y es, desde el portón, el estado NORMAL de
+   * una carga recién procesada.
+   */
+  | 'awaiting_confirmation';
 
+/*
+ * `awaiting_confirmation` se pinta en el paso de `review`: para el cliente los dos significan
+ * "ya se leyó, falta un visto bueno". Meterle un quinto paso al pipeline por una distinción
+ * que es interna (quién da el visto bueno) sería complicar la barra sin decirle nada nuevo.
+ */
 const STEP_ORDER = ['queued', 'processing', 'review', 'promoted'] as const;
 type StepState = 'done' | 'now' | 'wait' | 'failed';
 
@@ -34,6 +47,8 @@ function getStepStates(status: DocumentStatus): StepState[] {
   // procesó, y fue ahí donde se determinó que no había nada legible.
   if (status === 'failed' || status === 'unsupported') return ['done', 'failed', 'wait', 'wait'];
   if (status === 'reverted') return ['done', 'done', 'done', 'done'];
+  // Ver `awaiting_confirmation`: para el cliente es el mismo paso que `review`.
+  if (status === 'awaiting_confirmation') return ['done', 'done', 'now', 'wait'];
   const idx = STEP_ORDER.indexOf(status as (typeof STEP_ORDER)[number]);
   return STEP_ORDER.map((_, i) => (i < idx ? 'done' : i === idx ? 'now' : 'wait'));
 }

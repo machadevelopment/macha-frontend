@@ -617,6 +617,39 @@ export interface Dictionary {
      * seis conceptos, y 400 preguntas no las contesta nadie.
      * Ver `components/upload/conceptos-pendientes.tsx`.
      */
+    /**
+     * EL PORTÓN (migración 0042): qué entendimos del archivo, antes de publicarlo.
+     *
+     * Textos propios y no reutilizados del resumen de lectura: ahí el cliente LEE un informe
+     * de algo que ya pasó, y acá DECIDE si pasa. La misma frase en los dos sitios haría que la
+     * pantalla que pide una decisión se lea como una que solo informa.
+     */
+    confirmacion: {
+      eyebrow: string;
+      title: string;
+      /** Lleva `{archivo}`. */
+      subtitle: string;
+      /** Encabezado de la lista de hojas. */
+      sheetsTitle: string;
+      /** Lo que aporta cada hoja que SÍ se usa. Lleva `{n}` y `{monto}`. */
+      usada: string;
+      /** Una hoja que no se usa, con su motivo ya redactado. */
+      noUsada: string;
+      inventario: string;
+      /** El control para desconocer una hoja. */
+      excluir: string;
+      excluida: string;
+      deshacer: string;
+      conceptosTitle: string;
+      /** Lleva `{n}`. */
+      conceptosHint: string;
+      publicar: string;
+      publicando: string;
+      publicado: string;
+      error: string;
+      /** El aviso de que nada entró todavía. */
+      pendiente: string;
+    };
     conceptos: {
       cta: string;
       /** Sin `{n}`: se usa mientras no se sabe cuántos son (ver el componente). */
@@ -730,6 +763,8 @@ export interface Dictionary {
       /** Terminal: el archivo no se pudo leer. No es reintentable — ver `unsupportedCta`. */
       unsupported: string;
       cancelled: string;
+      /** Migración 0042: procesada y esperando el visto bueno del DUEÑO, no de Macha. */
+      awaiting_confirmation: string;
     };
     /** CTA que reemplaza a "Reintentar" en un documento `unsupported`. */
     unsupportedCta: string;
