@@ -232,9 +232,14 @@ describe('cada hoja se puede abrir para ver qué entendimos', () => {
       await waitFor(() => screen.getByRole('button', { name: es.upload.confirmacion.verDetalle })),
     );
 
-    // Las cuatro naturalezas son radios de verdad, no divs clicables.
-    const opciones = screen.getAllByRole('radio');
-    expect(opciones.length).toBe(4);
+    /*
+     * Las cuatro naturalezas son radios de verdad, no divs clicables. Se cuentan DENTRO de su
+     * propio grupo y no en toda la pantalla: el panel tiene además la pregunta de "¿dónde se
+     * registra?" con sus tres opciones, y un conteo global se rompería con cada pregunta nueva
+     * sin decir nada sobre la que se quiere probar.
+     */
+    const grupoTipo = screen.getByRole('radiogroup', { name: es.upload.confirmacion.corregir });
+    expect(grupoTipo.querySelectorAll('[role="radio"]').length).toBe(4);
     fireEvent.click(screen.getByRole('radio', { name: es.upload.conceptos.type.opex }));
 
     fireEvent.click(screen.getByRole('button', { name: es.upload.confirmacion.publicar }));
@@ -288,7 +293,12 @@ const RESUMEN_0043 = {
 };
 
 /** Lo que el cliente mandó a corregir, para poder afirmar la forma exacta del cuerpo. */
-let corregido: { hoja: string; forzar?: boolean; columnas?: Record<string, number> } | null = null;
+let corregido: {
+  hoja: string;
+  forzar?: boolean;
+  columnas?: Record<string, number>;
+  destino?: 'transaction' | 'invoice' | 'bill';
+} | null = null;
 
 function conBackend0043() {
   corregido = null;
@@ -565,5 +575,62 @@ describe('la muestra enseña los campos de las otras pantallas', () => {
     await abrirVentas();
     await screen.findByText(es.upload.confirmacion.primerasFilas);
     expect(screen.getByText(/2026-01-08.*Cliente 1/)).toBeTruthy();
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * "¿DÓNDE SE REGISTRA?" ES UNA PREGUNTA APARTE (reporte de Jose, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"Si ponemos solo los del dashboard y el campo va a cuentas por pagar, no lo estamos
+ * registrando."*
+ *
+ * Las cuatro opciones de "qué es" son los `type` del estado de resultados. La ENTIDAD la
+ * decidía solo la estructura de la hoja y no había forma de corregirla: una hoja de cobros
+ * leída como ventas deja la cartera en CERO.
+ */
+describe('el dueño corrige dónde se registra una hoja', () => {
+  test('las dos preguntas son SEPARADAS, no seis opciones en una lista', async () => {
+    /*
+     * Es la decisión de diseño que importa: una factura emitida es a la vez un INGRESO y una
+     * CUENTA POR COBRAR. En una sola lista de seis, el dueño tendría que elegir entre dos
+     * respuestas que ambas son ciertas y perdería la mitad.
+     */
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+    const fila = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(fila.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
+
+    const grupos = await screen.findAllByRole('radiogroup');
+    const nombres = grupos.map((g) => g.getAttribute('aria-label'));
+    expect(nombres).toContain(es.upload.confirmacion.corregir);
+    expect(nombres).toContain(es.upload.confirmacion.destinoTitulo);
+  });
+
+  test('elegir "una cuenta por cobrar" manda `destino: invoice`', async () => {
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+    const fila = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(fila.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
+    await screen.findByText(es.upload.confirmacion.destinoTitulo);
+
+    fireEvent.click(screen.getByText(es.upload.confirmacion.destinoOpcion.invoice));
+    await waitFor(() => expect(corregido).not.toBeNull());
+    /*
+     * `invoice` y no un texto libre: es la clave que el worker consume por
+     * `sheet_overrides.destino`. Otro valor sería un 200 que no hace nada.
+     */
+    expect(corregido).toEqual({ hoja: 'Ventas', destino: 'invoice' });
   });
 });

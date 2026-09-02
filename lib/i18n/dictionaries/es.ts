@@ -829,6 +829,19 @@ export const es: Dictionary = {
       corregir: 'Esto es otra cosa',
       corregirHint: 'Cambia la hoja completa. Sus {n} movimientos pasan a lo que elijas.',
       corregirAplicado: 'Se guardará como {tipo}',
+      destinoTitulo: '¿Dónde se registra?',
+      destinoHint:
+        'Cambia la hoja completa. Volvemos a leer el archivo para sacar el cliente y el vencimiento de sus columnas.',
+      destinoOpcion: {
+        transaction: 'Un movimiento del período',
+        invoice: 'Una cuenta por cobrar',
+        bill: 'Una cuenta por pagar',
+      },
+      destinoDesc: {
+        transaction: 'Entra al dashboard y al flujo de caja',
+        invoice: 'Alguien te debe: entra a Por cobrar',
+        bill: 'Le debes a alguien: entra a Por pagar',
+      },
       sinMuestra: 'Todavía no hay filas que mostrar de esta hoja.',
       siCuenta: 'Sí, esta hoja debería contar',
       columnaCorrecta: '¿El monto está en otra columna?',

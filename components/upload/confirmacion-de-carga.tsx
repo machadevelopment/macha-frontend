@@ -66,6 +66,15 @@ interface HojaResumen {
 const TIPOS = ['revenue', 'cogs', 'opex', 'other'] as const;
 
 /**
+ * Dónde se registra una hoja. Es una dimensión DISTINTA de `TIPOS`, no una extensión.
+ *
+ * `TIPOS` responde "qué es" (los rubros del estado de resultados) y esto responde "dónde vive"
+ * (la tabla del ledger). Una factura emitida es a la vez un ingreso y una cuenta por cobrar, así
+ * que las dos preguntas se contestan por separado o se pierde la mitad de la respuesta.
+ */
+const DESTINOS = ['transaction', 'invoice', 'bill'] as const;
+
+/**
  * Con qué tipo entró la hoja: el que más filas produjo.
  *
  * No es un promedio ni una suma: es "esta hoja entró como ingreso", que es lo que el dueño
@@ -199,7 +208,14 @@ export function ConfirmacionDeCarga({
    * sobre una carga que ya se está procesando.
    */
   const corregirHoja = useCallback(
-    async (hoja: string, cambio: { forzar?: boolean; columnas?: Record<string, number> }) => {
+    async (
+      hoja: string,
+      cambio: {
+        forzar?: boolean;
+        columnas?: Record<string, number>;
+        destino?: 'transaction' | 'invoice' | 'bill';
+      },
+    ) => {
       setReprocesando(hoja);
       setError(false);
       const r = await request(`/api/documents/${documentId}/corregir-hoja`, {
@@ -543,6 +559,73 @@ export function ConfirmacionDeCarga({
                             <p className="mt-2 text-micro text-brand-ink">{labels.reprocesando}</p>
                           )}
                         </div>
+                      )}
+
+                      {/*
+                        ⚠️ DÓNDE SE REGISTRA LA HOJA (reporte de Jose, 2026-09-01).
+
+                        "Si ponemos solo los del dashboard y el campo va a cuentas por pagar,
+                        no lo estamos registrando."
+
+                        Las cuatro opciones de "qué es" son los `type` del estado de
+                        resultados. La ENTIDAD la decidía solo la estructura de la hoja, y
+                        cuando se equivocaba NO había forma de corregirla: una hoja de cobros
+                        leída como ventas mete el ingreso al dashboard y deja la cartera en
+                        CERO, sin explicación y sin salida.
+
+                        Es una pregunta SEPARADA y no tres opciones más en la lista de "qué es",
+                        porque no son alternativas: una factura emitida es a la vez un INGRESO y
+                        una CUENTA POR COBRAR. Mezclarlas obligaría al dueño a elegir entre dos
+                        respuestas que ambas son ciertas.
+
+                        Cambiarlo REPROCESA: la contraparte y el vencimiento no están en la fila
+                        guardada, hay que releerlos del archivo.
+                      */}
+                      <p className="mb-1.5 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                        {labels.destinoTitulo}
+                      </p>
+                      <p className="mb-2 text-micro text-muted-foreground">{labels.destinoHint}</p>
+                      <div
+                        role="radiogroup"
+                        aria-label={labels.destinoTitulo}
+                        className="mb-4 flex flex-wrap gap-2"
+                      >
+                        {DESTINOS.map((d) => {
+                          /*
+                            El actual sale del TIPO DOMINANTE de la hoja: `invoice` y `bill`
+                            llegan como el propio tipo cuando el modelo no dio uno (ver
+                            `tipoDominante`), así que es la única señal que la pantalla tiene de
+                            dónde está viviendo la hoja hoy.
+                          */
+                          const dom = tipoDominante(detalle[h.nombre]);
+                          const actual = dom === 'invoice' || dom === 'bill' ? dom : 'transaction';
+                          return (
+                            <button
+                              key={d}
+                              type="button"
+                              role="radio"
+                              aria-checked={actual === d}
+                              disabled={reprocesando !== null}
+                              onClick={() => void corregirHoja(h.nombre, { destino: d })}
+                              className={cn(
+                                'rounded-lg border-[1.5px] px-3 py-1.5 text-left disabled:opacity-50',
+                                actual === d
+                                  ? 'border-brand-ink bg-brand-soft text-brand-ink'
+                                  : 'border-border text-muted-foreground hover:border-brand-bd',
+                              )}
+                            >
+                              <span className="block text-micro font-semibold">
+                                {labels.destinoOpcion[d]}
+                              </span>
+                              <span className="block text-micro opacity-70">
+                                {labels.destinoDesc[d]}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {reprocesando === h.nombre && (
+                        <p className="mb-4 text-micro text-brand-ink">{labels.reprocesando}</p>
                       )}
 
                       {/*

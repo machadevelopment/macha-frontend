@@ -722,6 +722,43 @@ export interface Dictionary {
       corregirHint: string;
       /** Lleva `{tipo}`. */
       corregirAplicado: string;
+      /**
+       * ═══ DÓNDE SE REGISTRA LA HOJA (reporte de Jose, 2026-09-01) ═══
+       *
+       * *"Si ponemos solo los del dashboard y el campo va a cuentas por pagar, no lo estamos
+       * registrando."*
+       *
+       * Las cuatro opciones de "qué es" son los `type` del estado de resultados. La ENTIDAD
+       * —movimiento del período / cuenta por cobrar / cuenta por pagar— la decidía solo la
+       * estructura de la hoja, y cuando se equivocaba **no había forma de corregirla**: una
+       * hoja de cobros leída como ventas mete el ingreso al dashboard y deja la cartera en
+       * CERO, sin explicación y sin salida.
+       *
+       * ⚠️ Es una pregunta SEPARADA y no tres opciones más en la misma lista, porque no son
+       * alternativas: una factura emitida es a la vez un INGRESO y una CUENTA POR COBRAR.
+       * Mezclarlas obligaría al dueño a elegir entre dos respuestas que ambas son ciertas, y
+       * perdería la mitad.
+       *
+       * Va por HOJA y no por concepto: una hoja es homogénea por construcción —quien escribe
+       * `CuentasPorCobrar` no mete ventas ahí— y un concepto puede agrupar filas de varias
+       * hojas, así que ahí el cambio sería ambiguo.
+       *
+       * Cambiarlo REPROCESA el archivo, porque la contraparte y el vencimiento no están en la
+       * fila ya guardada: hay que volver a leerlos de sus columnas.
+       */
+      destinoTitulo: string;
+      destinoHint: string;
+      destinoOpcion: {
+        transaction: string;
+        invoice: string;
+        bill: string;
+      };
+      /** Descripciones cortas de cada opción, como en "qué es". */
+      destinoDesc: {
+        transaction: string;
+        invoice: string;
+        bill: string;
+      };
       sinMuestra: string;
       /**
        * ═══ LAS DOS SALIDAS QUE FALTABAN (migración 0043, 2026-09-01) ═══

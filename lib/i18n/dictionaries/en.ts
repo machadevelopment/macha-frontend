@@ -766,6 +766,19 @@ export const en: Dictionary = {
       corregir: 'This is something else',
       corregirHint: 'Changes the whole sheet. Its {n} entries become whatever you pick.',
       corregirAplicado: 'Will be saved as {tipo}',
+      destinoTitulo: 'Where does it belong?',
+      destinoHint:
+        'Changes the whole sheet. We read the file again to pull the customer and due date from their columns.',
+      destinoOpcion: {
+        transaction: 'A movement in the period',
+        invoice: 'A receivable',
+        bill: 'A payable',
+      },
+      destinoDesc: {
+        transaction: 'Goes to the dashboard and cash flow',
+        invoice: 'Someone owes you: goes to Receivables',
+        bill: 'You owe someone: goes to Payables',
+      },
       sinMuestra: 'No rows to show from this sheet yet.',
       siCuenta: 'Yes, this sheet should count',
       columnaCorrecta: 'Is the amount in a different column?',
