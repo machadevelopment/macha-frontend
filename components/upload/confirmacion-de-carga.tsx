@@ -87,10 +87,19 @@ interface FilaDeMuestra {
   categoria: string | null;
 }
 
+type Destino =
+  'ingresos' | 'costos' | 'porCobrar' | 'porPagar' | 'productos' | 'inventario' | 'sinPantalla';
+
 interface DetalleDeHoja {
   muestra: FilaDeMuestra[];
   /** Cuántas filas produjo de cada tipo. Es lo que permite decir "entró como ingreso". */
   tipos: Record<string, number>;
+  /**
+   * A qué pantallas del producto llega esta hoja. Ver `lib/destinos-de-la-fila.ts` en el
+   * backend: el destino ya estaba determinado en la fila y la pantalla no lo decía, así que el
+   * dueño aprobaba su archivo viendo solo la mitad que toca el dashboard.
+   */
+  destinos?: Destino[];
 }
 
 interface Confirmacion {
@@ -383,6 +392,44 @@ export function ConfirmacionDeCarga({
                             {Object.entries(h.columnas).map(([campo, col]) => (
                               <li key={campo} className="text-micro text-muted-foreground">
                                 {campo}: <span className="font-mono text-foreground">{col}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+
+                      {/*
+                        A DÓNDE LLEGA ESTA HOJA (reporte de Jose, 2026-09-01).
+
+                        "La data no va únicamente al dashboard… si ponemos solo los del
+                        dashboard y el campo va a cuentas por pagar, no lo estamos
+                        registrando." Va ARRIBA de las filas de ejemplo porque es la pregunta
+                        más gruesa —qué mueve esta hoja— y las filas son el detalle que la
+                        confirma.
+                      */}
+                      {(detalle[h.nombre]?.destinos ?? []).length > 0 && (
+                        <>
+                          <p className="mb-1.5 font-mono text-eyebrow uppercase tracking-wide text-faint">
+                            {labels.destinosTitulo}
+                          </p>
+                          <ul className="mb-4 flex flex-wrap gap-1.5">
+                            {(detalle[h.nombre]?.destinos ?? []).map((d) => (
+                              <li
+                                key={d}
+                                className={cn(
+                                  'rounded-md px-2 py-1 text-micro',
+                                  /*
+                                    `sinPantalla` va en aviso y no en el gris de los demás: es
+                                    lo único de esta lista que el dueño tiene que CORREGIR, y
+                                    con el mismo tono que el resto se leería como un destino
+                                    más.
+                                  */
+                                  d === 'sinPantalla'
+                                    ? 'bg-warning-bg text-warning border border-warning-bd'
+                                    : 'bg-brand-soft text-brand-ink',
+                                )}
+                              >
+                                {labels.destino[d]}
                               </li>
                             ))}
                           </ul>

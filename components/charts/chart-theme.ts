@@ -107,3 +107,26 @@ export const chartCategorico: string[] = [
   // inventar un tono nuevo sería salirse de la rampa que el Brand Book fija.
   'neutral',
 ];
+
+/**
+ * La MISMA rampa, como clases de Tailwind para las barras que NO son de Tremor.
+ *
+ * `chartCategorico` son nombres de color de Tremor (`sage`, `sagedeep`…) y solo sirven en su
+ * prop `colors`. Las listas con barra de participación —Ingreso por producto en Analítica— se
+ * pintan con un `<div>` y necesitan la clase.
+ *
+ * ⚠️ EL ORDEN ES EL MISMO A PROPÓSITO. Si las dos rampas divergieran, la misma categoría
+ * saldría de un color en el donut de Ventas por producto y de otro en la lista de Analítica, y
+ * el color dejaría de identificar nada. Hay test que las compara.
+ *
+ * El `500` es la parada que usa Tremor por defecto para un color de serie, así que el tono
+ * coincide con el del donut y no solo el orden.
+ */
+export const chartCategoricoClase: string[] = [
+  'bg-sagedeep-500',
+  'bg-sage-500',
+  'bg-sagemist-500',
+  'bg-sageink-500',
+  'bg-sagepale-500',
+  'bg-muted-foreground',
+];

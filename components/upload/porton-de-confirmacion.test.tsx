@@ -45,6 +45,7 @@ const RESUMEN = {
   detalle: {
     Ventas: {
       tipos: { revenue: 8 },
+      destinos: ['ingresos', 'porCobrar', 'productos'],
       muestra: [
         { fecha: '2026-01-08', concepto: 'Cliente 1', monto: 1240.5, moneda: 'GTQ', tipo: 'revenue', categoria: 'ventas' },
         { fecha: '2026-02-15', concepto: 'Cliente 2', monto: 980, moneda: 'GTQ', tipo: 'revenue', categoria: 'ventas' },
@@ -404,5 +405,69 @@ describe('lo que la pantalla AFIRMA de una hoja tiene que haber pasado', () => {
     pintar();
     await screen.findByText('Ventas');
     expect(es.upload.confirmacion.conceptosHint).not.toContain('{n}');
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * A DÓNDE LLEGA CADA HOJA (reporte de Jose, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"La data no va únicamente al dashboard… si ponemos solo los del dashboard y el campo va a
+ * cuentas por pagar, no lo estamos registrando."*
+ *
+ * El portón mostraba el dinero y el tipo —los rubros del dashboard— y callaba que la misma
+ * fila puede aterrizar en Por cobrar, Por pagar, Inventario o Ventas por producto. El dueño
+ * aprobaba su archivo viendo una parte de lo que hace.
+ */
+describe('el portón dice a qué pantallas llega cada hoja', () => {
+  test('lista los destinos con el nombre del MENÚ, no del esquema', async () => {
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+
+    const filaVentas = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(filaVentas.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
+    await screen.findByText(es.upload.confirmacion.destinosTitulo);
+
+    /*
+     * Los tres, y el de `porCobrar` es el que motivó el reporte: una factura emitida mueve el
+     * dashboard Y la cuenta por cobrar, y la pantalla solo contaba lo primero.
+     */
+    for (const d of ['ingresos', 'porCobrar', 'productos'] as const) {
+      expect(screen.getByText(es.upload.confirmacion.destino[d])).toBeTruthy();
+    }
+  });
+
+  test('⚠️ `other` se muestra como "no suma en ningún reporte", con aviso', async () => {
+    /*
+     * `rollups.ts` suma revenue/cogs/opex: una fila `other` se guarda y no aparece en ninguna
+     * cifra. Jose preguntó por escrito dónde caía eso, y la respuesta honesta es "en ningún
+     * lado que se vea". Va en tono de AVISO y no en el gris de los demás porque es lo único de
+     * la lista que el dueño tiene que corregir.
+     */
+    globalThis.fetch = (async () =>
+      Response.json({
+        ...RESUMEN_0043,
+        detalle: {
+          Ventas: { tipos: { other: 8 }, muestra: [], destinos: ['sinPantalla'] },
+        },
+      })) as unknown as typeof fetch;
+    pintar();
+    await screen.findByText('Ventas');
+
+    const filaVentas = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(filaVentas.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
+
+    const chip = await screen.findByText(es.upload.confirmacion.destino.sinPantalla);
+    expect(chip.className).toContain('warning');
   });
 });

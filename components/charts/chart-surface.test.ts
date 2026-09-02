@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { chartCategorico, chartColors } from './chart-theme';
+import { chartCategorico, chartCategoricoClase, chartColors } from './chart-theme';
 
 /**
  * CU-868knx0vh: que el estilo de los charts no se vuelva a repartir por pantalla.
@@ -188,4 +188,39 @@ describe('los colores de serie están en el safelist', () => {
       expect(patrones.some((re) => re.test(clase))).toBe(true);
     },
   );
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LAS DOS RAMPAS SON LA MISMA (reporte de Jose sobre los colores, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * `chartCategorico` son nombres de color de Tremor y solo sirven en su prop `colors`; las
+ * listas con barra de participación se pintan con un `<div>` y necesitan la clase de Tailwind.
+ * Son dos listas, y si divergen la misma categoría sale de un color en el donut de Ventas por
+ * producto y de otro en la lista de Analítica — o sea que el color deja de identificar nada.
+ */
+describe('chartCategoricoClase', () => {
+  test('sigue el MISMO orden y los mismos tonos que la rampa de Tremor', () => {
+    const deTremor = chartCategorico.map((c) =>
+      c === 'neutral' ? 'bg-muted-foreground' : `bg-${c}-500`,
+    );
+    expect(chartCategoricoClase).toEqual(deTremor);
+  });
+
+  test('sus clases están escritas LITERALES, que es lo que las salva de la purga', () => {
+    /*
+     * Tailwind escanea el TEXTO de los archivos: una clase construida por concatenación
+     * (`bg-${tono}-500`) no la ve y la purga, y el resultado es una barra sin color — el mismo
+     * modo de fallo que `chart-theme.ts` documenta con los ticks de Tremor pintados de negro.
+     *
+     * Por eso la rampa de Tremor SÍ necesita el safelist (arma su clase en tiempo de ejecución)
+     * y esta NO: acá cada clase está escrita completa. El test lo fija para que nadie la
+     * "simplifique" a un `map` sobre los tonos.
+     */
+    const fuente = readFileSync(new URL('./chart-theme.ts', import.meta.url), 'utf8');
+    for (const c of chartCategoricoClase) {
+      expect(fuente).toContain(`'${c}'`);
+    }
+  });
 });

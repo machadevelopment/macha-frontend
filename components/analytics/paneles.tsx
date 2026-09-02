@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { chartColors } from '@/components/charts/chart-theme';
+import { chartCategoricoClase, chartColors } from '@/components/charts/chart-theme';
 import { CHART_HEIGHT, TrendArea } from '@/components/charts/chart-primitives';
 import { makeChartTooltip, type DesgloseDeSerie } from '@/components/charts/chart-tooltip';
 import { formatDateAxis, formatMoney, formatNumber, formatPct } from '@/lib/format';
@@ -289,7 +289,7 @@ export function PanelProductos({
         <p className="mt-3 text-body text-muted-foreground">{labels.empty}</p>
       ) : (
         <ul className="mt-3 flex flex-col gap-3">
-          {items.map((p) => (
+          {items.map((p, i) => (
             <li key={p.productId}>
               <div className="flex items-baseline justify-between gap-3">
                 <span className="min-w-0 truncate text-body" title={p.name}>
@@ -300,14 +300,26 @@ export function PanelProductos({
                 </span>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
-                {/* Tinta neutra, no verde: la cuota de un producto no dice "va bien o mal",
-                    solo cuánto pesa. `aria-hidden` porque el porcentaje va en texto al lado. */}
+                {/*
+                  LA RAMPA DE MARCA, no tinta plana (reporte de Jose: el ticket de colores se
+                  cerró y no se veía el cambio — se había aplicado a los donuts de Ventas por
+                  producto y no acá, que es donde él estaba mirando).
+
+                  Sigue sin ser color de ESTADO: una cuota no dice "va bien o mal", solo cuánto
+                  pesa, y una rampa de tonos del mismo verde no puede decir lo contrario. Es la
+                  excepción acotada que `chartCategorico` documenta, y "top de productos" está
+                  nombrado ahí explícitamente.
+
+                  `aria-hidden` porque el porcentaje va en texto al lado.
+                */}
                 <div
                   className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-sm bg-muted"
                   aria-hidden="true"
                 >
                   <div
-                    className="h-full rounded-sm bg-foreground"
+                    className={`h-full rounded-sm ${
+                      chartCategoricoClase[Math.min(i, chartCategoricoClase.length - 1)]
+                    }`}
                     style={{ width: `${Math.min(100, Math.max(0, p.revenueSharePct))}%` }}
                   />
                 </div>

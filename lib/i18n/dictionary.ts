@@ -650,6 +650,34 @@ export interface Dictionary {
       /** El control para desconocer una hoja. */
       excluir: string;
       /**
+       * ═══ A QUÉ PANTALLAS LLEGA ESTA HOJA (reporte de Jose, 2026-09-01) ═══
+       *
+       * *"La data no va únicamente al dashboard… si ponemos solo los del dashboard y el campo
+       * va a cuentas por pagar, no lo estamos registrando."*
+       *
+       * El portón mostraba el DINERO y el TIPO de cada hoja —o sea los rubros del dashboard—
+       * y callaba que la misma fila puede aterrizar en Por cobrar, Por pagar, Inventario o
+       * Ventas por producto. El dueño aprobaba su archivo viendo una parte de lo que hace.
+       *
+       * Los nombres son los del MENÚ, no los del esquema: el cliente tiene que poder ir a
+       * mirar la pantalla que le nombramos.
+       */
+      destinosTitulo: string;
+      destino: {
+        ingresos: string;
+        costos: string;
+        porCobrar: string;
+        porPagar: string;
+        productos: string;
+        inventario: string;
+        /**
+         * ⚠️ `other` entra al ledger y NO lo suma ninguna pantalla. Se dice, no se omite: es
+         * lo que le permite al dueño corregirlo ANTES de publicar en vez de descubrirlo por
+         * una cifra que no cuadra.
+         */
+        sinPantalla: string;
+      };
+      /**
        * El panel expandido de una hoja (pedido de Keneth, 2026-09-01).
        *
        * Aprobar un nombre y un total alcanza para detectar una hoja de más o de menos. NO
