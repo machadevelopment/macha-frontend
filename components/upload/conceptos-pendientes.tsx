@@ -95,7 +95,57 @@ interface Concepto {
    * ENTERA, y con dos hojas tocaría las dos — que no es lo que el cliente está pidiendo.
    */
   hoja?: string | null;
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   * TODAS LAS OPCIONES, SIEMPRE (reporte de Jose, 2026-09-02)
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   *
+   * *"Solo añadiste dos, debería ser bueno mostrar absolutamente todas las que tenemos en
+   * Macha… que se muestren todas siempre de una manera bonita y ordenada."*
+   *
+   * La lista viene RESUELTA del backend: qué se puede contestar, a qué pantallas llega cada
+   * respuesta, cuáles no se pueden elegir y por qué. No se calcula acá y esa es la decisión
+   * que importa — `destinos-de-la-fila.ts` es el único que sabe a dónde va a parar una fila, y
+   * la misma respuesta la usan el portón y el resumen de lectura. Una segunda copia en el
+   * componente sería la divergencia de siempre, en el único lugar donde se le muestra al
+   * cliente como una promesa de lo que va a pasar con su plata.
+   *
+   * ⚠️ OPCIONAL a propósito: los dos repos no despliegan atómico. Mientras Railway no tenga el
+   * endpoint nuevo, este componente cae a las cuatro de siempre (`OPCIONES_MINIMAS`) en vez de
+   * quedarse sin ninguna. Es la misma tolerancia que `montos` documenta habiendo reventado el
+   * panel entero una vez.
+   */
+  opciones?: OpcionDeRespuesta[];
 }
+
+/** Una respuesta posible, con el efecto que tiene. La calcula el backend. */
+type OpcionDeRespuesta = {
+  clave: TipoDeMovimiento | 'invoice' | 'bill';
+  /**
+   * `tipo` se contesta con el POST de conceptos; `entidad` REPROCESA la hoja.
+   *
+   * No son dos sabores de lo mismo: cambiar la entidad exige releer el archivo, porque el
+   * payload de una `transaction` no guarda `counterparty` ni `dueDate` — y sin el vencimiento
+   * el aging manda la cartera entera a "corriente" (medido: GTQ 6.250 en `current`).
+   */
+  aplica: 'tipo' | 'entidad';
+  /** A qué pantallas va a llegar el concepto si el cliente elige esto. */
+  destinos: DestinoDeFila[];
+  /** `false` pinta la tarjeta apagada. Nunca la esconde: ver `labels.motivo`. */
+  disponible: boolean;
+  motivo?: 'yaEsAsi' | 'variasHojas';
+};
+
+type DestinoDeFila =
+  | 'ingresos'
+  | 'costos'
+  | 'flujo'
+  | 'porCobrar'
+  | 'porPagar'
+  | 'productos'
+  | 'tiendas'
+  | 'inventario'
+  | 'sinPantalla';
 
 type TipoDeMovimiento = 'revenue' | 'cogs' | 'opex' | 'other';
 
@@ -103,6 +153,20 @@ type TipoDeMovimiento = 'revenue' | 'cogs' | 'opex' | 'other';
 type Respuestas = Record<string, { type: TipoDeMovimiento; category: string }>;
 
 const TIPOS: TipoDeMovimiento[] = ['revenue', 'cogs', 'opex', 'other'];
+
+/**
+ * El respaldo cuando el backend todavía no manda `opciones`.
+ *
+ * Los dos repos no despliegan atómico (este componente vive en Vercel, el endpoint en
+ * Railway). Durante esa ventana la tarjeta cae a las cuatro de siempre —que es exactamente lo
+ * que había antes— en vez de quedarse sin ninguna opción y volverse incontestable.
+ *
+ * Sin destinos: no se puede afirmar a qué pantalla llega una respuesta sin el cálculo del
+ * backend, y una lista de pantallas inventada acá sería peor que no mostrarla.
+ */
+function opcionesMinimas(): OpcionDeRespuesta[] {
+  return TIPOS.map((clave) => ({ clave, aplica: 'tipo', destinos: [], disponible: true }));
+}
 
 /**
  * Los montos del concepto, una moneda por vez y separados por " + ".
@@ -484,7 +548,30 @@ export function ConceptosPendientes({
               </div>
 
               {/*
-                "QUÉ ES" — cuatro tarjetas grandes en vez de un desplegable.
+                ═══════════════════════════════════════════════════════════════════════════
+                "QUÉ ES" — LAS SEIS OPCIONES, SIEMPRE, CON SUS PANTALLAS
+                ═══════════════════════════════════════════════════════════════════════════
+
+                *"Solo añadiste dos, debería ser bueno mostrar absolutamente todas las que
+                tenemos en Macha. En Analítica tenemos ingresos, flujo de caja, costos, por
+                cobrar y por pagar. Luego ventas por producto, y luego inventario… que se
+                muestren todas siempre de una manera bonita y ordenada."* (Jose, 2026-09-02)
+
+                Dos cambios sobre lo que había, y los dos salen de ese reporte:
+
+                1. **SIEMPRE son las seis.** Antes las dos de cuenta aparecían solo cuando el
+                   concepto era un movimiento y salía de una sola hoja, y el dueño lo reportó
+                   como inconsistente ("veo que añadí estas pero solo a veces, aquí no por
+                   ejemplo"). El problema es más profundo que la estética: una lista que cambia
+                   de largo no se puede aprender — el cliente no llega a saber qué puede
+                   contestar. Lo que no se puede elegir se APAGA con su motivo.
+
+                2. **Cada opción dice a qué pantallas llega.** Era el pedido original —"no solo
+                   los campos del dashboard, sino los de analítica y los de inventario"— y es lo
+                   que convierte la pregunta en una decisión informada: el dueño ve, ANTES de
+                   contestar, que marcar "factura por cobrar" no solo mueve Por cobrar sino
+                   también Ingresos y Flujo de caja.
+
                 `role="radiogroup"` con `<button role="radio">`: visualmente son tarjetas y
                 semánticamente son lo que son, una elección única. Un `<div onClick>` dejaría
                 esto fuera del teclado y sin anunciar, que es media implementación.
@@ -497,87 +584,98 @@ export function ConceptosPendientes({
                 aria-label={labels.typeLabel}
                 className="mb-[18px] grid grid-cols-1 gap-2.5 sm:grid-cols-2"
               >
-                {TIPOS.map((t) => {
-                  const elegido = (respuestas[actual.concepto]?.type ?? 'opex') === t;
+                {(actual.opciones ?? opcionesMinimas()).map((o) => {
+                  const esTipo = o.aplica === 'tipo';
+                  const elegido =
+                    esTipo && (respuestas[actual.concepto]?.type ?? 'opex') === o.clave;
+                  const titulo = esTipo
+                    ? labels.type[o.clave as TipoDeMovimiento]
+                    : labels.cuenta[o.clave as 'invoice' | 'bill'];
+                  const pie = esTipo
+                    ? labels.typeHint[o.clave as TipoDeMovimiento]
+                    : labels.cuenta[o.clave === 'invoice' ? 'invoiceDesc' : 'billDesc'];
                   return (
                     <button
-                      key={t}
+                      key={o.clave}
                       type="button"
                       role="radio"
                       aria-checked={elegido}
-                      onClick={() => actualizar(actual.concepto, { type: t })}
+                      // Apagada, no escondida: el motivo va en el `title` y a la vista abajo.
+                      disabled={!o.disponible || (!esTipo && moviendo !== null)}
+                      onClick={() =>
+                        esTipo
+                          ? actualizar(actual.concepto, { type: o.clave as TipoDeMovimiento })
+                          : void aCuenta(actual.hoja!, o.clave as 'invoice' | 'bill')
+                      }
                       className={cn(
                         'rounded-xl border-[1.5px] p-4 text-left text-body font-semibold transition-colors',
+                        // La línea punteada distingue de un vistazo lo que REPROCESA la hoja de
+                        // lo que solo contesta el concepto: son dos consecuencias distintas.
+                        !esTipo && 'border-dashed',
                         elegido
                           ? 'border-brand-ink bg-brand-soft text-brand-ink'
                           : 'border-border hover:border-brand-bd',
+                        !o.disponible && 'cursor-not-allowed opacity-45 hover:border-border',
                       )}
                     >
-                      {labels.type[t]}
+                      {titulo}
                       <span
                         className={cn(
                           'mt-0.5 block text-micro font-normal',
                           elegido ? 'text-brand-ink opacity-80' : 'text-muted-foreground',
                         )}
                       >
-                        {labels.typeHint[t]}
+                        {o.motivo ? labels.motivo[o.motivo] : pie}
                       </span>
+
+                      {/*
+                        LAS PANTALLAS A LAS QUE LLEGA. Chips y no una frase: son de dos a cuatro
+                        nombres cortos, y en prosa ("aparece en Ingresos, Flujo de caja y Ventas
+                        por producto") ocupan tres líneas dentro de una tarjeta que ya tiene
+                        título y ejemplo — el dueño deja de leerlas, que es como se pierde la
+                        información que esta lista existe para dar.
+
+                        ⚠️ `sinPantalla` va en tono de AVISO y no como un destino más: es lo
+                        único de la lista que hay que corregir. Una fila `other` se guarda y no
+                        la suma ninguna cifra.
+                      */}
+                      {o.destinos.length > 0 && (
+                        <span className="mt-2.5 flex flex-wrap items-center gap-1">
+                          <span className="sr-only">{labels.vaA}</span>
+                          {o.destinos.map((d) => (
+                            <span
+                              key={d}
+                              className={cn(
+                                'rounded-md px-1.5 py-0.5 font-mono text-micro font-normal',
+                                d === 'sinPantalla'
+                                  ? 'bg-warning-bg text-warning'
+                                  : elegido
+                                    ? 'bg-brand-bd/40 text-brand-ink'
+                                    : 'bg-muted text-muted-foreground',
+                              )}
+                            >
+                              {labels.destino[d]}
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
-
-                {/*
-                  ⚠️ LAS DOS CUENTAS, EN LA MISMA LISTA (reporte de Jose, 2026-09-01).
-
-                  "No solo los campos del dashboard, sino los campos de analítica… si el campo
-                  va a cuentas por pagar, no lo estamos registrando."
-
-                  Las cuatro de arriba son los `type` del estado de resultados. Estas dos son la
-                  otra dimensión —dónde vive la fila— y van acá porque es lo que el dueño pidió:
-                  la lista completa de lo que su archivo puede ser, en un solo lugar.
-
-                  ⚠️ NO son un `type` más: elegirlas REPROCESA la hoja. Cambiar la entidad exige
-                  releer el archivo, porque el payload de una transacción no guarda
-                  `counterparty` ni `dueDate` — y sin el vencimiento el aging manda la cartera
-                  entera a "corriente" (medido: GTQ 6.250 en `current` para una hoja sin esa
-                  columna). Por eso llevan su aviso y disparan otro camino.
-
-                  Solo se ofrecen cuando el concepto ya es un MOVIMIENTO —si ya es una cuenta, no
-                  hay nada que cambiar— y cuando viene de UNA hoja: con dos, el reproceso tocaría
-                  las dos enteras, que no es lo que el cliente está pidiendo.
-                */}
-                {actual.entity === 'transaction' &&
-                  actual.hoja &&
-                  (['invoice', 'bill'] as const).map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      role="radio"
-                      aria-checked={false}
-                      disabled={moviendo !== null}
-                      onClick={() => void aCuenta(actual.hoja!, k)}
-                      className={cn(
-                        'rounded-xl border-[1.5px] border-dashed p-4 text-left text-body font-semibold transition-colors disabled:opacity-50',
-                        'border-border hover:border-brand-bd',
-                      )}
-                    >
-                      {labels.cuenta[k]}
-                      <span className="mt-0.5 block text-micro font-normal text-muted-foreground">
-                        {labels.cuenta[k === 'invoice' ? 'invoiceDesc' : 'billDesc']}
-                      </span>
-                    </button>
-                  ))}
               </div>
 
               {/*
-                El aviso de que estas dos reprocesan. Va fuera del grupo y una sola vez: es la
-                misma consecuencia para las dos, y repetirlo en cada tarjeta las haría ilegibles.
+                El aviso de que las dos de cuenta reprocesan. Va fuera del grupo y una sola vez:
+                es la misma consecuencia para las dos, y repetirlo en cada tarjeta las haría
+                ilegibles. Solo cuando alguna de las dos se puede efectivamente elegir — si
+                están las dos apagadas, no hay reproceso que anunciar.
               */}
-              {actual.entity === 'transaction' && actual.hoja && (
-                <p className="mb-[18px] text-micro text-muted-foreground">
-                  {labels.cuenta.aviso.replace('{hoja}', actual.hoja)}
-                </p>
-              )}
+              {(actual.opciones ?? []).some((o) => o.aplica === 'entidad' && o.disponible) &&
+                actual.hoja && (
+                  <p className="mb-[18px] text-micro text-muted-foreground">
+                    {labels.cuenta.aviso.replace('{hoja}', actual.hoja)}
+                  </p>
+                )}
 
               {/* RUBRO: sigue siendo texto libre, con el aire que pide el archivo. */}
               <div className="mb-5 flex flex-col gap-1.5">

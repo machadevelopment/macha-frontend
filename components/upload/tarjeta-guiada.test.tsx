@@ -383,38 +383,160 @@ describe('la tarjeta dice dónde vive el concepto', () => {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════════════════
- * LAS DOS CUENTAS, EN LA MISMA LISTA (reporte de Jose, 2026-09-01)
+ * TODAS LAS OPCIONES, SIEMPRE, CON SUS PANTALLAS (reporte de Jose, 2026-09-01/02)
  * ═══════════════════════════════════════════════════════════════════════════════════════════
  *
  * *"No solo los campos del dashboard, sino los campos de analítica… si el campo va a cuentas
- * por pagar, no lo estamos registrando."*
+ * por pagar, no lo estamos registrando."* — y la segunda vuelta: *"solo añadiste dos, debería
+ * ser bueno mostrar absolutamente todas las que tenemos en Macha… que se muestren todas
+ * siempre de una manera bonita y ordenada."*
  *
- * Las cuatro opciones eran los `type` del estado de resultados. Ahora la lista también ofrece
- * las dos CUENTAS: seis donde había cuatro.
+ * Dos reglas se fijan acá:
  *
- * ⚠️ No son un `type` más — elegirlas REPROCESA la hoja, porque cambiar la entidad exige releer
- * el archivo (el payload de una transacción no guarda contraparte ni vencimiento). Van por
- * `corregir-hoja` y no por el POST de conceptos, y eso es lo que estos tests fijan.
+ *  1. La lista tiene SIEMPRE seis opciones. Lo que no se puede elegir se APAGA con su motivo,
+ *     nunca desaparece — una lista que cambia de largo no se puede aprender, y eso es lo que
+ *     el dueño reportó ("veo que añadí estas pero solo a veces, aquí no por ejemplo").
+ *  2. Cada opción muestra a qué pantallas llega. Es lo que convierte la pregunta en una
+ *     decisión informada en vez de una adivinanza sobre el dashboard.
+ *
+ * ⚠️ Las dos de cuenta no son un `type` más — elegirlas REPROCESA la hoja, porque cambiar la
+ * entidad exige releer el archivo (el payload de una transacción no guarda contraparte ni
+ * vencimiento). Van por `corregir-hoja` y no por el POST de conceptos.
  */
-describe('la lista ofrece también las dos cuentas', () => {
-  const deUnaHoja = [
+describe('la lista completa de opciones', () => {
+  /**
+   * Lo que manda el backend hoy. Se escribe explícito y no se deriva de un helper local: es un
+   * FIXTURE DE CONTRATO — el cálculo vive en `destinos-de-la-fila.ts` del otro repo, y
+   * reimplementarlo acá sería medir código distinto del que corre en producción.
+   */
+  const seisOpciones = (
+    over: {
+      entity?: 'transaction' | 'invoice' | 'bill';
+      hoja?: string | null;
+    } = {},
+  ) => {
+    const entity = over.entity ?? 'transaction';
+    const hoja = over.hoja === undefined ? 'Ventas' : over.hoja;
+    const propias = (t: string) => {
+      const d: string[] = [];
+      if (entity === 'invoice') d.push('porCobrar');
+      if (entity === 'bill') d.push('porPagar');
+      if (t === 'revenue') d.push('ingresos', 'flujo');
+      if (t === 'cogs' || t === 'opex') d.push('costos', 'flujo');
+      if (t === 'other') d.push('sinPantalla');
+      return d;
+    };
+    const motivoDe = (k: 'invoice' | 'bill') =>
+      entity === k ? 'yaEsAsi' : hoja === null ? 'variasHojas' : undefined;
+    return [
+      ...(['revenue', 'cogs', 'opex', 'other'] as const).map((clave) => ({
+        clave,
+        aplica: 'tipo',
+        destinos: propias(clave),
+        disponible: true,
+      })),
+      ...(['invoice', 'bill'] as const).map((clave) => {
+        const motivo = motivoDe(clave);
+        return {
+          clave,
+          aplica: 'entidad',
+          destinos:
+            clave === 'invoice'
+              ? ['porCobrar', 'ingresos', 'flujo']
+              : ['porPagar', 'costos', 'flujo'],
+          disponible: motivo === undefined,
+          ...(motivo ? { motivo } : {}),
+        };
+      }),
+    ];
+  };
+
+  const concepto = (
+    over: {
+      entity?: 'transaction' | 'invoice' | 'bill';
+      hoja?: string | null;
+    } = {},
+  ) => [
     {
       concepto: 'cropa',
       ejemplo: 'Cropa',
       filas: 4,
       montos: [{ currency: 'GTQ', total: 15973.2 }],
-      entity: 'transaction',
-      hoja: 'Ventas',
+      entity: over.entity ?? 'transaction',
+      hoja: over.hoja === undefined ? 'Ventas' : over.hoja,
+      opciones: seisOpciones(over),
     },
   ];
 
-  test('un MOVIMIENTO de una sola hoja ve SEIS opciones, no cuatro', async () => {
-    montar(deUnaHoja);
+  const radios = () =>
+    Array.from(
+      screen
+        .getByRole('radiogroup', { name: labels.typeLabel })
+        .querySelectorAll<HTMLButtonElement>('[role="radio"]'),
+    );
+
+  test('SIEMPRE son seis, pase lo que pase con la fila', async () => {
+    /*
+     * Antes eran cuatro o seis según la fila, y eso es lo que el dueño reportó. Los tres casos
+     * que antes daban cuatro tienen que dar seis ahora.
+     */
+    for (const caso of [
+      {},
+      { hoja: null as string | null },
+      { entity: 'bill' as const },
+      { entity: 'invoice' as const, hoja: null as string | null },
+    ]) {
+      montar(concepto(caso));
+      await screen.findByText('Cropa');
+      expect(radios().length).toBe(6);
+      cleanup();
+    }
+  });
+
+  test('lo que no se puede elegir se APAGA con su motivo, no desaparece', async () => {
+    // Sale de varias hojas: el reproceso tocaría las dos, así que las cuentas no se ofrecen…
+    montar(concepto({ hoja: null }));
     await screen.findByText('Cropa');
-    const grupo = screen.getByRole('radiogroup', { name: labels.typeLabel });
-    expect(grupo.querySelectorAll('[role="radio"]').length).toBe(6);
+    const apagados = radios().filter((b) => b.disabled);
+    expect(apagados.length).toBe(2);
+    // …pero se siguen viendo, y con la razón a la vista.
     expect(screen.getByText(labels.cuenta.invoice)).toBeTruthy();
-    expect(screen.getByText(labels.cuenta.bill)).toBeTruthy();
+    expect(screen.getAllByText(labels.motivo.variasHojas).length).toBe(2);
+  });
+
+  test('un concepto que YA es una cuenta lo dice en la suya, no en la otra', async () => {
+    montar(concepto({ entity: 'bill' }));
+    await screen.findByText('Cropa');
+    expect(screen.getByText(labels.motivo.yaEsAsi)).toBeTruthy();
+    // La otra cuenta sigue siendo elegible: la hoja es una sola.
+    expect(radios().filter((b) => b.disabled).length).toBe(1);
+  });
+
+  test('cada opción muestra A QUÉ PANTALLAS llega', async () => {
+    /*
+     * El pedido original. Sin esto, "un ingreso" y "una factura por cobrar" se ven igual de
+     * consecuentes, y el dueño no tiene cómo saber que la segunda además mueve Por cobrar.
+     */
+    montar(concepto());
+    await screen.findByText('Cropa');
+    const ingreso = radios()[0]!;
+    expect(ingreso.textContent).toContain(labels.destino.ingresos);
+    expect(ingreso.textContent).toContain(labels.destino.flujo);
+
+    const porCobrar = radios()[4]!;
+    expect(porCobrar.textContent).toContain(labels.destino.porCobrar);
+    expect(porCobrar.textContent).toContain(labels.destino.ingresos);
+  });
+
+  test('⚠️ `other` avisa que NO suma en ninguna pantalla', async () => {
+    /*
+     * Es lo único de la lista que hay que corregir: `rollups.ts` suma revenue/cogs/opex, así
+     * que esa fila se guarda y no aparece en ninguna cifra. Callarlo deja al dueño
+     * descubriéndolo por un total que no cuadra.
+     */
+    montar(concepto());
+    await screen.findByText('Cropa');
+    expect(radios()[3]!.textContent).toContain(labels.destino.sinPantalla);
   });
 
   test('elegirlas va por `corregir-hoja` con el destino, NO por el POST de conceptos', async () => {
@@ -423,7 +545,7 @@ describe('la lista ofrece también las dos cuentas', () => {
      * vencimiento y el aging la pondría entera en "corriente" (medido: GTQ 6.250 en `current`
      * para una hoja sin esa columna).
      */
-    montar(deUnaHoja);
+    montar(concepto());
     await screen.findByText('Cropa');
     fireEvent.click(screen.getByText(labels.cuenta.bill));
 
@@ -434,23 +556,23 @@ describe('la lista ofrece también las dos cuentas', () => {
     expect(pedidos.some((p) => /\/conceptos$/.test(p.url))).toBe(false);
   });
 
-  test('un concepto que sale de VARIAS hojas no las ofrece', async () => {
-    /*
-     * `hoja: null` es la señal del backend de que el concepto abarca más de una. Cambiar la
-     * entidad reprocesa la hoja ENTERA, así que ofrecerlo ahí tocaría dos hojas completas — que
-     * no es lo que el cliente está pidiendo al contestar un concepto.
-     */
-    montar([{ ...deUnaHoja[0]!, hoja: null }]);
+  test('una opción APAGADA no dispara nada', async () => {
+    montar(concepto({ hoja: null }));
     await screen.findByText('Cropa');
-    const grupo = screen.getByRole('radiogroup', { name: labels.typeLabel });
-    expect(grupo.querySelectorAll('[role="radio"]').length).toBe(4);
+    fireEvent.click(screen.getByText(labels.cuenta.bill));
+    expect(pedidos.some((p) => p.url.includes('corregir-hoja'))).toBe(false);
   });
 
-  test('un concepto que YA es una cuenta tampoco las ofrece', async () => {
-    // No hay nada que cambiar: ya vive donde corresponde.
-    montar([{ ...deUnaHoja[0]!, entity: 'bill' }]);
+  /**
+   * ⚠️ RESPALDO POR DEPLOY NO ATÓMICO. Este componente vive en Vercel y el endpoint en Railway,
+   * con deploys independientes. Mientras el backend viejo siga sin mandar `opciones`, la
+   * tarjeta cae a las cuatro de siempre en vez de quedarse SIN NINGUNA y volverse
+   * incontestable. Es la misma tolerancia que `montos` documenta habiendo reventado el panel
+   * entero una vez.
+   */
+  test('sin `opciones` del backend, caen las cuatro de siempre', async () => {
+    montar([{ ...concepto()[0]!, opciones: undefined }]);
     await screen.findByText('Cropa');
-    const grupo = screen.getByRole('radiogroup', { name: labels.typeLabel });
-    expect(grupo.querySelectorAll('[role="radio"]').length).toBe(4);
+    expect(radios().length).toBe(4);
   });
 });

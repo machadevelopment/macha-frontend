@@ -297,7 +297,7 @@ let corregido: {
   hoja: string;
   forzar?: boolean;
   columnas?: Record<string, number>;
-  destino?: 'transaction' | 'invoice' | 'bill';
+  destino?: 'transaction' | 'invoice' | 'bill' | 'inventario';
 } | null = null;
 
 function conBackend0043() {
@@ -632,5 +632,32 @@ describe('el dueño corrige dónde se registra una hoja', () => {
      * `sheet_overrides.destino`. Otro valor sería un 200 que no hace nada.
      */
     expect(corregido).toEqual({ hoja: 'Ventas', destino: 'invoice' });
+  });
+
+  test('⚠️ y "mi inventario", que es un CAMINO y no una tabla del ledger', async () => {
+    /*
+     * Es la cuarta opción, y la que cierra el hueco que el backend tiene medido: un inventario
+     * SERIALIZADO al que ninguna otra hoja hace referencia —vehículos por VIN, joyas por
+     * certificado— no lo para ningún filtro y llega al modelo, que con criterio lo lee como
+     * costo de ventas. Q 1.864.500 de egreso que nadie desembolsó, en el archivo donde se midió.
+     *
+     * Va por el MISMO endpoint que las otras tres porque la pregunta que contesta el dueño es
+     * la misma —"¿dónde se registra esta hoja?"— y el mecanismo también: reprocesar. Lo que
+     * cambia del otro lado es que esa hoja no va al modelo.
+     */
+    conBackend0043();
+    pintar();
+    await screen.findByText('Ventas');
+    const fila = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(fila.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
+    await screen.findByText(es.upload.confirmacion.destinoTitulo);
+
+    fireEvent.click(screen.getByText(es.upload.confirmacion.destinoOpcion.inventario));
+    await waitFor(() => expect(corregido).not.toBeNull());
+    expect(corregido).toEqual({ hoja: 'Ventas', destino: 'inventario' });
   });
 });

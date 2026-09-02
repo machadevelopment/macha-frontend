@@ -71,8 +71,18 @@ const TIPOS = ['revenue', 'cogs', 'opex', 'other'] as const;
  * `TIPOS` responde "qué es" (los rubros del estado de resultados) y esto responde "dónde vive"
  * (la tabla del ledger). Una factura emitida es a la vez un ingreso y una cuenta por cobrar, así
  * que las dos preguntas se contestan por separado o se pierde la mitad de la respuesta.
+ *
+ * ⚠️ `inventario` NO es una tabla del ledger y se ofrece acá igual (2026-09-02). La pregunta que
+ * contesta el dueño es la misma —"¿dónde se registra esta hoja?"— y el mecanismo también:
+ * reprocesar. Lo que cambia es que esa hoja no va al modelo, va a `inventory-import`.
+ *
+ * Además de completar la lista de pantallas que pidió Jose (*"no solo los campos del dashboard,
+ * sino los de analítica y los de inventario"*), es la única salida al hueco que el backend tiene
+ * medido: un inventario SERIALIZADO al que ninguna otra hoja hace referencia —vehículos por VIN,
+ * joyas por certificado— no lo para nada y entra como COSTO. Q 1.864.500 de egreso que nadie
+ * desembolsó, en el archivo donde se midió.
  */
-const DESTINOS = ['transaction', 'invoice', 'bill'] as const;
+const DESTINOS = ['transaction', 'invoice', 'bill', 'inventario'] as const;
 
 /**
  * Con qué tipo entró la hoja: el que más filas produjo.
@@ -213,7 +223,7 @@ export function ConfirmacionDeCarga({
       cambio: {
         forzar?: boolean;
         columnas?: Record<string, number>;
-        destino?: 'transaction' | 'invoice' | 'bill';
+        destino?: 'transaction' | 'invoice' | 'bill' | 'inventario';
       },
     ) => {
       setReprocesando(hoja);
@@ -598,7 +608,18 @@ export function ConfirmacionDeCarga({
                             dónde está viviendo la hoja hoy.
                           */
                           const dom = tipoDominante(detalle[h.nombre]);
-                          const actual = dom === 'invoice' || dom === 'bill' ? dom : 'transaction';
+                          /*
+                            `estado === 'inventario'` gana a cualquier tipo: esa hoja no produjo
+                            movimientos, así que no tiene tipo dominante que mirar — y sin esto
+                            una hoja que YA está en el inventario se pintaría como "movimiento",
+                            invitando al dueño a corregir lo que está bien.
+                          */
+                          const actual =
+                            h.estado === 'inventario'
+                              ? 'inventario'
+                              : dom === 'invoice' || dom === 'bill'
+                                ? dom
+                                : 'transaction';
                           return (
                             <button
                               key={d}

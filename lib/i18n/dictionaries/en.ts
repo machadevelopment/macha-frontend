@@ -752,9 +752,11 @@ export const en: Dictionary = {
       destino: {
         ingresos: 'Revenue',
         costos: 'Costs and expenses',
+        flujo: 'Cash flow',
         porCobrar: 'Receivables',
         porPagar: 'Payables',
         productos: 'Sales by product',
+        tiendas: 'Sales by store',
         inventario: 'Inventory',
         sinPantalla: 'No figure — it is stored but does not add up in any report',
       },
@@ -773,11 +775,13 @@ export const en: Dictionary = {
         transaction: 'A movement in the period',
         invoice: 'A receivable',
         bill: 'A payable',
+        inventario: 'My inventory',
       },
       destinoDesc: {
         transaction: 'Goes to the dashboard and cash flow',
         invoice: 'Someone owes you: goes to Receivables',
         bill: 'You owe someone: goes to Payables',
+        inventario: 'This is stock on hand, not an expense',
       },
       sinMuestra: 'No rows to show from this sheet yet.',
       siCuenta: 'Yes, this sheet should count',
@@ -809,6 +813,22 @@ export const en: Dictionary = {
         bill: 'This is also a payable: it will show up in Payables',
         siEstaMal:
           'If that is wrong, change it above under "Where does it belong?" for that sheet.',
+      },
+      destino: {
+        ingresos: 'Revenue',
+        costos: 'Costs and expenses',
+        flujo: 'Cash flow',
+        porCobrar: 'Receivables',
+        porPagar: 'Payables',
+        productos: 'Sales by product',
+        tiendas: 'Sales by store',
+        inventario: 'Inventory',
+        sinPantalla: 'Does not add up on any screen',
+      },
+      vaA: 'Shows up in',
+      motivo: {
+        yaEsAsi: 'Already here',
+        variasHojas: 'Comes from several sheets',
       },
       cuenta: {
         invoice: 'A receivable',

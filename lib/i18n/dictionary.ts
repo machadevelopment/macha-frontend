@@ -1,5 +1,32 @@
 import type { PeriodKey } from '@/lib/period';
 
+/**
+ * Las pantallas a las que puede llegar una fila, con el nombre que el cliente lee en el menú.
+ *
+ * ⚠️ Vive UNA sola vez y la usan los dos lugares que hacen la misma promesa: el resumen de
+ * lectura (a dónde FUE cada hoja) y la tarjeta de conceptos (a dónde VA a ir cada respuesta).
+ * Con dos copias, el portón podría decir "esto va a Por pagar" y la tarjeta no — y el cliente
+ * dejaría de creerle a las dos. El backend tiene la misma regla en `destinos-de-la-fila.ts`.
+ */
+export interface EtiquetasDeDestino {
+  ingresos: string;
+  costos: string;
+  /** Analítica → Flujo de caja: la serie mensual que alimenta todo lo que suma en el estado. */
+  flujo: string;
+  porCobrar: string;
+  porPagar: string;
+  productos: string;
+  /** El desglose por tienda, dentro de Ventas por producto. */
+  tiendas: string;
+  inventario: string;
+  /**
+   * ⚠️ `other` entra al ledger y NO lo suma ninguna pantalla. Se dice, no se omite: es
+   * lo que le permite al dueño corregirlo ANTES de publicar en vez de descubrirlo por
+   * una cifra que no cuadra.
+   */
+  sinPantalla: string;
+}
+
 export interface Dictionary {
   common: {
     signIn: string;
@@ -689,20 +716,7 @@ export interface Dictionary {
         cantidad: string;
         tienda: string;
       };
-      destino: {
-        ingresos: string;
-        costos: string;
-        porCobrar: string;
-        porPagar: string;
-        productos: string;
-        inventario: string;
-        /**
-         * ⚠️ `other` entra al ledger y NO lo suma ninguna pantalla. Se dice, no se omite: es
-         * lo que le permite al dueño corregirlo ANTES de publicar en vez de descubrirlo por
-         * una cifra que no cuadra.
-         */
-        sinPantalla: string;
-      };
+      destino: EtiquetasDeDestino;
       /**
        * El panel expandido de una hoja (pedido de Keneth, 2026-09-01).
        *
@@ -752,12 +766,22 @@ export interface Dictionary {
         transaction: string;
         invoice: string;
         bill: string;
+        /**
+         * ⚠️ No es una tabla del ledger: esa hoja no va al modelo, va a `inventory-import`.
+         * Cierra el hueco medido del inventario serializado que entra como gasto.
+         */
+        inventario: string;
       };
       /** Descripciones cortas de cada opción, como en "qué es". */
       destinoDesc: {
         transaction: string;
         invoice: string;
         bill: string;
+        /**
+         * ⚠️ No es una tabla del ledger: esa hoja no va al modelo, va a `inventory-import`.
+         * Cierra el hueco medido del inventario serializado que entra como gasto.
+         */
+        inventario: string;
       };
       sinMuestra: string;
       /**
@@ -841,6 +865,41 @@ export interface Dictionary {
         bill: string;
         /** Adónde ir si está mal. El cambio es por hoja, no por concepto. */
         siEstaMal: string;
+      };
+      /**
+       * ═══════════════════════════════════════════════════════════════════════════════════
+       * TODAS LAS PANTALLAS, SIEMPRE (reporte de Jose, 2026-09-02)
+       * ═══════════════════════════════════════════════════════════════════════════════════
+       *
+       * *"Solo añadiste dos, debería ser bueno mostrar absolutamente todas las que tenemos en
+       * Macha. En Analítica tenemos ingresos, flujo de caja, costos, por cobrar y por pagar.
+       * Luego ventas por producto, y luego inventario… que se muestren todas siempre de una
+       * manera bonita y ordenada."*
+       *
+       * Cada opción de la lista dice a qué pantallas va a llegar el concepto si el cliente la
+       * elige. Los nombres son los MISMOS del resumen de lectura (`EtiquetasDeDestino`): si el
+       * portón llamara a una pantalla de una forma y esta tarjeta de otra, el cliente tendría
+       * que adivinar que hablan de lo mismo.
+       *
+       * ⚠️ Qué destinos lleva cada opción NO se decide acá: viene resuelto del backend, que es
+       * el único que sabe a dónde va a parar una fila. Esto son solo los nombres.
+       */
+      destino: EtiquetasDeDestino;
+      /** Encabeza los chips de pantallas dentro de cada opción. */
+      vaA: string;
+      /**
+       * Por qué una opción está apagada.
+       *
+       * ⚠️ Se APAGA, nunca se esconde. Que una opción aparezca o no según la fila fue lo que
+       * el dueño reportó como inconsistente ("veo que añadí estas pero solo a veces, aquí no
+       * por ejemplo"), y el problema es más profundo que la estética: una lista que cambia de
+       * largo no se puede aprender — el cliente no llega a saber qué puede contestar.
+       */
+      motivo: {
+        /** El concepto ya es esa cuenta: no hay nada que cambiar. */
+        yaEsAsi: string;
+        /** Sus filas salen de varias hojas y el reproceso es por hoja. */
+        variasHojas: string;
       };
       /**
        * ═══════════════════════════════════════════════════════════════════════════════════
