@@ -1186,6 +1186,61 @@ Conventions & gotchas:
     ejemplo**. Eso es una afirmación sobre toda la hoja calculada con las primeras 400 filas del
     DOCUMENTO — en un archivo grande la última hoja no aportaba ni un tipo y la pantalla decía
     "entró como ingreso" sin haberla mirado. Ahora es una consulta agregada.
+- **TODAS LAS PANTALLAS, SIEMPRE, Y EL DUEÑO PUEDE MANDAR UNA HOJA AL INVENTARIO** (2026-09-02,
+  segunda vuelta del mismo reporte). *"Solo añadiste dos, debería ser bueno mostrar
+  absolutamente todas las que tenemos en Macha. En Analítica tenemos ingresos, flujo de caja,
+  costos, por cobrar y por pagar. Luego ventas por producto, y luego inventario… que se muestren
+  todas siempre de una manera bonita y ordenada."*
+  - **Faltaban dos pantallas en el mapa**: `flujo` (Analítica → Flujo de caja) y `tiendas`
+    (el desglose por tienda dentro de Ventas por producto), las dos entradas propias del menú.
+    `flujo` se agrega exactamente cuando la fila suma en el estado de resultados —es la misma
+    serie mensual de `monthly_rollups`— y `tiendas` solo sobre ingresos, igual que `productos`:
+    un gasto con sucursal contaría ahí como si esa tienda hubiera vendido lo que gastó.
+  - **La lista de OPCIONES se calcula en el backend** (`opcionesParaConcepto`) y viaja resuelta
+    al frontend: qué se puede contestar, a qué pantallas llega cada respuesta, cuál no se puede
+    elegir y por qué. Escribirla en el componente sería la copia número dos del mapa de
+    destinos, en el único lugar donde una divergencia se le muestra al cliente como una promesa
+    sobre su plata.
+  - **SIEMPRE son seis y lo que no se puede elegir se APAGA con su motivo**, nunca desaparece.
+    Que las dos de cuenta aparecieran "solo a veces" es lo que el dueño reportó como
+    inconsistente (*"veo que añadí estas pero solo a veces, aquí no por ejemplo"*), y el
+    problema es más profundo que la estética: **una lista que cambia de largo no se puede
+    aprender** — el cliente no llega a saber qué puede contestar. `yaEsAsi` gana a
+    `variasHojas`: un concepto que ya está donde debe no necesita que le expliquen un
+    impedimento que no le importa.
+  - ⚠️ **EL RUBRO SALE DE LA DERIVACIÓN REAL, NO DEL `type` DE LA FILA**, y se corrigió
+    **viendo la promesa falsa en producción** minutos después de desplegar los chips: para un
+    concepto que ya es cuenta por pagar, "Un ingreso" mostraba `Por pagar · Ingresos · Flujo de
+    caja`. Es falso. `rollups.ts` suma solo de `transactions`, así que una factura aparece en el
+    estado únicamente si `construirFilas` derivó su transacción — y esa derivación tiene reglas
+    propias y DISTINTAS por entidad: una `bill` deriva su costo **solo** con `cogs`/`opex` (con
+    `revenue` entra a Por pagar y no suma en ninguna cifra), y una `invoice` deriva su ingreso
+    con `type: 'revenue'` **fijo**, sin mirar el tipo del modelo. Los chips existen para que el
+    dueño decida informado; uno que miente es peor que no ponerlo. Ninguno de los tests que ya
+    había cubría `bill + revenue`.
+  - ⚠️ **`sinPantalla` solo cuando de verdad no queda NINGUNA**, y con el tipo ya decidido. Una
+    `bill` con `revenue` tampoco suma en el estado pero SÍ está en Por pagar — decir "no aparece
+    en ningún lado" sería la misma mentira del otro lado. Y con `type` en `null` la fila está
+    sin clasificar: falta su respuesta, no su pantalla.
+  - **DESTINO `inventario` POR HOJA, y cierra un hueco MEDIDO.** Cuarta opción de "¿Dónde se
+    registra?". No es una entidad del ledger sino **otro camino**: el worker la desvía arriba de
+    los cinco filtros y va a `inventory-import` sin pagar un token. Es la salida al hueco que
+    este archivo ya tenía escrito y sin cerrar —*"un inventario serializado que ninguna otra
+    hoja referencia entra como GASTO… Q 1.864.500 de egreso que nadie desembolsó"*—: la nota
+    decía que el arreglo no es aflojar el esquema del libro (hay contraejemplo en un test que ya
+    existe), y esta es la otra salida y es mejor, porque no es una heurística más — **lo afirma
+    el dueño**, que sabe qué hay en su bodega. Ninguna de las dos detecciones automáticas se
+    toca, así que no puede empeorar un archivo que hoy entra bien.
+  - ⚠️ **`mapearInventarioForzado` prefiere el camino FUNGIBLE cuando hay columna de cantidad.**
+    Al revés, una hoja de bodega con `SKU · Descripción · Existencia` tiene el SKU único por
+    fila, entraría como serializada —UNA unidad por SKU donde hay cuarenta— y el inventario del
+    cliente saldría en 1. La columna de serie sale de `columnasClave`, la MISMA con la que el
+    esquema del libro decide qué es un identificador: una segunda definición de "esto parece una
+    clave" se traduce en artículos inventados. Si no mapea se DICE y se descarta; mandarla de
+    vuelta al modelo reintroduciría el costo falso que el dueño está corrigiendo.
+  - Medido en el e2e nuevo, en dos tiempos: sin decir nada la hoja de stock entra como
+    GTQ 1.050.000 de costo con el inventario en cero; forzada, cero filas de staging y seis
+    artículos a una unidad cada uno, y resubirla no duplica ("0 altas, 6 sin cambio").
 - **Y LA MUESTRA ENSEÑA TODOS LOS CAMPOS, NO LOS DEL ESTADO DE RESULTADOS**
   (`lib/campos-de-la-fila.ts`, mismo reporte). *"Los campos realmente cabal son los campos que
   vos ya tenés en la base de datos, o sea que sólo con agregarlos ahí deberíamos estar check."*
