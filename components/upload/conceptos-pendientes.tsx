@@ -120,7 +120,7 @@ interface Concepto {
 
 /** Una respuesta posible, con el efecto que tiene. La calcula el backend. */
 type OpcionDeRespuesta = {
-  clave: TipoDeMovimiento | 'invoice' | 'bill';
+  clave: TipoDeMovimiento | DestinoDeHoja;
   /**
    * `tipo` se contesta con el POST de conceptos; `entidad` REPROCESA la hoja.
    *
@@ -135,6 +135,18 @@ type OpcionDeRespuesta = {
   disponible: boolean;
   motivo?: 'yaEsAsi' | 'variasHojas';
 };
+
+/**
+ * Los destinos que se corrigen REPROCESANDO la hoja.
+ *
+ * ⚠️ `inventario` no es una tabla del ledger como las otras dos: esa hoja no va al modelo, va a
+ * `inventory-import`. Se ofrece acá igual porque la pregunta que contesta el dueño es la misma
+ * —"esto no es un movimiento"— y el mecanismo también. Y porque si una hoja de existencias
+ * llegó hasta esta tarjeta, ACÁ es donde el dueño está mirando el VIN que no reconoce: hacerlo
+ * subir al portón a buscar la hoja es pedirle que resuelva en otra pantalla el problema que
+ * tiene delante.
+ */
+type DestinoDeHoja = 'invoice' | 'bill' | 'inventario';
 
 type DestinoDeFila =
   | 'ingresos'
@@ -286,7 +298,7 @@ export function ConceptosPendientes({
    * la hoja. El aviso de la pantalla lo nombra para que el cliente no se sorprenda.
    */
   const aCuenta = useCallback(
-    async (hoja: string, destino: 'invoice' | 'bill') => {
+    async (hoja: string, destino: DestinoDeHoja) => {
       setMoviendo(hoja);
       setError(false);
       const r = await request(`/api/documents/${documentId}/corregir-hoja`, {
@@ -590,10 +602,10 @@ export function ConceptosPendientes({
                     esTipo && (respuestas[actual.concepto]?.type ?? 'opex') === o.clave;
                   const titulo = esTipo
                     ? labels.type[o.clave as TipoDeMovimiento]
-                    : labels.cuenta[o.clave as 'invoice' | 'bill'];
+                    : labels.cuenta[o.clave as DestinoDeHoja];
                   const pie = esTipo
                     ? labels.typeHint[o.clave as TipoDeMovimiento]
-                    : labels.cuenta[o.clave === 'invoice' ? 'invoiceDesc' : 'billDesc'];
+                    : labels.cuentaHint[o.clave as DestinoDeHoja];
                   return (
                     <button
                       key={o.clave}
@@ -605,7 +617,7 @@ export function ConceptosPendientes({
                       onClick={() =>
                         esTipo
                           ? actualizar(actual.concepto, { type: o.clave as TipoDeMovimiento })
-                          : void aCuenta(actual.hoja!, o.clave as 'invoice' | 'bill')
+                          : void aCuenta(actual.hoja!, o.clave as DestinoDeHoja)
                       }
                       className={cn(
                         'rounded-xl border-[1.5px] p-4 text-left text-body font-semibold transition-colors',

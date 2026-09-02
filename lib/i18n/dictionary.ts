@@ -918,13 +918,28 @@ export interface Dictionary {
        * "corriente". Por eso llevan su propia advertencia y solo aparecen cuando el concepto
        * viene de UNA hoja.
        */
+      /**
+       * Las opciones que se corrigen REPROCESANDO la hoja: las dos cuentas y el inventario.
+       *
+       * ⚠️ `inventario` no es una tabla del ledger como las otras dos — esa hoja no va al
+       * modelo, va a `inventory-import`. Está acá porque la pregunta que contesta el dueño es
+       * la misma ("esto no es un movimiento") y el mecanismo también. Si una hoja de
+       * existencias llegó hasta esta tarjeta, ACÁ es donde el dueño está mirando el código que
+       * no reconoce: mandarlo al portón a buscar la hoja es pedirle que resuelva en otra
+       * pantalla el problema que tiene delante.
+       */
       cuenta: {
         invoice: string;
-        invoiceDesc: string;
         bill: string;
-        billDesc: string;
-        /** Lo que va a pasar al elegirlas. Lleva `{hoja}`. */
+        inventario: string;
+        /** Lo que va a pasar al elegirla. Lleva `{hoja}`. */
         aviso: string;
+      };
+      /** El pie de cada una de las tres. Separado de `cuenta` para poder indexarlo por clave. */
+      cuentaHint: {
+        invoice: string;
+        bill: string;
+        inventario: string;
       };
       cta: string;
       /** Sin `{n}`: se usa mientras no se sabe cuántos son (ver el componente). */

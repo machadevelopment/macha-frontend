@@ -895,11 +895,21 @@ export const es: Dictionary = {
       },
       cuenta: {
         invoice: 'Una cuenta por cobrar',
-        invoiceDesc: 'Alguien te debe: entra a Por cobrar',
         bill: 'Una cuenta por pagar',
-        billDesc: 'Le debes a alguien: entra a Por pagar',
-        aviso:
-          'Volvemos a leer la hoja «{hoja}» completa para sacar el cliente y el vencimiento de sus columnas.',
+        inventario: 'Mi inventario',
+        /*
+         * ⚠️ El aviso es GENÉRICO y eso se corrigió al sumar el inventario: decía "para sacar
+         * el cliente y el vencimiento de sus columnas", que es cierto de las dos cuentas y
+         * FALSO del inventario — una lista de existencias no tiene cliente ni vencimiento.
+         * Uno solo para las tres tiene que decir lo único que las tres comparten, o promete
+         * algo que no va a pasar. Lo específico ya lo lleva cada tarjeta en su pie.
+         */
+        aviso: 'Volvemos a leer la hoja «{hoja}» completa con esa corrección.',
+      },
+      cuentaHint: {
+        invoice: 'Alguien te debe: entra a Por cobrar',
+        bill: 'Le debes a alguien: entra a Por pagar',
+        inventario: 'No es un movimiento: es lo que tienes en existencia',
       },
       cta: 'Ayúdanos a clasificar {n} concepto(s)',
       ctaSinConteo: 'Ayúdanos a clasificar tus conceptos',

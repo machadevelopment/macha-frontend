@@ -832,11 +832,14 @@ export const en: Dictionary = {
       },
       cuenta: {
         invoice: 'A receivable',
-        invoiceDesc: 'Someone owes you: goes to Receivables',
         bill: 'A payable',
-        billDesc: 'You owe someone: goes to Payables',
-        aviso:
-          'We read the whole "{hoja}" sheet again to pull the customer and due date from their columns.',
+        inventario: 'My inventory',
+        aviso: 'We read the whole "{hoja}" sheet again with that correction.',
+      },
+      cuentaHint: {
+        invoice: 'Someone owes you: goes to Receivables',
+        bill: 'You owe someone: goes to Payables',
+        inventario: 'Not a movement: this is stock on hand',
       },
       cta: 'Help us classify {n} item(s)',
       ctaSinConteo: 'Help us classify your items',

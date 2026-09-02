@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { es } from '@/lib/i18n/dictionaries/es';
 
 /**
@@ -426,8 +426,9 @@ describe('la lista completa de opciones', () => {
       if (t === 'other') d.push('sinPantalla');
       return d;
     };
-    const motivoDe = (k: 'invoice' | 'bill') =>
-      entity === k ? 'yaEsAsi' : hoja === null ? 'variasHojas' : undefined;
+    const motivoDe = (k: 'invoice' | 'bill' | 'inventario') =>
+      // `inventario` nunca es `yaEsAsi`: una hoja ya en inventario no produce filas de staging.
+      entity === (k as string) ? 'yaEsAsi' : hoja === null ? 'variasHojas' : undefined;
     return [
       ...(['revenue', 'cogs', 'opex', 'other'] as const).map((clave) => ({
         clave,
@@ -435,7 +436,7 @@ describe('la lista completa de opciones', () => {
         destinos: propias(clave),
         disponible: true,
       })),
-      ...(['invoice', 'bill'] as const).map((clave) => {
+      ...(['invoice', 'bill', 'inventario'] as const).map((clave) => {
         const motivo = motivoDe(clave);
         return {
           clave,
@@ -443,7 +444,10 @@ describe('la lista completa de opciones', () => {
           destinos:
             clave === 'invoice'
               ? ['porCobrar', 'ingresos', 'flujo']
-              : ['porPagar', 'costos', 'flujo'],
+              : clave === 'bill'
+                ? ['porPagar', 'costos', 'flujo']
+                : // El inventario no pasa por el ledger: su único destino es su pantalla.
+                  ['inventario'],
           disponible: motivo === undefined,
           ...(motivo ? { motivo } : {}),
         };
@@ -488,7 +492,7 @@ describe('la lista completa de opciones', () => {
     ]) {
       montar(concepto(caso));
       await screen.findByText('Cropa');
-      expect(radios().length).toBe(6);
+      expect(radios().length).toBe(7);
       cleanup();
     }
   });
@@ -498,17 +502,17 @@ describe('la lista completa de opciones', () => {
     montar(concepto({ hoja: null }));
     await screen.findByText('Cropa');
     const apagados = radios().filter((b) => b.disabled);
-    expect(apagados.length).toBe(2);
+    expect(apagados.length).toBe(3);
     // …pero se siguen viendo, y con la razón a la vista.
     expect(screen.getByText(labels.cuenta.invoice)).toBeTruthy();
-    expect(screen.getAllByText(labels.motivo.variasHojas).length).toBe(2);
+    expect(screen.getAllByText(labels.motivo.variasHojas).length).toBe(3);
   });
 
   test('un concepto que YA es una cuenta lo dice en la suya, no en la otra', async () => {
     montar(concepto({ entity: 'bill' }));
     await screen.findByText('Cropa');
     expect(screen.getByText(labels.motivo.yaEsAsi)).toBeTruthy();
-    // La otra cuenta sigue siendo elegible: la hoja es una sola.
+    // Las otras dos siguen siendo elegibles: la hoja es una sola.
     expect(radios().filter((b) => b.disabled).length).toBe(1);
   });
 
@@ -554,6 +558,34 @@ describe('la lista completa de opciones', () => {
     expect(JSON.parse(String(llamada!.init?.body))).toEqual({ hoja: 'Ventas', destino: 'bill' });
     // Y NO se mandó por el otro camino, que produciría el dato malo.
     expect(pedidos.some((p) => /\/conceptos$/.test(p.url))).toBe(false);
+  });
+
+  test('⚠️ «mi inventario» también se ofrece acá, no solo en el portón', async () => {
+    /*
+     * Es el reporte de Keneth del 2026-09-02, mirando esta tarjeta: *"pero inventario no
+     * aparece acá"*. El portón ofrecía cuatro destinos y esta tarjeta seis SIN inventario, así
+     * que la lista de "dónde puede ir mi data" era distinta según dónde mirara el dueño — la
+     * misma inconsistencia que motivó todo esto, movida de sitio.
+     *
+     * Y hay un caso real: si una hoja de existencias llegó hasta acá, el dueño está mirando un
+     * VIN que no reconoce. Hacerlo subir al portón a buscar la hoja es pedirle que resuelva en
+     * otra pantalla el problema que tiene delante.
+     */
+    montar(concepto());
+    await screen.findByText('Cropa');
+    const inv = radios().find((b) => b.textContent?.includes(labels.cuenta.inventario))!;
+    expect(inv).toBeTruthy();
+    // Y promete SOLO su pantalla: esa hoja no pasa por el ledger.
+    expect(inv.textContent).toContain(labels.destino.inventario);
+    expect(inv.textContent).not.toContain(labels.destino.costos);
+
+    fireEvent.click(inv);
+    await waitFor(() => expect(pedidos.some((p) => p.url.includes('corregir-hoja'))).toBe(true));
+    const llamada = pedidos.find((p) => p.url.includes('corregir-hoja'))!;
+    expect(JSON.parse(String(llamada.init?.body))).toEqual({
+      hoja: 'Ventas',
+      destino: 'inventario',
+    });
   });
 
   test('una opción APAGADA no dispara nada', async () => {
