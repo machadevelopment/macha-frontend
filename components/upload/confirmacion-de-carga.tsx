@@ -85,6 +85,15 @@ interface FilaDeMuestra {
   moneda: string | null;
   tipo: string;
   categoria: string | null;
+  /**
+   * TODOS los campos que la fila trae, no los del estado de resultados (reporte de Jose:
+   * *"no solo los campos del dashboard, sino los campos de analítica y los campos de
+   * inventario"*). El que más faltaba es `vencimiento`, que decide el tramo de antigüedad de
+   * Por cobrar y Por pagar y no se enseñaba en absoluto.
+   *
+   * Opcional: las cargas anteriores al 2026-09-01 no lo traen y ahí se pinta la línea vieja.
+   */
+  campos?: { clave: string; valor: string }[];
 }
 
 type Destino =
@@ -442,20 +451,46 @@ export function ConfirmacionDeCarga({
                       {(detalle[h.nombre]?.muestra ?? []).length === 0 ? (
                         <p className="mb-4 text-micro text-muted-foreground">{labels.sinMuestra}</p>
                       ) : (
-                        <ul className="mb-4 flex flex-col gap-1">
+                        <ul className="mb-4 flex flex-col gap-2">
                           {(detalle[h.nombre]?.muestra ?? []).map((f, i) => (
-                            <li
-                              key={i}
-                              className="flex flex-wrap items-baseline gap-x-3 font-mono text-micro tabular-nums"
-                            >
-                              <span className="text-muted-foreground">{f.fecha ?? '—'}</span>
-                              <span className="font-sans text-foreground">{f.concepto ?? '—'}</span>
-                              <span className="text-foreground">
-                                {f.monto !== null && f.moneda
-                                  ? dinero(f.monto, f.moneda, locale)
-                                  : '—'}
-                              </span>
-                              <span className="text-muted-foreground">{f.categoria ?? f.tipo}</span>
+                            <li key={i} className="border-l-2 border-border pl-2.5">
+                              {/*
+                                EL MONTO Y EL RUBRO ARRIBA, los demás campos debajo con su
+                                nombre. Antes era una sola línea de cuatro valores sueltos: el
+                                dueño tenía que adivinar cuál era cuál, y los campos que
+                                mandan en las OTRAS pantallas —el vencimiento sobre todo— no
+                                estaban. Ver `lib/campos-de-la-fila.ts` en el backend.
+                              */}
+                              <div className="flex flex-wrap items-baseline gap-x-3 font-mono text-micro tabular-nums">
+                                <span className="font-semibold text-foreground">
+                                  {f.monto !== null && f.moneda
+                                    ? dinero(f.monto, f.moneda, locale)
+                                    : '—'}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {f.categoria ?? f.tipo}
+                                </span>
+                              </div>
+                              {(f.campos ?? []).length > 0 ? (
+                                <dl className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                                  {(f.campos ?? []).map((c) => (
+                                    <div key={c.clave} className="flex items-baseline gap-1">
+                                      <dt className="text-micro text-faint">
+                                        {labels.campo[c.clave as keyof typeof labels.campo] ??
+                                          c.clave}
+                                      </dt>
+                                      <dd className="font-mono text-micro tabular-nums text-foreground">
+                                        {c.valor}
+                                      </dd>
+                                    </div>
+                                  ))}
+                                </dl>
+                              ) : (
+                                /* Cargas anteriores al 2026-09-01: no traen `campos`. */
+                                <p className="mt-0.5 font-mono text-micro text-muted-foreground">
+                                  {f.fecha ?? '—'} · {f.concepto ?? '—'}
+                                </p>
+                              )}
                             </li>
                           ))}
                         </ul>

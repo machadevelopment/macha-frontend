@@ -801,6 +801,17 @@ export const es: Dictionary = {
       inventario: 'Actualizó tu inventario',
       excluir: 'Esta no debería contar',
       destinosTitulo: 'A dónde llega esta hoja',
+      campo: {
+        fecha: 'Fecha',
+        emision: 'Emisión',
+        vencimiento: 'Vence',
+        contraparte: 'Cliente o proveedor',
+        descripcion: 'Descripción',
+        producto: 'Producto',
+        categoriaProducto: 'Categoría del producto',
+        cantidad: 'Cantidad',
+        tienda: 'Tienda',
+      },
       destino: {
         ingresos: 'Ingresos',
         costos: 'Costos y gastos',

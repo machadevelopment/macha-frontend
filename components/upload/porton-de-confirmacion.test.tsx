@@ -471,3 +471,99 @@ describe('el portón dice a qué pantallas llega cada hoja', () => {
     expect(chip.className).toContain('warning');
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LOS CAMPOS DE TODAS LAS PANTALLAS (reporte de Jose, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"No solo los campos del dashboard, sino los campos de analítica y los campos de
+ * inventario."* La muestra pintaba seis campos elegidos a mano —los del estado de resultados—
+ * y el pipeline extrae once.
+ */
+describe('la muestra enseña los campos de las otras pantallas', () => {
+  const conCampos = (campos: { clave: string; valor: string }[]) => {
+    globalThis.fetch = (async () =>
+      Response.json({
+        ...RESUMEN_0043,
+        detalle: {
+          Ventas: {
+            tipos: { revenue: 8 },
+            destinos: ['ingresos'],
+            muestra: [
+              {
+                fecha: null,
+                concepto: null,
+                monto: 1290,
+                moneda: 'USD',
+                tipo: 'invoice',
+                categoria: 'facturacion',
+                campos,
+              },
+            ],
+          },
+        },
+      })) as unknown as typeof fetch;
+  };
+
+  const abrirVentas = async () => {
+    pintar();
+    await screen.findByText('Ventas');
+    const fila = screen.getByText('Ventas').closest('li')!;
+    fireEvent.click(
+      Array.from(fila.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes(es.upload.confirmacion.verDetalle),
+      )!,
+    );
+  };
+
+  test('⚠️ una cuenta por cobrar enseña su VENCIMIENTO con nombre', async () => {
+    /*
+     * Es el campo que decide el tramo de antigüedad de Por cobrar y Por pagar, o sea cómo se ve
+     * esa pantalla entera. Un vencimiento mal leído manda la cartera al tramo equivocado **sin
+     * cambiar un solo total**, así que ni el cuadre ni el dueño lo veían.
+     */
+    conCampos([
+      { clave: 'emision', valor: '2026-01-07' },
+      { clave: 'vencimiento', valor: '2026-02-06' },
+      { clave: 'contraparte', valor: 'Cliente 2' },
+    ]);
+    await abrirVentas();
+    await screen.findByText(es.upload.confirmacion.primerasFilas);
+
+    // Con su nombre en el idioma del dueño, no con la clave del esquema.
+    expect(screen.getByText(es.upload.confirmacion.campo.vencimiento)).toBeTruthy();
+    expect(screen.getByText('2026-02-06')).toBeTruthy();
+    expect(screen.getByText(es.upload.confirmacion.campo.contraparte)).toBeTruthy();
+  });
+
+  test('una carga vieja SIN `campos` sigue mostrando su línea, no una vacía', async () => {
+    /*
+     * Degrada, no rompe: un documento de antes del cambio no trae el campo nuevo y su panel
+     * tiene que seguir sirviendo — es el mismo criterio que el `?doc=` que ya no existe.
+     */
+    globalThis.fetch = (async () =>
+      Response.json({
+        ...RESUMEN_0043,
+        detalle: {
+          Ventas: {
+            tipos: { revenue: 8 },
+            destinos: ['ingresos'],
+            muestra: [
+              {
+                fecha: '2026-01-08',
+                concepto: 'Cliente 1',
+                monto: 1240.5,
+                moneda: 'GTQ',
+                tipo: 'revenue',
+                categoria: 'ventas',
+              },
+            ],
+          },
+        },
+      })) as unknown as typeof fetch;
+    await abrirVentas();
+    await screen.findByText(es.upload.confirmacion.primerasFilas);
+    expect(screen.getByText(/2026-01-08.*Cliente 1/)).toBeTruthy();
+  });
+});

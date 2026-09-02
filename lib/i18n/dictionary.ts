@@ -663,6 +663,32 @@ export interface Dictionary {
        * mirar la pantalla que le nombramos.
        */
       destinosTitulo: string;
+      /**
+       * ═══ LOS CAMPOS DE TODAS LAS PANTALLAS, NO SOLO LOS DEL DASHBOARD ═══
+       *
+       * Reporte de Jose: *"no solo los campos del dashboard, sino los campos de analítica y
+       * los campos de inventario"*. La muestra pintaba seis campos elegidos a mano —los del
+       * estado de resultados— y el pipeline extrae once.
+       *
+       * El que más faltaba es `vencimiento`: decide el TRAMO DE ANTIGÜEDAD de Por cobrar y Por
+       * pagar, o sea cómo se ve esa pantalla entera, y no se enseñaba en absoluto. Un
+       * vencimiento mal leído manda la cartera al tramo equivocado **sin cambiar un solo
+       * total**, así que ni el cuadre ni el dueño lo veían.
+       *
+       * Nombres del CLIENTE, no del esquema: `counterparty` no significa nada para quien lleva
+       * la contabilidad de una cafetería, y esta pantalla existe para que él nos desmienta.
+       */
+      campo: {
+        fecha: string;
+        emision: string;
+        vencimiento: string;
+        contraparte: string;
+        descripcion: string;
+        producto: string;
+        categoriaProducto: string;
+        cantidad: string;
+        tienda: string;
+      };
       destino: {
         ingresos: string;
         costos: string;

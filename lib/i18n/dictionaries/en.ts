@@ -738,6 +738,17 @@ export const en: Dictionary = {
       inventario: 'Updated your inventory',
       excluir: "This one shouldn't count",
       destinosTitulo: 'Where this sheet lands',
+      campo: {
+        fecha: 'Date',
+        emision: 'Issued',
+        vencimiento: 'Due',
+        contraparte: 'Customer or supplier',
+        descripcion: 'Description',
+        producto: 'Product',
+        categoriaProducto: 'Product category',
+        cantidad: 'Quantity',
+        tienda: 'Store',
+      },
       destino: {
         ingresos: 'Revenue',
         costos: 'Costs and expenses',
