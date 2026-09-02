@@ -821,6 +821,27 @@ export interface Dictionary {
       pendiente: string;
     };
     conceptos: {
+      /**
+       * ═══ DÓNDE VIVE ESTE CONCEPTO, ADEMÁS DEL DASHBOARD (reporte de Jose, 2026-09-01) ═══
+       *
+       * *"Si ponemos solo los del dashboard y el campo va a cuentas por pagar, no lo estamos
+       * registrando."*
+       *
+       * Las cuatro opciones que el cliente contesta son los `type` del ESTADO DE RESULTADOS,
+       * así que una fila que es una CUENTA POR PAGAR se le presentaba igual que una venta de
+       * mostrador: contestaba "es un costo" sin que nada le dijera que además le debe a alguien
+       * y que ese concepto va a aparecer en Por pagar.
+       *
+       * Acá solo se DICE. Corregirlo exige releer el archivo (el payload de una transacción no
+       * guarda contraparte ni vencimiento) y eso se hace por HOJA, en el panel del portón — el
+       * texto lo nombra para que el cliente sepa dónde ir.
+       */
+      vive: {
+        invoice: string;
+        bill: string;
+        /** Adónde ir si está mal. El cambio es por hoja, no por concepto. */
+        siEstaMal: string;
+      };
       cta: string;
       /** Sin `{n}`: se usa mientras no se sabe cuántos son (ver el componente). */
       ctaSinConteo: string;

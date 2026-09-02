@@ -804,6 +804,12 @@ export const en: Dictionary = {
       pendiente: 'This upload is waiting for your confirmation.',
     },
     conceptos: {
+      vive: {
+        invoice: 'This is also a receivable: it will show up in Receivables',
+        bill: 'This is also a payable: it will show up in Payables',
+        siEstaMal:
+          'If that is wrong, change it above under "Where does it belong?" for that sheet.',
+      },
       cta: 'Help us classify {n} item(s)',
       ctaSinConteo: 'Help us classify your items',
       title: 'Only you know what this is',

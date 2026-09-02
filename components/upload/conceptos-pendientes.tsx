@@ -68,6 +68,26 @@ interface Concepto {
    * caso común— se ve igual que un total.
    */
   montos: { currency: string; total: number }[];
+  /**
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   * DÓNDE VIVE ESTE CONCEPTO, ADEMÁS DEL DASHBOARD (reporte de Jose, 2026-09-01)
+   * ═══════════════════════════════════════════════════════════════════════════════════════
+   *
+   * *"Si ponemos solo los del dashboard y el campo va a cuentas por pagar, no lo estamos
+   * registrando."*
+   *
+   * El backend manda este campo desde el principio y **el componente no lo leía**. Las cuatro
+   * opciones que el cliente ve son los `type` del ESTADO DE RESULTADOS, así que una fila que es
+   * una CUENTA POR PAGAR se le presentaba igual que una venta de mostrador: contestaba "es un
+   * costo" sin que nada le dijera que además le está debiendo a alguien y que ese concepto va a
+   * aparecer en Por pagar.
+   *
+   * Acá solo se MUESTRA. Corregirlo exige releer el archivo —el payload de una `transaction` no
+   * guarda `counterparty` ni `dueDate`— y eso se hace por HOJA, en el panel del portón. Ofrecer
+   * cambiarlo desde acá prometería algo que no se puede hacer bien: la factura nacería sin
+   * contraparte ni vencimiento, y el aging la mandaría entera a "corriente".
+   */
+  entity?: 'transaction' | 'invoice' | 'bill';
 }
 
 type TipoDeMovimiento = 'revenue' | 'cogs' | 'opex' | 'other';
@@ -362,6 +382,30 @@ export function ConceptosPendientes({
                     .replace('{n}', formatNumber(actual.filas, locale))
                     .replace('{monto}', montosLegibles(actual.montos, locale))}
                 </p>
+                {/*
+                  ⚠️ DÓNDE VIVE ESTE CONCEPTO, ADEMÁS DEL DASHBOARD (reporte de Jose, 2026-09-01).
+
+                  "Si ponemos solo los del dashboard y el campo va a cuentas por pagar, no lo
+                  estamos registrando."
+
+                  Las cuatro opciones de abajo son los `type` del ESTADO DE RESULTADOS. El
+                  backend manda `entity` desde el principio y este componente NO LO LEÍA, así
+                  que una fila que es una CUENTA POR PAGAR se presentaba igual que una venta de
+                  mostrador: el cliente contestaba "es un costo" sin que nada le dijera que
+                  además le debe a alguien y que ese concepto va a salir en Por pagar.
+
+                  Solo se DICE, no se ofrece cambiar: corregir la entidad exige releer el
+                  archivo —el payload de una transacción no guarda contraparte ni vencimiento— y
+                  eso se hace por HOJA. Ofrecerlo acá prometería algo que no se puede hacer
+                  bien: la factura nacería sin vencimiento y el aging la mandaría entera a
+                  "corriente". El texto nombra dónde ir.
+                */}
+                {(actual.entity === 'invoice' || actual.entity === 'bill') && (
+                  <p className="mt-2 border-t border-brand-bd pt-2 text-micro text-brand-ink">
+                    {labels.vive[actual.entity]}{' '}
+                    <span className="opacity-70">{labels.vive.siEstaMal}</span>
+                  </p>
+                )}
               </div>
 
               {/*

@@ -868,6 +868,11 @@ export const es: Dictionary = {
       pendiente: 'Esta carga está esperando tu confirmación.',
     },
     conceptos: {
+      vive: {
+        invoice: 'Esto además es una cuenta por cobrar: va a aparecer en Por cobrar',
+        bill: 'Esto además es una cuenta por pagar: va a aparecer en Por pagar',
+        siEstaMal: 'Si no es así, cámbialo arriba en «¿Dónde se registra?» de esa hoja.',
+      },
       cta: 'Ayúdanos a clasificar {n} concepto(s)',
       ctaSinConteo: 'Ayúdanos a clasificar tus conceptos',
       /*

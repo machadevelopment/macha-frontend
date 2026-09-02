@@ -52,11 +52,11 @@ const fetchPrevio = globalThis.fetch;
  * llamarían al fetch que dejó otro archivo. Es un modo de fallo que solo aparece con la suite
  * entera, nunca corriendo este archivo solo.
  */
-const ponerFetch = () => {
+const ponerFetch = (conceptos: unknown[] = CONCEPTOS) => {
   globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
     const u = String(typeof url === 'object' && 'url' in url ? url.url : url);
     pedidos.push({ url: u, init });
-    if (u.includes('conceptos-pendientes')) return Response.json({ conceptos: CONCEPTOS });
+    if (u.includes('conceptos-pendientes')) return Response.json({ conceptos });
     return Response.json({ filasResueltas: 6 });
   }) as unknown as typeof fetch;
 };
@@ -65,9 +65,13 @@ const { ConceptosPendientes } = await import('./conceptos-pendientes');
 
 const labels = es.upload.conceptos;
 
-function montar() {
+/**
+ * @param conceptos Conceptos propios de un test. Por defecto los dos del archivo, para no tocar
+ *   los tests que ya existían — sus casos dependen de que haya exactamente dos.
+ */
+function montar(conceptos: unknown[] = CONCEPTOS) {
   pedidos.length = 0;
-  ponerFetch();
+  ponerFetch(conceptos);
   return render(
     <ConceptosPendientes
       documentId="doc-1"
@@ -305,5 +309,74 @@ describe('siempre se puede volver al concepto anterior', () => {
     expect((screen.getByLabelText(labels.categoryLabel) as HTMLInputElement).value).toBe(
       'transporte',
     );
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LA TARJETA DICE SI EL CONCEPTO ES UNA CUENTA POR COBRAR O PAGAR (reporte de Jose, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"Si ponemos solo los del dashboard y el campo va a cuentas por pagar, no lo estamos
+ * registrando."*
+ *
+ * Las cuatro opciones que el cliente contesta son los `type` del ESTADO DE RESULTADOS. El
+ * backend manda `entity` desde el principio y **este componente no lo leía**, así que una fila
+ * que es una CUENTA POR PAGAR se presentaba igual que una venta de mostrador: el cliente
+ * contestaba "es un costo" sin que nada le dijera que además le debe a alguien y que ese
+ * concepto va a salir en Por pagar.
+ */
+describe('la tarjeta dice dónde vive el concepto', () => {
+  const conEntidad = (entity: 'transaction' | 'invoice' | 'bill') => [
+    {
+      concepto: 'cropa',
+      ejemplo: 'Cropa',
+      filas: 4,
+      montos: [{ currency: 'GTQ', total: 15973.2 }],
+      entity,
+    },
+  ];
+  /** `entity` es lo único que cambia entre los casos, así que se espera por el nombre común. */
+  const listo = () => screen.findByText('Cropa');
+
+  test('una CUENTA POR PAGAR lo dice, y dice dónde corregirlo', async () => {
+    montar(conEntidad('bill'));
+    await listo();
+    /*
+     * Texto LITERAL y no `new RegExp(...)`: los textos llevan `¿?` y `«»`, y el `?` en un regex
+     * hace opcional el carácter anterior — el patrón deja de coincidir con lo que se pintó.
+     * `exact: false` porque el aviso comparte el `<p>` con la frase de dónde corregirlo.
+     */
+    expect(screen.getByText(labels.vive.bill, { exact: false })).toBeTruthy();
+    /*
+     * Y nombra dónde ir: el cambio es por HOJA porque exige releer el archivo. Sin esta parte,
+     * la pantalla informa un problema y no dice qué hacer con él.
+     */
+    expect(screen.getByText(labels.vive.siEstaMal)).toBeTruthy();
+  });
+
+  test('una CUENTA POR COBRAR lo dice con su propio texto', async () => {
+    montar(conEntidad('invoice'));
+    await listo();
+    expect(screen.getByText(labels.vive.invoice, { exact: false })).toBeTruthy();
+  });
+
+  test('un movimiento normal NO lleva el aviso', async () => {
+    /*
+     * Es el caso común: pintarlo siempre convertiría la señal en cromo y el cliente dejaría de
+     * leerla justo cuando importa.
+     */
+    montar(conEntidad('transaction'));
+    await listo();
+    expect(screen.queryByText(labels.vive.bill, { exact: false })).toBeNull();
+    expect(screen.queryByText(labels.vive.invoice, { exact: false })).toBeNull();
+    /*
+     * ⚠️ Y sobre todo el bloque NO se pinta. Afirmarlo con `siEstaMal` y no con los otros dos
+     * textos es lo que hace que el test sirva: esa frase no depende de la entidad, así que si
+     * la condición se rompiera y el bloque se pintara siempre, aparecería. Con los otros dos
+     * la mutación pasaba en VERDE, porque `labels.vive['transaction']` es `undefined` y no
+     * pinta nada — el test medía la ausencia de un texto que nunca podía existir.
+     */
+    expect(screen.queryByText(labels.vive.siEstaMal)).toBeNull();
   });
 });
