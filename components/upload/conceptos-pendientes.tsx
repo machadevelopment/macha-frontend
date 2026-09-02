@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, HelpCircle } from 'lucide-react';
 import { InsightPoint } from '@/components/ui/insight-point';
 import { cn } from '@/lib/cn';
@@ -88,6 +88,13 @@ interface Concepto {
    * contraparte ni vencimiento, y el aging la mandaría entera a "corriente".
    */
   entity?: 'transaction' | 'invoice' | 'bill';
+  /**
+   * La hoja de la que salen sus filas, o `null` si salen de VARIAS.
+   *
+   * Con `null` no se ofrecen las dos opciones de cuenta: cambiar la entidad reprocesa la hoja
+   * ENTERA, y con dos hojas tocaría las dos — que no es lo que el cliente está pidiendo.
+   */
+  hoja?: string | null;
 }
 
 type TipoDeMovimiento = 'revenue' | 'cogs' | 'opex' | 'other';
@@ -155,6 +162,16 @@ export function ConceptosPendientes({
   const [conceptos, setConceptos] = useState<Concepto[] | undefined>(undefined);
   const [respuestas, setRespuestas] = useState<Respuestas>({});
   const [guardando, setGuardando] = useState(false);
+  /**
+   * Qué hoja se está moviendo a cuenta por cobrar/pagar.
+   *
+   * Elegir una de las dos opciones de cuenta REPROCESA el archivo, así que no es un cambio
+   * local como elegir un tipo: hay que esperar al worker. Sin este estado el cliente aprieta,
+   * no pasa nada visible y vuelve a apretar — y el backend rechaza la segunda con un 409 (una
+   * corrección a la vez por carga), así que vería un error por insistir.
+   */
+  const [moviendo, setMoviendo] = useState<string | null>(null);
+
   const [error, setError] = useState(false);
   const [resueltas, setResueltas] = useState<number | null>(null);
   /**
@@ -168,11 +185,15 @@ export function ConceptosPendientes({
    */
   const [indice, setIndice] = useState(0);
 
-  async function alternar() {
-    const siguiente = !abierto;
-    setAbierto(siguiente);
-    if (!siguiente || conceptos !== undefined) return;
-
+  /**
+   * Pide la lista de conceptos.
+   *
+   * Se extrajo de `alternar` porque ahora tiene DOS llamadores: la apertura del panel y el
+   * regreso de "esto es una cuenta por cobrar/pagar", que reprocesa la hoja y por lo tanto
+   * cambia los conceptos que salían de ella. Con una copia por llamador, uno de los dos se
+   * quedaría con la lista vieja.
+   */
+  const cargar = useCallback(async () => {
     const r = await request<{ conceptos: Concepto[] }>(
       `/api/documents/${documentId}/conceptos-pendientes`,
     );
@@ -181,6 +202,60 @@ export function ConceptosPendientes({
       return;
     }
     setConceptos(r.data.conceptos);
+    /*
+     * Y se vuelve a la primera pregunta: tras el reproceso la lista es otra, así que un índice
+     * viejo apuntaría a un concepto que ya no está en esa posición.
+     */
+    setIndice(0);
+  }, [documentId]);
+
+  /**
+   * "Esto es una cuenta por cobrar/pagar" desde la lista de conceptos.
+   *
+   * ⚠️ Va por `corregir-hoja` y NO por el POST de conceptos, y esa es la diferencia que importa:
+   * cambiar la entidad exige releer el archivo —el payload de una `transaction` no guarda
+   * `counterparty` ni `dueDate`— así que es el mismo camino que el control por hoja del portón.
+   * Mandarlo por el POST de conceptos crearía una factura sin vencimiento y el aging la pondría
+   * entera en "corriente".
+   *
+   * Toca la hoja COMPLETA, no solo las filas de este concepto: la entidad es una propiedad de
+   * la hoja. El aviso de la pantalla lo nombra para que el cliente no se sorprenda.
+   */
+  const aCuenta = useCallback(
+    async (hoja: string, destino: 'invoice' | 'bill') => {
+      setMoviendo(hoja);
+      setError(false);
+      const r = await request(`/api/documents/${documentId}/corregir-hoja`, {
+        method: 'POST',
+        body: JSON.stringify({ hoja, destino }),
+      });
+      if (!r.ok) {
+        setMoviendo(null);
+        setError(true);
+        return;
+      }
+      /*
+       * Se recarga la lista cuando el worker termina: el reproceso cambia las filas de esa hoja,
+       * así que los conceptos que salían de ella ya no son los mismos. Tope de 60 sondeos de
+       * 2 s, y al agotarse se recarga igual — el cliente tiene que ver el estado REAL y no una
+       * promesa que no se cumplió.
+       */
+      for (let i = 0; i < 60; i++) {
+        await new Promise((x) => setTimeout(x, 2000));
+        const d = await request<{ status: string }>(`/api/documents/${documentId}/confirmacion`);
+        if (d.ok && d.data.status !== 'processing') break;
+      }
+      setMoviendo(null);
+      await cargar();
+    },
+    [documentId, cargar],
+  );
+
+  async function alternar() {
+    const siguiente = !abierto;
+    setAbierto(siguiente);
+    if (!siguiente || conceptos !== undefined) return;
+    await cargar();
   }
 
   /*
@@ -450,7 +525,59 @@ export function ConceptosPendientes({
                     </button>
                   );
                 })}
+
+                {/*
+                  ⚠️ LAS DOS CUENTAS, EN LA MISMA LISTA (reporte de Jose, 2026-09-01).
+
+                  "No solo los campos del dashboard, sino los campos de analítica… si el campo
+                  va a cuentas por pagar, no lo estamos registrando."
+
+                  Las cuatro de arriba son los `type` del estado de resultados. Estas dos son la
+                  otra dimensión —dónde vive la fila— y van acá porque es lo que el dueño pidió:
+                  la lista completa de lo que su archivo puede ser, en un solo lugar.
+
+                  ⚠️ NO son un `type` más: elegirlas REPROCESA la hoja. Cambiar la entidad exige
+                  releer el archivo, porque el payload de una transacción no guarda
+                  `counterparty` ni `dueDate` — y sin el vencimiento el aging manda la cartera
+                  entera a "corriente" (medido: GTQ 6.250 en `current` para una hoja sin esa
+                  columna). Por eso llevan su aviso y disparan otro camino.
+
+                  Solo se ofrecen cuando el concepto ya es un MOVIMIENTO —si ya es una cuenta, no
+                  hay nada que cambiar— y cuando viene de UNA hoja: con dos, el reproceso tocaría
+                  las dos enteras, que no es lo que el cliente está pidiendo.
+                */}
+                {actual.entity === 'transaction' &&
+                  actual.hoja &&
+                  (['invoice', 'bill'] as const).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      role="radio"
+                      aria-checked={false}
+                      disabled={moviendo !== null}
+                      onClick={() => void aCuenta(actual.hoja!, k)}
+                      className={cn(
+                        'rounded-xl border-[1.5px] border-dashed p-4 text-left text-body font-semibold transition-colors disabled:opacity-50',
+                        'border-border hover:border-brand-bd',
+                      )}
+                    >
+                      {labels.cuenta[k]}
+                      <span className="mt-0.5 block text-micro font-normal text-muted-foreground">
+                        {labels.cuenta[k === 'invoice' ? 'invoiceDesc' : 'billDesc']}
+                      </span>
+                    </button>
+                  ))}
               </div>
+
+              {/*
+                El aviso de que estas dos reprocesan. Va fuera del grupo y una sola vez: es la
+                misma consecuencia para las dos, y repetirlo en cada tarjeta las haría ilegibles.
+              */}
+              {actual.entity === 'transaction' && actual.hoja && (
+                <p className="mb-[18px] text-micro text-muted-foreground">
+                  {labels.cuenta.aviso.replace('{hoja}', actual.hoja)}
+                </p>
+              )}
 
               {/* RUBRO: sigue siendo texto libre, con el aire que pide el archivo. */}
               <div className="mb-5 flex flex-col gap-1.5">

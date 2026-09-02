@@ -380,3 +380,77 @@ describe('la tarjeta dice dónde vive el concepto', () => {
     expect(screen.queryByText(labels.vive.siEstaMal)).toBeNull();
   });
 });
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ * LAS DOS CUENTAS, EN LA MISMA LISTA (reporte de Jose, 2026-09-01)
+ * ═══════════════════════════════════════════════════════════════════════════════════════════
+ *
+ * *"No solo los campos del dashboard, sino los campos de analítica… si el campo va a cuentas
+ * por pagar, no lo estamos registrando."*
+ *
+ * Las cuatro opciones eran los `type` del estado de resultados. Ahora la lista también ofrece
+ * las dos CUENTAS: seis donde había cuatro.
+ *
+ * ⚠️ No son un `type` más — elegirlas REPROCESA la hoja, porque cambiar la entidad exige releer
+ * el archivo (el payload de una transacción no guarda contraparte ni vencimiento). Van por
+ * `corregir-hoja` y no por el POST de conceptos, y eso es lo que estos tests fijan.
+ */
+describe('la lista ofrece también las dos cuentas', () => {
+  const deUnaHoja = [
+    {
+      concepto: 'cropa',
+      ejemplo: 'Cropa',
+      filas: 4,
+      montos: [{ currency: 'GTQ', total: 15973.2 }],
+      entity: 'transaction',
+      hoja: 'Ventas',
+    },
+  ];
+
+  test('un MOVIMIENTO de una sola hoja ve SEIS opciones, no cuatro', async () => {
+    montar(deUnaHoja);
+    await screen.findByText('Cropa');
+    const grupo = screen.getByRole('radiogroup', { name: labels.typeLabel });
+    expect(grupo.querySelectorAll('[role="radio"]').length).toBe(6);
+    expect(screen.getByText(labels.cuenta.invoice)).toBeTruthy();
+    expect(screen.getByText(labels.cuenta.bill)).toBeTruthy();
+  });
+
+  test('elegirlas va por `corregir-hoja` con el destino, NO por el POST de conceptos', async () => {
+    /*
+     * La diferencia que importa: por el POST de conceptos la factura nacería sin contraparte ni
+     * vencimiento y el aging la pondría entera en "corriente" (medido: GTQ 6.250 en `current`
+     * para una hoja sin esa columna).
+     */
+    montar(deUnaHoja);
+    await screen.findByText('Cropa');
+    fireEvent.click(screen.getByText(labels.cuenta.bill));
+
+    const llamada = pedidos.find((p) => p.url.includes('corregir-hoja'));
+    expect(llamada).toBeTruthy();
+    expect(JSON.parse(String(llamada!.init?.body))).toEqual({ hoja: 'Ventas', destino: 'bill' });
+    // Y NO se mandó por el otro camino, que produciría el dato malo.
+    expect(pedidos.some((p) => /\/conceptos$/.test(p.url))).toBe(false);
+  });
+
+  test('un concepto que sale de VARIAS hojas no las ofrece', async () => {
+    /*
+     * `hoja: null` es la señal del backend de que el concepto abarca más de una. Cambiar la
+     * entidad reprocesa la hoja ENTERA, así que ofrecerlo ahí tocaría dos hojas completas — que
+     * no es lo que el cliente está pidiendo al contestar un concepto.
+     */
+    montar([{ ...deUnaHoja[0]!, hoja: null }]);
+    await screen.findByText('Cropa');
+    const grupo = screen.getByRole('radiogroup', { name: labels.typeLabel });
+    expect(grupo.querySelectorAll('[role="radio"]').length).toBe(4);
+  });
+
+  test('un concepto que YA es una cuenta tampoco las ofrece', async () => {
+    // No hay nada que cambiar: ya vive donde corresponde.
+    montar([{ ...deUnaHoja[0]!, entity: 'bill' }]);
+    await screen.findByText('Cropa');
+    const grupo = screen.getByRole('radiogroup', { name: labels.typeLabel });
+    expect(grupo.querySelectorAll('[role="radio"]').length).toBe(4);
+  });
+});

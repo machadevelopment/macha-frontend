@@ -842,6 +842,31 @@ export interface Dictionary {
         /** Adónde ir si está mal. El cambio es por hoja, no por concepto. */
         siEstaMal: string;
       };
+      /**
+       * ═══════════════════════════════════════════════════════════════════════════════════
+       * LAS DOS OPCIONES DE CUENTA, EN LA MISMA LISTA (reporte de Jose, 2026-09-01)
+       * ═══════════════════════════════════════════════════════════════════════════════════
+       *
+       * *"No solo los campos del dashboard, sino los campos de analítica… si el campo va a
+       * cuentas por pagar, no lo estamos registrando."*
+       *
+       * Las cuatro opciones eran los `type` del estado de resultados. Ahora la lista también
+       * ofrece las dos CUENTAS, que es lo que pidió: seis opciones donde había cuatro.
+       *
+       * ⚠️ Elegir una de estas NO es lo mismo que elegir un tipo: **reprocesa la hoja**. Cambiar
+       * la entidad exige releer el archivo, porque el payload de una `transaction` no guarda
+       * `counterparty` ni `dueDate` y sin el vencimiento el aging manda la cartera entera a
+       * "corriente". Por eso llevan su propia advertencia y solo aparecen cuando el concepto
+       * viene de UNA hoja.
+       */
+      cuenta: {
+        invoice: string;
+        invoiceDesc: string;
+        bill: string;
+        billDesc: string;
+        /** Lo que va a pasar al elegirlas. Lleva `{hoja}`. */
+        aviso: string;
+      };
       cta: string;
       /** Sin `{n}`: se usa mientras no se sabe cuántos son (ver el componente). */
       ctaSinConteo: string;

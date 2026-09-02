@@ -810,6 +810,14 @@ export const en: Dictionary = {
         siEstaMal:
           'If that is wrong, change it above under "Where does it belong?" for that sheet.',
       },
+      cuenta: {
+        invoice: 'A receivable',
+        invoiceDesc: 'Someone owes you: goes to Receivables',
+        bill: 'A payable',
+        billDesc: 'You owe someone: goes to Payables',
+        aviso:
+          'We read the whole "{hoja}" sheet again to pull the customer and due date from their columns.',
+      },
       cta: 'Help us classify {n} item(s)',
       ctaSinConteo: 'Help us classify your items',
       title: 'Only you know what this is',

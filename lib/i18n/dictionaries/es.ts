@@ -873,6 +873,14 @@ export const es: Dictionary = {
         bill: 'Esto además es una cuenta por pagar: va a aparecer en Por pagar',
         siEstaMal: 'Si no es así, cámbialo arriba en «¿Dónde se registra?» de esa hoja.',
       },
+      cuenta: {
+        invoice: 'Una cuenta por cobrar',
+        invoiceDesc: 'Alguien te debe: entra a Por cobrar',
+        bill: 'Una cuenta por pagar',
+        billDesc: 'Le debes a alguien: entra a Por pagar',
+        aviso:
+          'Volvemos a leer la hoja «{hoja}» completa para sacar el cliente y el vencimiento de sus columnas.',
+      },
       cta: 'Ayúdanos a clasificar {n} concepto(s)',
       ctaSinConteo: 'Ayúdanos a clasificar tus conceptos',
       /*

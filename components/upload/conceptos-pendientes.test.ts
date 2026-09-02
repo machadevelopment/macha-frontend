@@ -209,9 +209,21 @@ describe('la tarjeta guiada conserva lo que el panel ya garantizaba', () => {
      * llamadas, cuatro promociones encoladas y un cliente que ve el dashboard moverse a
      * pedazos. Se acumula en `respuestas` y se manda al final, como antes.
      */
-    expect(CODIGO).toContain("method: 'POST'");
-    expect(CODIGO.match(/method: 'POST'/g)).toHaveLength(1);
+    /*
+     * ⚠️ NO se cuentan los `method: 'POST'` del archivo, y antes sí: ese conteo se rompió el
+     * 2026-09-01 al agregar las dos opciones de cuenta, que van por `corregir-hoja` — un
+     * segundo POST legítimo que no tiene nada que ver con esta garantía. Un test que se pone
+     * rojo por código correcto enseña a editar el test, y la próxima vez se edita el que sí
+     * importaba.
+     *
+     * Lo que se afirma es la FORMA de la llamada de guardado: todas las respuestas juntas en un
+     * arreglo. Que sea UNA sola llamada lo mide la conducta, montando el componente
+     * (`tarjeta-guiada.test.tsx`: `pedidos.filter(p => p.init?.method === 'POST')`), que es
+     * donde se puede medir de verdad.
+     */
     expect(CODIGO).toContain('respuestas: listas.map');
+    // Y sigue mandándose al endpoint de conceptos, no a uno por pregunta.
+    expect(CODIGO).toContain('/conceptos`');
   });
 
   test('el botón principal sigue apagado sin rubro escrito EN ESTE concepto', () => {
